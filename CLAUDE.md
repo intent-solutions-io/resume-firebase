@@ -1,18 +1,10 @@
 # CLAUDE.md - Resume Generator Project
 
-## Document Filing Rules (HARD RULES)
+## Docs Folder Rule (STRICT)
 
-### 6767 Canonical Standards Storage
-- **All 6767 canonical docs MUST live in `000-docs/6767-a/`** (or `6767-b/`, `6767-c/` when overflow occurs)
-- **NEVER place 6767-*.md files directly in `000-docs/`** - always use the 6767-a/ subfolder
-- Overflow threshold: Create `6767-b/` when `6767-a/` exceeds 50 files
-
-### NNN Project Docs Storage
-- **All NNN project docs live at the top level of `000-docs/`**
-- **NEVER place NNN docs inside `6767-*` folders**
-
-### After Action Reviews (AARs)
-- After every phase of work, create an AAR in `000-docs/` following:
+- **Keep `000-docs/` strictly flat (no subfolders).**
+- Both NNN and 6767 files live directly in `000-docs/`.
+- After every phase, create an AAR in `000-docs/` as:
   `NNN-AA-AACR-phase-<n>-short-description.md`
 
 ---
@@ -23,7 +15,7 @@
 |---------------|----------|
 | NNN project docs (001-, 002-, etc.) | `000-docs/` |
 | NNN After Action Reviews | `000-docs/` (e.g., `010-AA-AACR-phase-1-review.md`) |
-| 6767 canonical standards | `000-docs/6767-a/` (then `6767-b/`, `6767-c/` as needed) |
+| 6767 canonical standards | `000-docs/` (same folder, flat) |
 
 ---
 
@@ -46,4 +38,4 @@ Example: `6767-DR-STND-document-filing-system-standard-v4.md`
 ---
 
 ## Reference
-See full standard: `000-docs/6767-a/6767-DR-STND-document-filing-system-standard-v4.md`
+See full standard: `000-docs/6767-DR-STND-document-filing-system-standard-v4.md`

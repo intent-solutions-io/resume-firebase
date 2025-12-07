@@ -1,8 +1,8 @@
-# DOCUMENT FILING SYSTEM STANDARD v4.1 (LLM/AI-ASSISTANT FRIENDLY)
+# DOCUMENT FILING SYSTEM STANDARD v4.2 (LLM/AI-ASSISTANT FRIENDLY)
 **Purpose:** Universal, deterministic naming + filing standard for project docs with canonical cross-repo "6767" standards series
 **Status:** ✅ Production Standard (v3-compatible, v4.0-compatible)
 **Last Updated:** 2025-12-07
-**Changelog:** v4.1 adds 6767-a/b/c folder convention (Section 3.1)
+**Changelog:** v4.2 enforces strict flat 000-docs (no subdirectories)
 **Applies To:** All projects in `/home/jeremy/000-projects/` and all canonical standards in the 6767 series
 
 ---
@@ -96,37 +96,32 @@ Use this rule of thumb:
 ---
 
 ## 3) CANONICAL STORAGE LOCATIONS (DEFAULTS)
-- **Project docs:** `<repo>/000-docs/` (or `<app>/01-Docs/` inside monorepos)
-- **6767 canonical docs:** stored in `000-docs/6767-a/` (see Section 3.1 below)
+- **Project docs:** `<repo>/000-docs/` (flat, no subdirectories)
+- **6767 canonical docs:** `<repo>/000-docs/` (same folder as NNN docs)
 
 ---
 
-## 3.1) 6767 CANONICAL STORAGE FOLDERS (6767-a, 6767-b, 6767-c…)
+## 3.1) 000-docs Flatness Rule (Strict)
 
-**Purpose:** Keep all 6767-series canonical standards grouped and organized within sequentially-lettered subfolders.
+**Purpose:** Keep all documentation in a single flat directory for simplicity and discoverability.
 
 **Rules:**
-1. **All files with names starting with `6767-` MUST be stored under `000-docs/6767-a/` by default.**
-2. **Overflow threshold:** If `6767-a/` exceeds **50 files**, begin placing new 6767 docs in `000-docs/6767-b/`.
-3. **Sequential expansion:** Continue with `6767-c/`, `6767-d/`, etc. as needed.
-4. **Never store NNN-series files inside any `6767-*` folder.**
-5. **Never store `6767-` files directly in the top level of `000-docs/`.**
+- `000-docs/` contains all docs (NNN and 6767) at one level.
+- **No subdirectories allowed under `000-docs/`.**
+- If assets are needed, store them adjacent to the doc file (same folder) and keep naming clear.
 
 **Folder Structure:**
 ```
 000-docs/
-├── 001-PP-PROD-mvp-requirements.md       # NNN project docs at root
+├── 001-PP-PROD-mvp-requirements.md       # NNN project docs
 ├── 002-AT-ADEC-architecture.md
 ├── 010-AA-AACR-phase-1-review.md
-├── 6767-a/                               # 6767 canonical docs (primary)
-│   ├── 6767-DR-STND-document-filing-system-standard-v4.md
-│   ├── 6767-DR-INDEX-standards-catalog.md
-│   └── 6767-RB-OPS-adk-operations-runbook.md
-├── 6767-b/                               # Overflow when 6767-a exceeds 50 files
-└── 6767-c/                               # Further overflow as needed
+├── 6767-DR-STND-document-filing-system-standard-v4.md   # 6767 canonical docs
+├── 6767-DR-INDEX-standards-catalog.md
+└── 6767-AA-TMPL-after-action-report-template.md
 ```
 
-**Migration Note (v4.1):** This folder convention was introduced to prevent canonical standards from cluttering the main `000-docs/` directory. Existing 6767-*.md files at the root of `000-docs/` should be moved into `6767-a/` without renaming.
+**Migration Note (v4.2):** The v4.1 folder convention (6767-a/b/c) has been removed. All docs now live flat in `000-docs/`. Move any files from subfolders up to `000-docs/` without renaming.
 
 ---
 
@@ -260,11 +255,11 @@ When creating or renaming a document:
 4) Create filename using the exact pattern rules.
 5) Keep description short and kebab-case.
 6) If a 6767 doc needs an internal ID for cross-ref, place it in the header only.
-7) **Place 6767 files in `000-docs/6767-a/`** (never at top level of `000-docs/`).
-8) **Place NNN files at top level of `000-docs/`** (never inside `6767-*` folders).
+7) **Place ALL docs (both NNN and 6767) directly in `000-docs/`** — no subdirectories.
+8) **After every phase, create an AAR:** `NNN-AA-AACR-phase-<n>-short-description.md`
 
 ---
 
-**DOCUMENT FILING SYSTEM STANDARD v4.1**
+**DOCUMENT FILING SYSTEM STANDARD v4.2**
 *Fully compatible with v3.0 and v4.0; optimized for AI assistants and deterministic naming.*
-*v4.1 introduces 6767-a/b/c folder convention for canonical standards organization.*
+*v4.2 enforces strict flat 000-docs (no subdirectories allowed).*
