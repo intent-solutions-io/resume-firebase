@@ -2,7 +2,7 @@ import { VertexAI, GenerativeModel } from '@google-cloud/vertexai';
 
 const PROJECT_ID = process.env.PROJECT_ID || 'resume-generator';
 const LOCATION = process.env.VERTEX_AI_LOCATION || 'us-central1';
-const MODEL = 'gemini-1.5-flash-002';
+const MODEL = 'gemini-2.0-flash';
 
 /**
  * Resume JSON Schema (federal_basic)
