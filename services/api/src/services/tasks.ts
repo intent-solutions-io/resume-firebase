@@ -1,4 +1,8 @@
 import { CloudTasksClient, protos } from '@google-cloud/tasks';
+import {
+  processCasePayloadSchema,
+  generateArtifactPayloadSchema,
+} from '@resume-generator/shared/schemas';
 
 const client = new CloudTasksClient();
 
@@ -14,8 +18,12 @@ class TasksService {
 
   /**
    * Enqueue a case processing task
+   * Validates payload against shared schema before enqueueing
    */
   async enqueueProcessing(caseId: string): Promise<string> {
+    // Validate payload against shared contract
+    const payload = processCasePayloadSchema.parse({ caseId });
+
     const queuePath = this.getQueuePath(PROCESSING_QUEUE);
 
     const task: protos.google.cloud.tasks.v2.ITask = {
@@ -25,7 +33,7 @@ class TasksService {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: Buffer.from(JSON.stringify({ caseId })).toString('base64'),
+        body: Buffer.from(JSON.stringify(payload)).toString('base64'),
         oidcToken: {
           serviceAccountEmail: process.env.WORKER_SERVICE_ACCOUNT,
           audience: WORKER_URL,
@@ -47,11 +55,15 @@ class TasksService {
 
   /**
    * Enqueue an artifact generation task
+   * Validates payload against shared schema before enqueueing
    */
   async enqueueArtifactGeneration(
     caseId: string,
     artifactType: string
   ): Promise<string> {
+    // Validate payload against shared contract
+    const payload = generateArtifactPayloadSchema.parse({ caseId, artifactType });
+
     const queuePath = this.getQueuePath('artifact-generation-dev');
 
     const task: protos.google.cloud.tasks.v2.ITask = {
@@ -61,9 +73,7 @@ class TasksService {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: Buffer.from(JSON.stringify({ caseId, artifactType })).toString(
-          'base64'
-        ),
+        body: Buffer.from(JSON.stringify(payload)).toString('base64'),
         oidcToken: {
           serviceAccountEmail: process.env.WORKER_SERVICE_ACCOUNT,
           audience: WORKER_URL,
