@@ -43,11 +43,92 @@ jobs:
             echo "environment=dev" >> $GITHUB_OUTPUT
           fi
 
+  # =============================================================================
+  # TEST SPINE - Contract validation tests (must pass before deploy)
+  # =============================================================================
+  test:
+    name: Test Spine
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install Shared Package
+        run: npm ci
+        working-directory: packages/shared
+
+      - name: Test Shared Package
+        id: test-shared
+        run: |
+          OUTPUT=$(npm test 2>&1)
+          echo "$OUTPUT"
+          # Extract test count from vitest output
+          TESTS=$(echo "$OUTPUT" | grep -oE '[0-9]+ passed' | head -1 | grep -oE '[0-9]+' || echo "0")
+          echo "shared_tests=$TESTS" >> $GITHUB_OUTPUT
+          if [ "$TESTS" -eq 0 ]; then
+            echo "ERROR: Shared package has 0 tests"
+            exit 1
+          fi
+          echo "Shared package: $TESTS tests passed"
+        working-directory: packages/shared
+
+      - name: Install API Service
+        run: npm ci
+        working-directory: services/api
+
+      - name: Test API Service
+        id: test-api
+        run: |
+          OUTPUT=$(npm test 2>&1)
+          echo "$OUTPUT"
+          TESTS=$(echo "$OUTPUT" | grep -oE '[0-9]+ passed' | head -1 | grep -oE '[0-9]+' || echo "0")
+          echo "api_tests=$TESTS" >> $GITHUB_OUTPUT
+          if [ "$TESTS" -eq 0 ]; then
+            echo "ERROR: API service has 0 tests"
+            exit 1
+          fi
+          echo "API service: $TESTS tests passed"
+        working-directory: services/api
+
+      - name: Install Worker Service
+        run: npm ci
+        working-directory: services/worker
+
+      - name: Test Worker Service
+        id: test-worker
+        run: |
+          OUTPUT=$(npm test 2>&1)
+          echo "$OUTPUT"
+          TESTS=$(echo "$OUTPUT" | grep -oE '[0-9]+ passed' | head -1 | grep -oE '[0-9]+' || echo "0")
+          echo "worker_tests=$TESTS" >> $GITHUB_OUTPUT
+          if [ "$TESTS" -eq 0 ]; then
+            echo "ERROR: Worker service has 0 tests"
+            exit 1
+          fi
+          echo "Worker service: $TESTS tests passed"
+        working-directory: services/worker
+
+      - name: Test Summary
+        run: |
+          echo "========================================"
+          echo "TEST SPINE PASSED"
+          echo "========================================"
+          echo "Shared package: ${{ steps.test-shared.outputs.shared_tests }} tests"
+          echo "API service: ${{ steps.test-api.outputs.api_tests }} tests"
+          echo "Worker service: ${{ steps.test-worker.outputs.worker_tests }} tests"
+          echo "========================================"
+
   # Terraform Apply
   terraform:
     name: Terraform Apply
     runs-on: ubuntu-latest
-    needs: setup
+    needs: [setup, test]
     environment: ${{ needs.setup.outputs.environment }}
     permissions:
       contents: read
