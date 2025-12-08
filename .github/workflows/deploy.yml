@@ -1,0 +1,329 @@
+# Deploy Workflow - Main Branch Deployments
+# Authenticates via Workload Identity Federation (WIF) - no service account keys
+
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - '000-docs/**'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy (only dev enabled)'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          # GUARDRAIL: prod disabled until explicitly enabled by Jeremy
+          # - prod
+
+env:
+  REGION: us-central1
+  TF_VERSION: '1.5.7'
+  NODE_VERSION: '20'
+
+jobs:
+  # Determine environment
+  setup:
+    name: Setup
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.env.outputs.environment }}
+    steps:
+      - name: Determine Environment
+        id: env
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "environment=${{ inputs.environment }}" >> $GITHUB_OUTPUT
+          else
+            echo "environment=dev" >> $GITHUB_OUTPUT
+          fi
+
+  # Terraform Apply
+  terraform:
+    name: Terraform Apply
+    runs-on: ubuntu-latest
+    needs: setup
+    environment: ${{ needs.setup.outputs.environment }}
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Authenticate to Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_CI_SA_EMAIL }}
+
+      - name: Terraform Init
+        run: terraform init
+        working-directory: infra/terraform/envs/${{ needs.setup.outputs.environment }}
+
+      - name: Terraform Plan
+        run: terraform plan -out=tfplan
+        working-directory: infra/terraform/envs/${{ needs.setup.outputs.environment }}
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve tfplan
+        working-directory: infra/terraform/envs/${{ needs.setup.outputs.environment }}
+
+  # Build and push container images
+  build-images:
+    name: Build Images
+    runs-on: ubuntu-latest
+    needs: [setup, terraform]
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_CI_SA_EMAIL }}
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and Push API Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: services/api/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/resume-generator/api:${{ github.sha }}
+            ${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/resume-generator/api:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and Push Worker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: services/worker/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/resume-generator/worker:${{ github.sha }}
+            ${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/resume-generator/worker:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # Deploy Cloud Run services
+  deploy-services:
+    name: Deploy Services
+    runs-on: ubuntu-latest
+    needs: [setup, build-images]
+    environment: ${{ needs.setup.outputs.environment }}
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_CI_SA_EMAIL }}
+
+      - name: Deploy API to Cloud Run
+        run: |
+          gcloud run services update resume-api-${{ needs.setup.outputs.environment }} \
+            --image=${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/resume-generator/api:${{ github.sha }} \
+            --region=${{ env.REGION }} \
+            --project=${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Deploy Worker to Cloud Run
+        run: |
+          gcloud run services update resume-worker-${{ needs.setup.outputs.environment }} \
+            --image=${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/resume-generator/worker:${{ github.sha }} \
+            --region=${{ env.REGION }} \
+            --project=${{ secrets.GCP_PROJECT_ID }}
+
+  # =============================================================================
+  # NO-SPRAWL CHECK - Verify resource count matches manifest
+  # =============================================================================
+  no-sprawl-check:
+    name: NO-SPRAWL CHECK
+    runs-on: ubuntu-latest
+    needs: [setup, deploy-services]
+    environment: ${{ needs.setup.outputs.environment }}
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Authenticate to Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_CI_SA_EMAIL }}
+
+      - name: Verify Cloud Run Services (expect exactly 2)
+        run: |
+          echo "=== NO-SPRAWL CHECK: Cloud Run Services ==="
+          SERVICES=$(gcloud run services list --region=${{ env.REGION }} --project=${{ secrets.GCP_PROJECT_ID }} --format="value(name)" | sort)
+          EXPECTED="resume-api-dev
+          resume-worker-dev"
+
+          echo "Found services:"
+          echo "$SERVICES"
+
+          COUNT=$(echo "$SERVICES" | wc -l)
+          if [ "$COUNT" -ne 2 ]; then
+            echo "ERROR: Expected 2 Cloud Run services, found $COUNT"
+            exit 1
+          fi
+
+          if [ "$SERVICES" != "$EXPECTED" ]; then
+            echo "ERROR: Service names don't match expected manifest"
+            echo "Expected: $EXPECTED"
+            echo "Found: $SERVICES"
+            exit 1
+          fi
+
+          echo "PASS: Cloud Run services match manifest"
+
+      - name: Verify Buckets (expect exactly 2 project buckets)
+        run: |
+          echo "=== NO-SPRAWL CHECK: Storage Buckets ==="
+          # Filter to only project-specific buckets (exclude tf-state, firebase, etc.)
+          BUCKETS=$(gsutil ls -p ${{ secrets.GCP_PROJECT_ID }} 2>/dev/null | grep -E "resume-gen-intent-dev-(raw-uploads|artifacts)-dev" | sort)
+          EXPECTED="gs://resume-gen-intent-dev-artifacts-dev/
+          gs://resume-gen-intent-dev-raw-uploads-dev/"
+
+          echo "Found project buckets:"
+          echo "$BUCKETS"
+
+          COUNT=$(echo "$BUCKETS" | grep -c "resume-gen-intent-dev" || true)
+          if [ "$COUNT" -ne 2 ]; then
+            echo "ERROR: Expected 2 data buckets, found $COUNT"
+            exit 1
+          fi
+
+          echo "PASS: Storage buckets match manifest"
+
+      - name: Verify Cloud Tasks Queues (expect exactly 2)
+        run: |
+          echo "=== NO-SPRAWL CHECK: Cloud Tasks Queues ==="
+          QUEUES=$(gcloud tasks queues list --location=${{ env.REGION }} --project=${{ secrets.GCP_PROJECT_ID }} --format="value(name)" | xargs -I{} basename {} | sort)
+          EXPECTED="artifact-generation-dev
+          resume-processing-dev"
+
+          echo "Found queues:"
+          echo "$QUEUES"
+
+          COUNT=$(echo "$QUEUES" | wc -l)
+          if [ "$COUNT" -ne 2 ]; then
+            echo "ERROR: Expected 2 Cloud Tasks queues, found $COUNT"
+            exit 1
+          fi
+
+          if [ "$QUEUES" != "$EXPECTED" ]; then
+            echo "ERROR: Queue names don't match expected manifest"
+            echo "Expected: $EXPECTED"
+            echo "Found: $QUEUES"
+            exit 1
+          fi
+
+          echo "PASS: Cloud Tasks queues match manifest"
+
+      - name: Summary
+        run: |
+          echo "========================================"
+          echo "NO-SPRAWL CHECK PASSED"
+          echo "========================================"
+          echo "Cloud Run services: 2 (resume-api-dev, resume-worker-dev)"
+          echo "Storage buckets: 2 (raw-uploads-dev, artifacts-dev)"
+          echo "Cloud Tasks queues: 2 (resume-processing-dev, artifact-generation-dev)"
+          echo "========================================"
+
+  # Deploy Firebase Hosting
+  deploy-frontend:
+    name: Deploy Frontend
+    runs-on: ubuntu-latest
+    needs: [setup, deploy-services, no-sprawl-check]
+    environment: ${{ needs.setup.outputs.environment }}
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Authenticate to Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_CI_SA_EMAIL }}
+
+      - name: Install Dependencies
+        run: npm ci
+        working-directory: frontend
+
+      - name: Build Frontend
+        run: npm run build
+        working-directory: frontend
+        env:
+          VITE_API_URL: ${{ needs.setup.outputs.environment == 'prod' && 'https://api.resume-generator.com' || 'https://api-dev.resume-generator.com' }}
+          VITE_ENVIRONMENT: ${{ needs.setup.outputs.environment }}
+
+      - name: Deploy to Firebase Hosting
+        run: |
+          npm install -g firebase-tools
+          firebase deploy --only hosting:${{ needs.setup.outputs.environment }} --project=${{ secrets.GCP_PROJECT_ID }}
+        working-directory: frontend
+
+  # Post-deployment verification
+  verify:
+    name: Verify Deployment
+    runs-on: ubuntu-latest
+    needs: [setup, deploy-frontend]
+    environment: ${{ needs.setup.outputs.environment }}
+
+    steps:
+      - name: Health Check - API
+        run: |
+          API_URL="${{ needs.setup.outputs.environment == 'prod' && 'https://api.resume-generator.com' || 'https://api-dev.resume-generator.com' }}"
+          curl -f "$API_URL/health" || exit 1
+
+      - name: Health Check - Frontend
+        run: |
+          FRONTEND_URL="${{ needs.setup.outputs.environment == 'prod' && 'https://resume-generator.com' || 'https://dev.resume-generator.com' }}"
+          curl -f "$FRONTEND_URL" || exit 1
