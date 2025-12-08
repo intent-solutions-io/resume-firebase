@@ -1,0 +1,8 @@
+# Prod Environment Variables
+# Copy to terraform.tfvars and fill in values
+
+project_id     = "resume-generator-prod"
+project_number = "123456789012"
+region         = "us-central1"
+github_org     = "intent-solutions-io"
+github_repo    = "resume-generator"

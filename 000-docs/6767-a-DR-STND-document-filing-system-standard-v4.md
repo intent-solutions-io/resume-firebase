@@ -56,10 +56,11 @@ NNN-CC-ABCD-short-description.ext
 
 **Pattern**
 
-6767-[TOPIC-]CC-ABCD-short-description.ext
+6767-{a|b|c|...}-[TOPIC-]CC-ABCD-short-description.ext
 
 **Fields**
 - `6767`: fixed canonical prefix (used ONCE)
+- `{a|b|c|...}`: **mandatory letter suffix** for chronological ordering (a, b, c, d, etc.)
 - `[TOPIC-]`: optional uppercase grouping prefix (examples: `INLINE`, `LAZY`, `SLKDEV`)
 - `CC`: same category codes as NNN series
 - `ABCD`: 4-letter type code (same master tables)
@@ -67,17 +68,18 @@ NNN-CC-ABCD-short-description.ext
 
 **Correct examples**
 
-6767-DR-STND-document-filing-system-standard-v4.md
-6767-DR-INDEX-standards-catalog.md
-6767-RB-OPS-adk-department-operations-runbook.md
-6767-INLINE-DR-STND-inline-source-deployment-for-vertex-agent-engine.md
+6767-a-DR-STND-document-filing-system-standard-v4.md
+6767-b-DR-INDEX-standards-catalog.md
+6767-c-RB-OPS-adk-department-operations-runbook.md
+6767-d-INLINE-DR-STND-inline-source-deployment-for-vertex-agent-engine.md
 
 **Incorrect (banned)**
 
-6767-000-DR-INDEX-standards-catalog.md
-6767-120-DR-STND-agent-engine-index.md
+6767-DR-STND-missing-letter-suffix.md          ❌ No letter suffix
+6767-000-DR-INDEX-standards-catalog.md          ❌ Numeric ID instead of letter
+6767-120-DR-STND-agent-engine-index.md          ❌ Numeric ID instead of letter
 
-**Reason:** No numeric IDs after `6767-` in filenames.
+**Reason:** All 6767 docs MUST have letter suffix (-a, -b, -c, etc.) for ordering. No numeric IDs allowed.
 
 ### 1.4 Document IDs vs Filenames (6767 only)
 - ✅ Allowed in document header/body: `Document ID: 6767-120`

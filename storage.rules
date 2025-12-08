@@ -1,0 +1,25 @@
+rules_version = '2';
+
+// Cloud Storage Security Rules for Resume Generator
+// All access via signed URLs from API - no direct client access
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Raw uploads - write via signed URL only
+    match /cases/{caseId}/raw/{allPaths=**} {
+      // No direct access - all uploads via signed URLs
+      allow read, write: if false;
+    }
+
+    // Artifacts - read via signed URL only
+    match /cases/{caseId}/artifacts/{allPaths=**} {
+      // No direct access - all downloads via signed URLs
+      allow read, write: if false;
+    }
+
+    // Deny all other access
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

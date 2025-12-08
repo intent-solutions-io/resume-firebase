@@ -7,6 +7,7 @@ import { tasksService } from '../services/tasks.js';
 import {
   createCaseSchema,
   requestUploadUrlsSchema,
+  reviewerUpdateSchema,
 } from '@resume-generator/shared/schemas';
 
 const router = Router();
@@ -176,6 +177,117 @@ router.get(
       );
 
       console.log(`Download URL generated for artifact: ${artifactId}`);
+
+      res.json({ downloadUrl });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// =============================================================================
+// REVIEWER CONSOLE ENDPOINTS (Human-in-the-Loop)
+// =============================================================================
+
+// GET /v1/cases/:caseId/review - Get full case review data
+router.get(
+  '/:caseId/review',
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { caseId } = req.params;
+
+      const reviewInfo = await firestoreService.getCaseReviewInfo(caseId);
+      if (!reviewInfo) {
+        res.status(404).json({ error: 'Case not found' });
+        return;
+      }
+
+      // Return review data (redact sensitive info)
+      res.json({
+        caseId: reviewInfo.case.id,
+        status: reviewInfo.case.status,
+        targetRole: reviewInfo.case.targetRole,
+        reviewStatus: reviewInfo.case.reviewStatus || 'unreviewed',
+        reviewedAt: reviewInfo.case.reviewedAt,
+        reviewerNotes: reviewInfo.case.reviewerNotes,
+        createdAt: reviewInfo.case.createdAt,
+        updatedAt: reviewInfo.case.updatedAt,
+        documents: reviewInfo.documents.map((d) => ({
+          id: d.id,
+          fileName: d.fileName,
+          status: d.status,
+          extractionStatus: d.extractionStatus,
+          extractedText: d.extractedText,
+          uploadedAt: d.uploadedAt,
+        })),
+        artifacts: reviewInfo.artifacts.map((a) => ({
+          id: a.id,
+          name: a.name,
+          fileName: a.fileName,
+          type: a.type,
+          size: a.size,
+          createdAt: a.createdAt,
+        })),
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// POST /v1/cases/:caseId/review - Update review status
+router.post(
+  '/:caseId/review',
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { caseId } = req.params;
+      const data = reviewerUpdateSchema.parse(req.body);
+
+      // Verify case exists
+      const caseDoc = await firestoreService.getCase(caseId);
+      if (!caseDoc) {
+        res.status(404).json({ error: 'Case not found' });
+        return;
+      }
+
+      // Update review status
+      await firestoreService.updateCaseReview(caseId, data.status, data.notes);
+
+      // Log event (no PII - truncate caseId)
+      console.log(`Review updated: ${caseId.substring(0, 8)}... -> ${data.status}`);
+
+      res.json({
+        caseId,
+        reviewStatus: data.status,
+        reviewedAt: new Date().toISOString(),
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// GET /v1/cases/:caseId/documents/:documentId/download - Get document download URL
+router.get(
+  '/:caseId/documents/:documentId/download',
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { caseId, documentId } = req.params;
+
+      // Verify document exists and belongs to case
+      const document = await firestoreService.getDocument(documentId);
+      if (!document || document.caseId !== caseId) {
+        res.status(404).json({ error: 'Document not found' });
+        return;
+      }
+
+      const downloadUrl = await storageService.generateDocumentDownloadUrl(
+        caseId,
+        documentId,
+        document.fileName
+      );
+
+      console.log(`Document download URL generated: ${documentId.substring(0, 8)}...`);
 
       res.json({ downloadUrl });
     } catch (error) {

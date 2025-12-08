@@ -9,6 +9,7 @@ import {
   requestUploadUrlsSchema,
   processCasePayloadSchema,
   generateArtifactPayloadSchema,
+  reviewerUpdateSchema,
 } from '@resume-generator/shared/schemas';
 
 describe('API Request Validation', () => {
@@ -169,6 +170,71 @@ describe('API Request Validation', () => {
           caseId: '550e8400-e29b-41d4-a716-446655440000',
         };
         expect(() => generateArtifactPayloadSchema.parse(invalidPayload)).toThrow();
+      });
+    });
+  });
+
+  describe('Reviewer Console Validation', () => {
+    describe('POST /v1/cases/:caseId/review - reviewerUpdateSchema', () => {
+      it('accepts valid review update with approved status', () => {
+        const validRequest = {
+          status: 'approved',
+        };
+        expect(() => reviewerUpdateSchema.parse(validRequest)).not.toThrow();
+      });
+
+      it('accepts valid review update with rejected status', () => {
+        const validRequest = {
+          status: 'rejected',
+          notes: 'Resume contains inaccurate information',
+        };
+        expect(() => reviewerUpdateSchema.parse(validRequest)).not.toThrow();
+      });
+
+      it('accepts valid review update with needs_fix status', () => {
+        const validRequest = {
+          status: 'needs_fix',
+          notes: 'Please verify employment dates',
+        };
+        expect(() => reviewerUpdateSchema.parse(validRequest)).not.toThrow();
+      });
+
+      it('accepts review update without notes', () => {
+        const validRequest = {
+          status: 'approved',
+        };
+        const result = reviewerUpdateSchema.parse(validRequest);
+        expect(result.notes).toBeUndefined();
+      });
+
+      it('rejects invalid review status', () => {
+        const invalidRequest = {
+          status: 'pending',
+        };
+        expect(() => reviewerUpdateSchema.parse(invalidRequest)).toThrow();
+      });
+
+      it('rejects missing status', () => {
+        const invalidRequest = {
+          notes: 'Some reviewer notes',
+        };
+        expect(() => reviewerUpdateSchema.parse(invalidRequest)).toThrow();
+      });
+
+      it('rejects notes exceeding max length', () => {
+        const invalidRequest = {
+          status: 'needs_fix',
+          notes: 'x'.repeat(2001),
+        };
+        expect(() => reviewerUpdateSchema.parse(invalidRequest)).toThrow();
+      });
+
+      it('accepts empty notes string', () => {
+        const validRequest = {
+          status: 'approved',
+          notes: '',
+        };
+        expect(() => reviewerUpdateSchema.parse(validRequest)).not.toThrow();
       });
     });
   });

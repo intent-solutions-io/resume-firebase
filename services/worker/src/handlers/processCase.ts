@@ -52,24 +52,51 @@ export async function processCaseHandler(
     });
 
     // Step 2: Extract text from all documents
+    // Note: Image files are marked as needs_ocr and don't block processing
     console.log(`Extracting text from ${documents.length} documents`);
     const extractedTexts: string[] = [];
+    let imageCount = 0;
 
     for (const doc of documents) {
       try {
-        const content = await storageService.downloadFile(caseId, doc.id, doc.fileName);
-        const text = await extractionService.extractText(content, doc.fileName);
-        extractedTexts.push(text);
+        // Check if this is an image file (needs OCR - future phase)
+        if (extractionService.isImageFile(doc.fileName)) {
+          console.log(`Image file skipped for now: ${doc.fileName}`);
+          imageCount++;
+          await firestoreService.updateDocumentStatus(doc.id, 'uploaded', {
+            extractedText: '',
+            extractionStatus: 'needs_ocr',
+          });
+          continue;
+        }
 
-        await firestoreService.updateDocumentStatus(doc.id, 'processed');
+        const content = await storageService.downloadFile(caseId, doc.id, doc.fileName);
+        const result = await extractionService.extractTextWithStatus(content, doc.fileName);
+
+        if (result.status === 'completed' && result.text) {
+          extractedTexts.push(result.text);
+        }
+
+        await firestoreService.updateDocumentStatus(doc.id, 'processed', {
+          extractedText: result.text,
+          extractionStatus: result.status,
+        });
       } catch (error) {
         console.log(`Failed to extract document: ${doc.id}`);
-        await firestoreService.updateDocumentStatus(doc.id, 'failed');
+        await firestoreService.updateDocumentStatus(doc.id, 'failed', {
+          extractedText: '',
+          extractionStatus: 'failed',
+        });
       }
     }
 
+    // Log image files that need OCR
+    if (imageCount > 0) {
+      console.log(`${imageCount} image file(s) marked as needs_ocr for future processing`);
+    }
+
     if (extractedTexts.length === 0) {
-      throw new Error('No text could be extracted from documents');
+      throw new Error('No text could be extracted from documents (images require OCR in future phase)');
     }
 
     await firestoreService.updateCaseStatus(caseId, 'processing', {

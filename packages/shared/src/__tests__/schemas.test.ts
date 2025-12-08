@@ -12,8 +12,12 @@ import {
   resumeJsonSchema,
   caseStatusSchema,
   artifactTypeSchema,
+  reviewStatusSchema,
+  reviewerUpdateSchema,
+  extractionStatusSchema,
   isValidFileName,
   isValidFileSize,
+  isImageFile,
   MAX_FILE_SIZE,
 } from '../schemas/index.js';
 
@@ -260,17 +264,24 @@ describe('resumeJsonSchema', () => {
 
 describe('File Validation Helpers', () => {
   describe('isValidFileName', () => {
-    it('accepts valid file extensions', () => {
+    it('accepts valid document file extensions', () => {
       expect(isValidFileName('resume.pdf')).toBe(true);
       expect(isValidFileName('document.doc')).toBe(true);
       expect(isValidFileName('document.docx')).toBe(true);
       expect(isValidFileName('notes.txt')).toBe(true);
     });
 
+    it('accepts valid image file extensions', () => {
+      expect(isValidFileName('photo.png')).toBe(true);
+      expect(isValidFileName('photo.jpg')).toBe(true);
+      expect(isValidFileName('photo.jpeg')).toBe(true);
+      expect(isValidFileName('photo.heic')).toBe(true);
+    });
+
     it('rejects invalid file extensions', () => {
       expect(isValidFileName('script.exe')).toBe(false);
-      expect(isValidFileName('image.jpg')).toBe(false);
       expect(isValidFileName('file.zip')).toBe(false);
+      expect(isValidFileName('data.xml')).toBe(false);
     });
   });
 
@@ -291,5 +302,89 @@ describe('File Validation Helpers', () => {
     it('rejects size exceeding max', () => {
       expect(isValidFileSize(MAX_FILE_SIZE + 1)).toBe(false);
     });
+  });
+
+  describe('isImageFile', () => {
+    it('identifies image files correctly', () => {
+      expect(isImageFile('photo.png')).toBe(true);
+      expect(isImageFile('photo.jpg')).toBe(true);
+      expect(isImageFile('photo.jpeg')).toBe(true);
+      expect(isImageFile('photo.heic')).toBe(true);
+      expect(isImageFile('PHOTO.PNG')).toBe(true);
+      expect(isImageFile('Photo.JPG')).toBe(true);
+    });
+
+    it('identifies non-image files correctly', () => {
+      expect(isImageFile('resume.pdf')).toBe(false);
+      expect(isImageFile('document.docx')).toBe(false);
+      expect(isImageFile('notes.txt')).toBe(false);
+    });
+  });
+});
+
+describe('reviewStatusSchema', () => {
+  it('accepts valid review statuses', () => {
+    expect(() => reviewStatusSchema.parse('unreviewed')).not.toThrow();
+    expect(() => reviewStatusSchema.parse('approved')).not.toThrow();
+    expect(() => reviewStatusSchema.parse('rejected')).not.toThrow();
+    expect(() => reviewStatusSchema.parse('needs_fix')).not.toThrow();
+  });
+
+  it('rejects invalid review status', () => {
+    expect(() => reviewStatusSchema.parse('pending')).toThrow();
+    expect(() => reviewStatusSchema.parse('invalid')).toThrow();
+  });
+});
+
+describe('extractionStatusSchema', () => {
+  it('accepts valid extraction statuses', () => {
+    expect(() => extractionStatusSchema.parse('pending')).not.toThrow();
+    expect(() => extractionStatusSchema.parse('completed')).not.toThrow();
+    expect(() => extractionStatusSchema.parse('needs_ocr')).not.toThrow();
+    expect(() => extractionStatusSchema.parse('failed')).not.toThrow();
+  });
+
+  it('rejects invalid extraction status', () => {
+    expect(() => extractionStatusSchema.parse('processing')).toThrow();
+    expect(() => extractionStatusSchema.parse('invalid')).toThrow();
+  });
+});
+
+describe('reviewerUpdateSchema', () => {
+  it('accepts valid reviewer update with status only', () => {
+    const valid = {
+      status: 'approved',
+    };
+    expect(() => reviewerUpdateSchema.parse(valid)).not.toThrow();
+  });
+
+  it('accepts valid reviewer update with status and notes', () => {
+    const valid = {
+      status: 'needs_fix',
+      notes: 'Please correct the job title in experience section',
+    };
+    expect(() => reviewerUpdateSchema.parse(valid)).not.toThrow();
+  });
+
+  it('rejects invalid status', () => {
+    const invalid = {
+      status: 'invalid_status',
+    };
+    expect(() => reviewerUpdateSchema.parse(invalid)).toThrow();
+  });
+
+  it('rejects notes exceeding max length', () => {
+    const invalid = {
+      status: 'approved',
+      notes: 'x'.repeat(2001),
+    };
+    expect(() => reviewerUpdateSchema.parse(invalid)).toThrow();
+  });
+
+  it('rejects missing status', () => {
+    const invalid = {
+      notes: 'Some notes',
+    };
+    expect(() => reviewerUpdateSchema.parse(invalid)).toThrow();
   });
 });

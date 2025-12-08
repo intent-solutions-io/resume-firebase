@@ -8,7 +8,10 @@ import {
   processCasePayloadSchema,
   generateArtifactPayloadSchema,
   resumeJsonSchema,
+  extractionStatusSchema,
+  isImageFile,
 } from '@resume-generator/shared/schemas';
+import { extractionService } from '../services/extraction.js';
 
 describe('Worker Payload Validation', () => {
   describe('processCase - processCasePayloadSchema', () => {
@@ -217,6 +220,89 @@ describe('Worker Payload Validation', () => {
         skills: { technical: [], soft: [], certifications: [], languages: [] },
       };
       expect(() => resumeJsonSchema.parse(invalidResume)).toThrow();
+    });
+  });
+
+  describe('Extraction Status - extractionStatusSchema', () => {
+    it('accepts valid extraction statuses', () => {
+      expect(() => extractionStatusSchema.parse('pending')).not.toThrow();
+      expect(() => extractionStatusSchema.parse('completed')).not.toThrow();
+      expect(() => extractionStatusSchema.parse('needs_ocr')).not.toThrow();
+      expect(() => extractionStatusSchema.parse('failed')).not.toThrow();
+    });
+
+    it('rejects invalid extraction status', () => {
+      expect(() => extractionStatusSchema.parse('processing')).toThrow();
+      expect(() => extractionStatusSchema.parse('unknown')).toThrow();
+    });
+  });
+
+  describe('Image File Detection', () => {
+    describe('isImageFile (shared)', () => {
+      it('identifies image files correctly', () => {
+        expect(isImageFile('photo.png')).toBe(true);
+        expect(isImageFile('photo.jpg')).toBe(true);
+        expect(isImageFile('photo.jpeg')).toBe(true);
+        expect(isImageFile('photo.heic')).toBe(true);
+      });
+
+      it('identifies non-image files correctly', () => {
+        expect(isImageFile('resume.pdf')).toBe(false);
+        expect(isImageFile('document.docx')).toBe(false);
+        expect(isImageFile('notes.txt')).toBe(false);
+      });
+    });
+
+    describe('extractionService.isImageFile', () => {
+      it('identifies image files correctly', () => {
+        expect(extractionService.isImageFile('photo.png')).toBe(true);
+        expect(extractionService.isImageFile('photo.jpg')).toBe(true);
+        expect(extractionService.isImageFile('photo.jpeg')).toBe(true);
+        expect(extractionService.isImageFile('photo.heic')).toBe(true);
+        expect(extractionService.isImageFile('PHOTO.PNG')).toBe(true);
+      });
+
+      it('identifies non-image files correctly', () => {
+        expect(extractionService.isImageFile('resume.pdf')).toBe(false);
+        expect(extractionService.isImageFile('document.docx')).toBe(false);
+        expect(extractionService.isImageFile('notes.txt')).toBe(false);
+      });
+    });
+
+    describe('extractionService.extractTextWithStatus', () => {
+      it('returns needs_ocr status for image files', async () => {
+        const result = await extractionService.extractTextWithStatus(
+          Buffer.from('fake image data'),
+          'photo.png'
+        );
+        expect(result.status).toBe('needs_ocr');
+        expect(result.text).toBe('');
+      });
+
+      it('returns needs_ocr for jpg files', async () => {
+        const result = await extractionService.extractTextWithStatus(
+          Buffer.from('fake image data'),
+          'photo.jpg'
+        );
+        expect(result.status).toBe('needs_ocr');
+      });
+
+      it('returns needs_ocr for heic files', async () => {
+        const result = await extractionService.extractTextWithStatus(
+          Buffer.from('fake image data'),
+          'image.heic'
+        );
+        expect(result.status).toBe('needs_ocr');
+      });
+
+      it('returns completed status for text files', async () => {
+        const result = await extractionService.extractTextWithStatus(
+          Buffer.from('Hello World'),
+          'notes.txt'
+        );
+        expect(result.status).toBe('completed');
+        expect(result.text).toBe('Hello World');
+      });
     });
   });
 });
