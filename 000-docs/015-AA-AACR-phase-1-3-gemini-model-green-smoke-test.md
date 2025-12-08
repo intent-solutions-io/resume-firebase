@@ -260,5 +260,5 @@ curl -X POST \
 **Author:** Claude Code (Opus)
 **Verification Executed:** 2025-12-08 03:42-03:45 CST (America/Chicago)
 
-intent solutions io - confidential IP
+intent solutions io — confidential IP
 Contact: jeremy@intentsolutions.io
