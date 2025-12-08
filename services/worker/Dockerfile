@@ -17,7 +17,12 @@ RUN npm ci
 COPY services/worker/ ./
 COPY packages/shared/ /app/packages/shared/
 
-# Build
+# Build shared package first
+WORKDIR /app/packages/shared
+RUN npm ci && npm run build
+
+# Build worker
+WORKDIR /app/services/worker
 RUN npm run build
 
 # Production stage
