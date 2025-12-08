@@ -41,6 +41,11 @@ RUN npm prune --omit=dev
 # Copy shared package AFTER prune (workspace package)
 COPY --from=builder /app/packages/shared/dist ./node_modules/@resume-generator/shared/dist
 COPY --from=builder /app/packages/shared/package.json ./node_modules/@resume-generator/shared/
+# Copy zod dependency for shared package (needed at runtime)
+COPY --from=builder /app/packages/shared/node_modules/zod ./node_modules/@resume-generator/shared/node_modules/zod
+
+# Fix permissions for node user
+RUN chmod -R 755 ./node_modules/@resume-generator/shared/
 
 # Set environment
 ENV NODE_ENV=production

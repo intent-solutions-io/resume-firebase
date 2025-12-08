@@ -1,0 +1,15 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/resume-generator/api:$SHORT_SHA'
+      - '-t'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/resume-generator/api:latest'
+      - '-f'
+      - 'services/api/Dockerfile'
+      - '.'
+images:
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/resume-generator/api:$SHORT_SHA'
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/resume-generator/api:latest'
+timeout: 600s
