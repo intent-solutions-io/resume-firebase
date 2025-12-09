@@ -78,6 +78,10 @@ jobs:
           echo "Shared package: $TESTS tests passed"
         working-directory: packages/shared
 
+      - name: Build Shared Package
+        run: npm run build
+        working-directory: packages/shared
+
       - name: Install API Service
         run: npm ci
         working-directory: services/api
