@@ -11,6 +11,10 @@
 
 # CLAUDE.md - Resume Generator Project
 
+
+### Beads upgrades
+- After upgrading `bd`, run: `bd info --whats-new`
+- If `bd info` warns about hooks, run: `bd hooks install`
 ## Docs Folder Rule (STRICT)
 
 - **Keep `000-docs/` strictly flat (no subfolders).**
