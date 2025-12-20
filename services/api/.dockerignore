@@ -1,0 +1,18 @@
+# Node
+node_modules/
+npm-debug.log*
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+
+# Beads (local dev-only, never in containers)
+.beads/
+**/.beads/
+beads*.db
+beads*.sqlite
+beads/

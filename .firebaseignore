@@ -1,0 +1,23 @@
+# Git
+.git/
+.gitignore
+
+# Node
+node_modules/
+
+# IDE
+.vscode/
+.idea/
+
+# GitHub
+.github/
+
+# Docs (not needed in deploy)
+000-docs/
+
+# Beads (local dev-only, never deployed)
+.beads/
+**/.beads/
+beads*.db
+beads*.sqlite
+beads/
