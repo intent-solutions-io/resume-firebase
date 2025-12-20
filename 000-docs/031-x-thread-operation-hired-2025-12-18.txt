@@ -1,0 +1,35 @@
+X THREAD: Operation Hired AI Resume Generator
+Date: 2025-12-18
+Size: 3 tweets
+==============================================
+
+TWEET 1/3 (267 chars):
+Built an AI resume generator that helps veterans land civilian jobs.
+
+Upload DD-214 + military docs → Vertex AI Gemini translates military jargon → ATS-optimized PDF/DOCX in 60 seconds.
+
+Full stack: React, Cloud Run, Terraform IaC, Firestore.
+
+🧵
+
+---
+
+TWEET 2/3 (261 chars):
+The hard part wasn't the AI - it was the UX.
+
+Veterans don't speak "civilian resume." They have NCOERs, MOS codes, deployment records.
+
+So we built extraction pipelines that understand military documents and translate leadership experience into what hiring managers expect.
+
+---
+
+TWEET 3/3 (246 chars):
+Stack:
+• React + TypeScript (Firebase Hosting)
+• Cloud Run workers (Puppeteer PDF gen)
+• Vertex AI Gemini 1.5 Flash
+• Terraform IaC + WIF (no service account keys)
+
+Helping @OperationHired get veterans employed faster.
+
+#AI #GCP #Veterans

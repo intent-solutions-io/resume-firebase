@@ -1,0 +1,154 @@
+# Release Configuration for bobs-brain (Canonical ADK/Vertex AI Implementation)
+# Copy this to .release.yml and customize
+# File location: {repo_root}/.release.yml
+
+repo:
+  name: bobs-brain
+  description: Canonical ADK/Vertex AI Agent Implementation
+
+version:
+  scheme: padded  # "padded" (XXX.YYY.ZZZ) or "semver" (MAJOR.MINOR.PATCH)
+  sources:  # Priority order (first is authoritative)
+    - VERSION
+    - package.json:version
+    - # Git tags used as fallback
+
+release:
+  branch: main
+  min_features_for_minor: 3  # Minimum features to warrant minor bump
+  min_fixes_for_patch: 5      # Minimum fixes to warrant patch bump
+  max_days_without_release: 30  # Force maintenance release after N days
+
+tools:
+  required:
+    - git
+    - npm
+    - gh
+    - gcloud
+    - docker
+    - gpg
+    - jq
+    - yq
+
+quality:
+  checks:
+    - npm test
+    - npm run lint
+    - npm run coverage
+    - python3 scripts/validate-adk-patterns.py
+    - gcloud alpha agent-builder agents validate --config=agents.yaml
+
+  thresholds:
+    coverage_min: 80  # Percentage
+    performance_degradation_max: 10  # Percentage
+
+security:
+  signing: required  # "required", "optional", or "off"
+  gpg_key_env: GPG_KEY_ID  # Environment variable containing key ID
+  scans:
+    secrets: gitleaks detect --no-git
+    dependencies: npm audit --audit-level=moderate
+
+artifacts:
+  tarball:
+    enabled: true
+    exclude:
+      - node_modules
+      - .git
+      - .env
+      - "*.log"
+      - .release-artifacts
+
+  docker:
+    enabled: true
+    registry: us-central1-docker.pkg.dev
+    project_id_env: PROJECT_ID  # GCP project ID from env var
+    repository: agents
+    image_name: bobs-brain
+
+readme_updates:
+  - file: README.md
+    pattern: 'version-[0-9]{3}\.[0-9]{3}\.[0-9]{3}'
+    replacement: 'version-{version}'
+    description: Update version badge in README
+
+  - file: README.md
+    pattern: 'v[0-9]{3}\.[0-9]{3}\.[0-9]{3}'
+    replacement: 'v{version}'
+    description: Update version references in README
+
+custom_updates:
+  - file: docs/api/version.txt
+    type: plain_text
+    new_value: '{version}'
+    description: Update API documentation version
+
+deployment:
+  enabled: true
+  platform: vertex_ai
+  environments:
+    - name: test
+      agent_id: bobs-brain-test
+      smoke_tests: npm run smoke-test:test
+
+    - name: prod
+      agent_id: bobs-brain-prod
+      canary_percent: 10
+      canary_duration: 300  # seconds
+      smoke_tests: npm run smoke-test:prod
+      monitoring_duration: 86400  # 24 hours
+
+  rollback:
+    auto_on_smoke_test_failure: true
+    auto_on_metrics_degradation: true
+
+performance_benchmarks:
+  enabled: true
+  metrics:
+    - name: cold_start
+      command: npm run benchmark:cold-start
+      threshold_ms: 2000
+      max_degradation_percent: 10
+
+    - name: response_time
+      command: npm run benchmark:response
+      threshold_ms: 500
+      max_degradation_percent: 10
+
+    - name: memory
+      command: npm run benchmark:memory
+      threshold_mb: 512
+      max_increase_percent: 15
+
+    - name: token_efficiency
+      command: npm run benchmark:tokens
+      # Lower is better for tokens per operation
+      max_increase_percent: 5
+
+contributor_recognition:
+  enabled: true
+  min_commits_for_featured: 5
+  include_issue_reporters: true
+  include_pr_reviewers: true
+  include_docs_contributors: true
+
+documentation:
+  release_report:
+    category: AA  # After Action & Review
+    type: REPT    # Release Report
+    timezone: America/Chicago  # For CST timestamps
+
+  footer:
+    organization: intent solutions io
+    confidentiality: confidential IP
+    contact: jeremy@intentsolutions.io
+
+notifications:
+  slack:
+    enabled: false  # Set to true and provide webhook URL
+    webhook_env: SLACK_WEBHOOK_URL
+    channel: '#releases'
+
+  email:
+    enabled: false
+    recipients: []

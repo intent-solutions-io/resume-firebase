@@ -3,6 +3,12 @@ import helmet from 'helmet';
 import { processCaseHandler } from './handlers/processCase.js';
 import { generateArtifactHandler } from './handlers/generateArtifact.js';
 import { healthRouter } from './handlers/health.js';
+// Operation Hired - Phase 1.9: AI Resume Pipeline + Phase 2.0: Resume Export
+import {
+  processCandidateHandler,
+  candidateStatusHandler,
+  resumeDownloadHandler,
+} from './handlers/processCandidateHandler.js';
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -17,6 +23,11 @@ app.use('/health', healthRouter);
 // Internal endpoints (Cloud Tasks targets)
 app.post('/internal/processCase', processCaseHandler);
 app.post('/internal/generateArtifact', generateArtifactHandler);
+
+// Operation Hired endpoints (Phase 1.9 + 2.0)
+app.post('/internal/processCandidate', processCandidateHandler);
+app.get('/internal/candidateStatus/:candidateId', candidateStatusHandler);
+app.get('/internal/resumeDownload/:candidateId/:format', resumeDownloadHandler);
 
 // Error handling
 app.use(

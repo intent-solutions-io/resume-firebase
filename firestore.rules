@@ -41,6 +41,44 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // Operation Hired - Candidates collection
+    match /candidates/{candidateId} {
+      // Anyone can create a candidate
+      allow create: if true;
+      // Read allowed with candidate ID
+      allow read: if true;
+      // Allow status updates from client
+      allow update: if true;
+      // No deletes from client
+      allow delete: if false;
+    }
+
+    // Operation Hired - Candidate Documents collection
+    match /candidateDocuments/{docId} {
+      // Anyone can create document records
+      allow create: if true;
+      // Read allowed
+      allow read: if true;
+      // No updates or deletes from client
+      allow update, delete: if false;
+    }
+
+    // Operation Hired - Candidate Profiles (AI-generated)
+    match /candidateProfiles/{candidateId} {
+      // Read allowed with candidate ID
+      allow read: if true;
+      // Write only from server
+      allow write: if false;
+    }
+
+    // Operation Hired - Generated Resumes
+    match /resumes/{candidateId} {
+      // Read allowed with candidate ID
+      allow read: if true;
+      // Write only from server
+      allow write: if false;
+    }
+
     // Deny all other access
     match /{document=**} {
       allow read, write: if false;

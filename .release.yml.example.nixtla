@@ -1,0 +1,136 @@
+# Release Configuration for nixtla (Claude Code Plugins - Nixtla Forecasting)
+# Copy this to .release.yml and customize
+# File location: {repo_root}/.release.yml
+
+repo:
+  name: nixtla
+  description: Claude Code Plugins for Nixtla Forecasting Ecosystem
+  collaboration: Intent Solutions × Nixtla
+
+version:
+  scheme: semver  # "padded" (XXX.YYY.ZZZ) or "semver" (MAJOR.MINOR.PATCH)
+  sources:  # Priority order (first is authoritative)
+    - plugins/nixtla-baseline-lab/.claude-plugin/plugin.json:version
+    - # Git tags used as fallback
+
+release:
+  branch: main
+  min_features_for_minor: 2  # Lower threshold for plugin development
+  min_fixes_for_patch: 3      # Minimum fixes to warrant patch bump
+  max_days_without_release: 45  # Longer cycle for experimental collaboration
+
+tools:
+  required:
+    - git
+    - python3
+    - pytest
+    - gh
+    - jq
+    - yq
+
+  optional:
+    - safety  # Python dependency scanner
+
+quality:
+  checks:
+    - pytest plugins/nixtla-baseline-lab/tests/
+    - pytest --cov=plugins/nixtla-baseline-lab/src --cov-fail-under=75
+
+  thresholds:
+    coverage_min: 75  # Percentage (lower than bobs-brain during development)
+
+security:
+  signing: optional  # "required", "optional", or "off"
+  gpg_key_env: GPG_KEY_ID
+  scans:
+    secrets: gitleaks detect --no-git
+    dependencies: safety check  # Python-specific
+
+artifacts:
+  tarball:
+    enabled: false  # Plugins distributed via claude-code-plugins ecosystem
+
+  docker:
+    enabled: false  # Not applicable for plugins
+
+readme_updates:
+  - file: README.md
+    pattern: 'v[0-9]+\.[0-9]+\.[0-9]+'
+    replacement: 'v{version}'
+    description: Update version badge in root README
+
+  - file: plugins/nixtla-baseline-lab/README.md
+    pattern: 'v[0-9]+\.[0-9]+\.[0-9]+'
+    replacement: 'v{version}'
+    description: Update version references in plugin README
+
+custom_updates:
+  - file: 000-docs/6767-a-PP-PROD-nixtla-baseline-lab-product-overview.md
+    type: regex_replace
+    pattern: '\*\*Version:\*\* [0-9]+\.[0-9]+\.[0-9]+'
+    replacement: '**Version:** {version}'
+    description: Update product overview version
+
+  - file: 000-docs/6767-a-PP-PROD-nixtla-baseline-lab-product-overview.md
+    type: regex_replace
+    pattern: '\*\*Last Updated:\*\* .*'
+    replacement: '**Last Updated:** {date}'
+    description: Update product overview timestamp
+
+deployment:
+  enabled: false  # Plugins don't deploy to infrastructure
+  post_release_tests:
+    - bash scripts/run-golden-tasks.sh  # Golden task harness
+
+phase_tracking:
+  enabled: true
+  aar_pattern: '000-docs/*-AA-AACR-phase-*.md'
+  completion_triggers_minor: true
+  min_phase_number: 15  # Phases started at 015
+
+plugin_specific:
+  validate_structure: true
+  plugin_json_schema: https://claude-code-plugins.schema.json
+  multi_plugin_support: true
+  primary_plugin: baseline-lab
+
+documentation:
+  release_report:
+    category: AA  # After Action & Review
+    type: REPT    # Release Report (not AACR which is for phase AARs)
+    timezone: America/Chicago  # For CST timestamps
+
+  footer:
+    organization: intent solutions io
+    confidentiality: confidential IP
+    contact: jeremy@intentsolutions.io
+
+  compliance:
+    enforce_tq_not_qa: true  # TQ-TEST not QA-TEST
+    enforce_defined_types_only: true  # No OVRV, use PP-PROD
+    enforce_6767_letter_suffix: true  # 6767-a-, not 6767-000-
+    enforce_flat_000_docs: true  # No subdirectories
+
+notifications:
+  stakeholders:
+    - name: Max Mergenthaler
+      role: Nixtla CEO
+      method: email
+      address: max@nixtla.io
+
+    - name: Jeremy Longshore
+      role: Intent Solutions
+      method: slack
+      channel: '#nixtla-releases'
+
+  github:
+    create_release: true
+    discussion_category: Releases
+    include_phase_aars: true
+
+monitoring:
+  post_release_duration_days: 7
+  metrics:
+    - github_download_stats
+    - issue_reports
+    - community_feedback

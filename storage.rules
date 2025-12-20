@@ -17,6 +17,15 @@ service firebase.storage {
       allow read, write: if false;
     }
 
+    // Operation Hired - Candidate document uploads
+    match /candidates/{candidateId}/uploads/{fileName} {
+      // Allow direct uploads from client (public intake flow)
+      allow write: if request.resource.size < 10 * 1024 * 1024  // 10MB max
+                   && request.resource.contentType.matches('(application/pdf|image/.*)|(application/msword|application/vnd.openxmlformats-officedocument.wordprocessingml.document)');
+      // Allow read for download
+      allow read: if true;
+    }
+
     // Deny all other access
     match /{allPaths=**} {
       allow read, write: if false;
