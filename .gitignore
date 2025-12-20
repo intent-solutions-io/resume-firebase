@@ -84,3 +84,15 @@ temp/
 
 # OS
 Thumbs.db
+
+# Beads (task tracking)
+.beads/
+**/.beads/
+beads.db
+**/beads.db
+beads.sqlite
+**/beads.sqlite
+beads*.db
+**/beads*.db
+beads*.sqlite
+**/beads*.sqlite
