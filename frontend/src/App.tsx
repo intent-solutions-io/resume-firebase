@@ -1,7 +1,6 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { HomePage } from './pages/HomePage';
-import { CreateCasePage } from './pages/CreateCasePage';
 import { UploadPage } from './pages/UploadPage';
 import { StatusPage } from './pages/StatusPage';
 import { DownloadPage } from './pages/DownloadPage';
@@ -20,7 +19,8 @@ function App() {
     <Layout>
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/create" element={<CreateCasePage />} />
+        {/* Legacy /create redirects to Operation Hired intake */}
+        <Route path="/create" element={<Navigate to="/intake" replace />} />
         <Route path="/case/:caseId/upload" element={<UploadPage />} />
         <Route path="/case/:caseId/status" element={<StatusPage />} />
         <Route path="/case/:caseId/download" element={<DownloadPage />} />
