@@ -14,6 +14,7 @@ import {
 import { uploadCandidateDocument } from '../lib/storage';
 
 interface UploadedFile {
+  id: string; // Unique ID for React key
   file: File;
   type: DocumentType;
   status: 'pending' | 'uploading' | 'success' | 'error';
@@ -90,12 +91,19 @@ export function IntakeDocumentsPage() {
   }, [candidateId]);
 
   const addFiles = useCallback((fileList: FileList | File[]) => {
+    console.log('Adding files:', fileList.length); // Debug logging
     const newFiles: UploadedFile[] = Array.from(fileList).map((file) => ({
+      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, // Unique ID
       file,
       type: 'other' as DocumentType,
       status: 'pending',
     }));
-    setFiles((prev) => [...prev, ...newFiles]);
+    console.log('New files created:', newFiles.length); // Debug logging
+    setFiles((prev) => {
+      const updated = [...prev, ...newFiles];
+      console.log('Files after update:', updated.length); // Debug logging
+      return updated;
+    });
   }, []);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -122,14 +130,14 @@ export function IntakeDocumentsPage() {
     }
   };
 
-  const updateFileType = (index: number, type: DocumentType) => {
+  const updateFileType = (id: string, type: DocumentType) => {
     setFiles((prev) =>
-      prev.map((f, i) => (i === index ? { ...f, type } : f))
+      prev.map((f) => (f.id === id ? { ...f, type } : f))
     );
   };
 
-  const removeFile = (index: number) => {
-    setFiles((prev) => prev.filter((_, i) => i !== index));
+  const removeFile = (id: string) => {
+    setFiles((prev) => prev.filter((f) => f.id !== id));
   };
 
   const handleUploadAll = async () => {
@@ -140,13 +148,12 @@ export function IntakeDocumentsPage() {
 
     let successCount = 0;
 
-    for (let i = 0; i < files.length; i++) {
-      const fileInfo = files[i];
+    for (const fileInfo of files) {
       if (fileInfo.status !== 'pending') continue;
 
       // Mark as uploading
       setFiles((prev) =>
-        prev.map((f, idx) => (idx === i ? { ...f, status: 'uploading' } : f))
+        prev.map((f) => (f.id === fileInfo.id ? { ...f, status: 'uploading' as const } : f))
       );
 
       try {
@@ -166,15 +173,15 @@ export function IntakeDocumentsPage() {
 
         // Mark as success
         setFiles((prev) =>
-          prev.map((f, idx) => (idx === i ? { ...f, status: 'success' } : f))
+          prev.map((f) => (f.id === fileInfo.id ? { ...f, status: 'success' as const } : f))
         );
         successCount++;
       } catch (err) {
         console.error('Upload failed:', err);
         setFiles((prev) =>
-          prev.map((f, idx) =>
-            idx === i
-              ? { ...f, status: 'error', error: 'Upload failed' }
+          prev.map((f) =>
+            f.id === fileInfo.id
+              ? { ...f, status: 'error' as const, error: 'Upload failed' }
               : f
           )
         );
@@ -298,9 +305,9 @@ export function IntakeDocumentsPage() {
               <h3 style={{ marginBottom: '1rem' }}>
                 Selected Files ({files.length})
               </h3>
-              {files.map((fileInfo, index) => (
+              {files.map((fileInfo) => (
                 <div
-                  key={index}
+                  key={fileInfo.id}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -364,7 +371,7 @@ export function IntakeDocumentsPage() {
                   {/* Document Type Select */}
                   <select
                     value={fileInfo.type}
-                    onChange={(e) => updateFileType(index, e.target.value as DocumentType)}
+                    onChange={(e) => updateFileType(fileInfo.id, e.target.value as DocumentType)}
                     disabled={fileInfo.status !== 'pending'}
                     style={{
                       padding: '0.5rem',
@@ -383,7 +390,7 @@ export function IntakeDocumentsPage() {
                   {/* Status/Actions */}
                   {fileInfo.status === 'pending' && (
                     <button
-                      onClick={() => removeFile(index)}
+                      onClick={() => removeFile(fileInfo.id)}
                       style={{
                         background: 'none',
                         border: 'none',
