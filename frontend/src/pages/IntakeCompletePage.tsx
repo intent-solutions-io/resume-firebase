@@ -11,7 +11,9 @@ import {
   STATUS_LABELS,
   Candidate,
   CandidateStatus,
+  CandidateDocument,
 } from '../lib/firestore';
+import { fetchCandidateDocuments } from '../lib/adminData';
 
 // Worker API URL from environment
 const WORKER_URL = import.meta.env.VITE_WORKER_URL || 'http://localhost:8080';
@@ -75,6 +77,7 @@ export function IntakeCompletePage() {
   const { candidateId } = useParams<{ candidateId: string }>();
   const [candidate, setCandidate] = useState<Candidate | null>(null);
   const [resumeExport, setResumeExport] = useState<ResumeExport | null>(null);
+  const [documents, setDocuments] = useState<CandidateDocument[]>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [downloading, setDownloading] = useState<'pdf' | 'docx' | null>(null);
@@ -114,6 +117,22 @@ export function IntakeCompletePage() {
     });
 
     return () => unsubscribe();
+  }, [candidateId]);
+
+  // Fetch uploaded documents
+  useEffect(() => {
+    if (!candidateId) return;
+
+    async function loadDocuments() {
+      try {
+        const docs = await fetchCandidateDocuments(candidateId!);
+        setDocuments(docs);
+      } catch (err) {
+        console.error('Failed to load documents:', err);
+      }
+    }
+
+    loadDocuments();
   }, [candidateId]);
 
   // Handle download
@@ -250,6 +269,91 @@ export function IntakeCompletePage() {
             </p>
             <StatusBadge status={candidate?.status || 'created'} />
           </div>
+
+          {/* Uploaded Documents Section */}
+          {documents.length > 0 && (
+            <div style={{ marginBottom: '1.5rem' }}>
+              <h3 style={{ fontSize: '1rem', marginBottom: '0.75rem', color: 'var(--text-primary)' }}>
+                📄 Uploaded Documents ({documents.length})
+              </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                {documents.map((doc) => (
+                  <div
+                    key={doc.id}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.75rem',
+                      padding: '0.75rem 1rem',
+                      backgroundColor: 'var(--bg-light)',
+                      borderRadius: '8px',
+                      border: '1px solid var(--border-light)',
+                    }}
+                  >
+                    {/* File Icon */}
+                    <div
+                      style={{
+                        width: '36px',
+                        height: '36px',
+                        borderRadius: '6px',
+                        backgroundColor: 'var(--bg-white)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2">
+                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                        <polyline points="14 2 14 8 20 8" />
+                      </svg>
+                    </div>
+
+                    {/* File Info */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p
+                        style={{
+                          margin: 0,
+                          fontWeight: 500,
+                          fontSize: '0.875rem',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          color: 'var(--text-primary)',
+                        }}
+                      >
+                        {doc.fileName}
+                      </p>
+                      <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                        {doc.uploadedAt?.toDate?.()?.toLocaleDateString() || 'Recently uploaded'}
+                      </p>
+                    </div>
+
+                    {/* Document Type Badge */}
+                    <span
+                      style={{
+                        padding: '0.25rem 0.5rem',
+                        borderRadius: '4px',
+                        fontSize: '0.75rem',
+                        fontWeight: 500,
+                        backgroundColor: 'var(--info-light)',
+                        color: 'var(--info-blue)',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {doc.type === 'dd214' && 'DD-214'}
+                      {doc.type === 'erb_orb' && 'ERB/ORB'}
+                      {doc.type === 'evaluation' && 'Evaluation'}
+                      {doc.type === 'award' && 'Award'}
+                      {doc.type === 'training' && 'Training'}
+                      {doc.type === 'resume' && 'Resume'}
+                      {doc.type === 'other' && 'Other'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Processing Animation */}
           {isProcessing && (
