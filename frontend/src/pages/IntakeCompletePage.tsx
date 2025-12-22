@@ -148,8 +148,23 @@ export function IntakeCompletePage() {
       );
 
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Download failed');
+        // Handle specific HTTP error codes
+        if (response.status === 404) {
+          throw new Error(
+            `${format.toUpperCase()} file not found. The file may still be generating. Please refresh in a few moments.`
+          );
+        } else if (response.status === 403) {
+          throw new Error(
+            'Access denied. Please contact support with your Reference ID if this persists.'
+          );
+        } else if (response.status >= 500) {
+          throw new Error(
+            'Server error occurred. Our team has been notified. Please try again in a few minutes.'
+          );
+        } else {
+          const data = await response.json().catch(() => ({}));
+          throw new Error(data.error || `Download failed (${response.status}). Please try again.`);
+        }
       }
 
       const { downloadUrl } = await response.json();
@@ -158,7 +173,13 @@ export function IntakeCompletePage() {
       window.open(downloadUrl, '_blank');
     } catch (err) {
       console.error('Download failed:', err);
-      setError(err instanceof Error ? err.message : 'Download failed');
+
+      // Handle network errors
+      if (err instanceof TypeError && err.message.includes('fetch')) {
+        setError('Network connection failed. Please check your internet and try again.');
+      } else {
+        setError(err instanceof Error ? err.message : 'Download failed. Please try again.');
+      }
     } finally {
       setDownloading(null);
     }
@@ -185,14 +206,44 @@ export function IntakeCompletePage() {
       });
 
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message || 'Failed to start processing');
+        // Handle specific HTTP error codes
+        if (response.status === 400) {
+          const data = await response.json().catch(() => ({}));
+          throw new Error(
+            data.message || 'No documents found. Please upload at least one document and try again.'
+          );
+        } else if (response.status === 403) {
+          throw new Error(
+            'Access denied. Your session may have expired. Please refresh and try again.'
+          );
+        } else if (response.status === 408 || response.status === 504) {
+          throw new Error(
+            'Request timed out. Your resume may still be generating. Please refresh this page in 30 seconds to check status.'
+          );
+        } else if (response.status >= 500) {
+          throw new Error(
+            'Server error occurred. Our team has been notified. Please try again in a few minutes or contact support with your Reference ID.'
+          );
+        } else {
+          const data = await response.json().catch(() => ({}));
+          throw new Error(
+            data.message || `Failed to start processing (${response.status}). Please try again.`
+          );
+        }
       }
 
       // Status updates will come through the real-time subscription
     } catch (err) {
       console.error('Failed to generate resume:', err);
-      setError(err instanceof Error ? err.message : 'Failed to generate resume');
+
+      // Handle network errors
+      if (err instanceof TypeError && err.message.includes('fetch')) {
+        setError(
+          'Network connection failed. Please check your internet connection and try again. If you\'re on a slow connection, the request may time out - your resume might still be generating.'
+        );
+      } else {
+        setError(err instanceof Error ? err.message : 'Failed to generate resume. Please try again.');
+      }
       setGenerating(false);
     }
   }
@@ -209,6 +260,7 @@ export function IntakeCompletePage() {
   const isResumeReady = candidate?.status === 'resume_ready';
   const isProcessing = candidate?.status === 'processing';
   const canGenerate = candidate?.status && ['created', 'docs_uploaded'].includes(candidate.status);
+  const hasDocuments = documents.length > 0;
 
   return (
     <div style={{ minHeight: 'calc(100vh - 200px)' }}>
@@ -391,15 +443,24 @@ export function IntakeCompletePage() {
               <button
                 onClick={handleGenerateResume}
                 className="primary"
+                disabled={!hasDocuments}
                 style={{
                   padding: '1rem 2rem',
                   fontSize: '1.125rem',
+                  opacity: hasDocuments ? 1 : 0.5,
+                  cursor: hasDocuments ? 'pointer' : 'not-allowed',
                 }}
               >
                 Generate My Resume
               </button>
               <p style={{ marginTop: '0.75rem', color: 'var(--text-muted)', fontSize: '0.75rem' }}>
-                Our AI will analyze your documents and create a civilian-friendly resume.
+                {hasDocuments ? (
+                  'Our AI will analyze your documents and create a civilian-friendly resume.'
+                ) : (
+                  <span style={{ color: 'var(--error-red)', fontWeight: 500 }}>
+                    ⚠️ Please upload at least one document before generating your resume.
+                  </span>
+                )}
               </p>
             </div>
           )}
