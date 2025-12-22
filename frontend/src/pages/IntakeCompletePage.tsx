@@ -82,6 +82,7 @@ export function IntakeCompletePage() {
   const [generating, setGenerating] = useState(false);
   const [downloading, setDownloading] = useState<'pdf' | 'docx' | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [processingElapsed, setProcessingElapsed] = useState(0);
 
   // Real-time subscription to candidate status
   useEffect(() => {
@@ -134,6 +135,23 @@ export function IntakeCompletePage() {
 
     loadDocuments();
   }, [candidateId]);
+
+  // Track processing time for progress feedback
+  useEffect(() => {
+    const isProcessing = candidate?.status === 'processing';
+
+    if (!isProcessing) {
+      setProcessingElapsed(0);
+      return;
+    }
+
+    const startTime = Date.now();
+    const timer = setInterval(() => {
+      setProcessingElapsed(Math.floor((Date.now() - startTime) / 1000));
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [candidate?.status]);
 
   // Handle download
   async function handleDownload(format: 'pdf' | 'docx') {
@@ -245,6 +263,36 @@ export function IntakeCompletePage() {
         setError(err instanceof Error ? err.message : 'Failed to generate resume. Please try again.');
       }
       setGenerating(false);
+    }
+  }
+
+  // Get progress message based on elapsed time
+  function getProcessingMessage(elapsed: number): { stage: string; detail: string } {
+    if (elapsed < 10) {
+      return {
+        stage: 'Extracting text from documents...',
+        detail: 'Reading your uploaded files',
+      };
+    } else if (elapsed < 25) {
+      return {
+        stage: 'Analyzing military experience...',
+        detail: 'Identifying key skills and achievements',
+      };
+    } else if (elapsed < 40) {
+      return {
+        stage: 'Translating to civilian terms...',
+        detail: 'Converting military language for civilian employers',
+      };
+    } else if (elapsed < 55) {
+      return {
+        stage: 'Generating resume content...',
+        detail: 'Creating your ATS-friendly resume',
+      };
+    } else {
+      return {
+        stage: 'Finalizing your resume...',
+        detail: 'Almost done! This usually completes within 60 seconds.',
+      };
     }
   }
 
@@ -419,11 +467,44 @@ export function IntakeCompletePage() {
               }}
             >
               <div className="spinner" style={{ width: '32px', height: '32px', margin: '0 auto 1rem' }} />
+
+              {/* Progress message */}
               <p style={{ color: '#975a16', fontWeight: 600, marginBottom: '0.5rem' }}>
-                AI is analyzing your documents...
+                {getProcessingMessage(processingElapsed).stage}
               </p>
-              <p style={{ color: '#975a16', fontSize: '0.875rem' }}>
-                This usually takes 30-60 seconds. Please don't close this page.
+              <p style={{ color: '#975a16', fontSize: '0.875rem', marginBottom: '0.75rem' }}>
+                {getProcessingMessage(processingElapsed).detail}
+              </p>
+
+              {/* Progress bar */}
+              <div
+                style={{
+                  width: '100%',
+                  height: '6px',
+                  backgroundColor: 'rgba(151, 90, 22, 0.2)',
+                  borderRadius: '3px',
+                  overflow: 'hidden',
+                  marginBottom: '0.5rem',
+                }}
+              >
+                <div
+                  style={{
+                    width: `${Math.min(100, (processingElapsed / 60) * 100)}%`,
+                    height: '100%',
+                    backgroundColor: '#975a16',
+                    borderRadius: '3px',
+                    transition: 'width 0.5s ease',
+                  }}
+                />
+              </div>
+
+              {/* Elapsed time */}
+              <p style={{ color: '#975a16', fontSize: '0.75rem' }}>
+                {processingElapsed < 60 ? (
+                  <>Elapsed: {processingElapsed}s • Expected: 30-60s</>
+                ) : (
+                  <>Taking longer than usual... Please don't close this page.</>
+                )}
               </p>
             </div>
           )}
