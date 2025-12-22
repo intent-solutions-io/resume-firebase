@@ -630,26 +630,20 @@ export function IntakeCompletePage() {
           )}
 
           {/* Info Section */}
-          <div
-            style={{
-              backgroundColor: 'var(--bg-light)',
-              padding: '1rem',
-              borderRadius: '8px',
-              marginBottom: '1.5rem',
-            }}
-          >
-            {candidate?.email && (
-              <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
+          {candidate?.email && (
+            <div
+              style={{
+                backgroundColor: 'var(--bg-light)',
+                padding: '1rem',
+                borderRadius: '8px',
+                marginBottom: '1.5rem',
+              }}
+            >
+              <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', margin: 0 }}>
                 <strong>Email:</strong> {candidate.email}
               </p>
-            )}
-            <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
-              <strong>Reference ID:</strong>{' '}
-              <code style={{ backgroundColor: 'var(--bg-white)', padding: '0.25rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem' }}>
-                {candidateId}
-              </code>
-            </p>
-          </div>
+            </div>
+          )}
 
           {/* Actions */}
           <div style={{ textAlign: 'center' }}>
