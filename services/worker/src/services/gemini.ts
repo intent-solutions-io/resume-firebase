@@ -1,8 +1,10 @@
 import { VertexAI, GenerativeModel } from '@google-cloud/vertexai';
 
-const PROJECT_ID = process.env.PROJECT_ID || 'resume-generator';
-const LOCATION = process.env.VERTEX_AI_LOCATION || 'us-central1';
-const MODEL = 'gemini-2.0-flash';
+// Use GCP_PROJECT_ID (set in Cloud Run) or fallback
+const PROJECT_ID = process.env.GCP_PROJECT_ID || process.env.PROJECT_ID || 'resume-gen-intent-dev';
+const LOCATION = process.env.VERTEX_LOCATION || process.env.VERTEX_AI_LOCATION || 'us-central1';
+// Use gemini-1.5-flash (stable) - gemini-2.0-flash may not be available in all regions
+const MODEL = process.env.GEMINI_MODEL_NAME || 'gemini-1.5-flash';
 
 /**
  * Resume JSON Schema (federal_basic)
