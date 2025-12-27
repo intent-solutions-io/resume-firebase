@@ -1,0 +1,26 @@
+{
+  "name": "e2e-tests",
+  "version": "1.0.0",
+  "description": "Playwright E2E tests for Operation Hired Resume Generator",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "test:debug": "playwright test --debug",
+    "test:report": "playwright show-report reports",
+    "test:staging": "BASE_URL=https://resume-gen-intent-dev.web.app playwright test",
+    "test:local": "BASE_URL=http://localhost:3000 playwright test"
+  },
+  "keywords": ["playwright", "e2e", "testing", "operation-hired"],
+  "author": "Intent Solutions",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@playwright/test": "^1.57.0",
+    "playwright": "^1.57.0"
+  }
+}
