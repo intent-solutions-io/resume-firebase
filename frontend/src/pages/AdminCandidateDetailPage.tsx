@@ -92,8 +92,20 @@ export function AdminCandidateDetailPage() {
         throw new Error(errorData.error || 'Download failed');
       }
 
-      const { downloadUrl } = await response.json();
-      window.open(downloadUrl, '_blank');
+      // Get the binary file as a blob
+      const blob = await response.blob();
+
+      // Create a download link and trigger the download
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `resume.${format}`;
+      document.body.appendChild(a);
+      a.click();
+
+      // Clean up
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
     } catch (err) {
       console.error('Download failed:', err);
       setDownloadError(err instanceof Error ? err.message : 'Download failed');
