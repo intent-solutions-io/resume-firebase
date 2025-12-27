@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import helmet from 'helmet';
 import { processCaseHandler } from './handlers/processCase.js';
 import { generateArtifactHandler } from './handlers/generateArtifact.js';
@@ -13,7 +14,20 @@ import {
 const app = express();
 const PORT = process.env.PORT || 8080;
 
+// CORS configuration - allow frontend to access API
+const corsOptions = {
+  origin: [
+    'http://localhost:3000',
+    'https://resume-gen-intent-dev.web.app',
+    'https://resume-gen-intent-dev.firebaseapp.com',
+  ],
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+};
+
 // Security middleware
+app.use(cors(corsOptions));
 app.use(helmet());
 app.use(express.json({ limit: '10mb' }));
 
