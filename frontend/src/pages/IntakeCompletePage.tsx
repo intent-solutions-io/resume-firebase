@@ -211,8 +211,8 @@ export function IntakeCompletePage() {
     setError(null);
 
     try {
-      // Update status to docs_uploaded if still in created state
-      if (candidate?.status === 'created') {
+      // Update status to docs_uploaded ONLY if documents actually exist
+      if (candidate?.status === 'created' && documents.length > 0) {
         await updateCandidateStatus(candidateId, 'docs_uploaded');
       }
 
