@@ -113,8 +113,8 @@ export async function processCandidateHandler(
       documentTexts,
     };
 
-    let profile: CandidateProfile;
-    let resume: GeneratedResume;
+    let profile: Omit<CandidateProfile, 'createdAt' | 'modelName' | 'modelVersion'>;
+    let resume: Omit<GeneratedResume, 'createdAt' | 'modelName' | 'modelVersion'>;
     let modelName: string;
     let modelVersion: string;
 
@@ -142,9 +142,6 @@ export async function processCandidateHandler(
         }],
         skillsRaw: ['Leadership', 'Team Management', 'Communication'],
         certifications: [],
-        createdAt: new Date().toISOString(),
-        modelName: 'fallback-v1',
-        modelVersion: '1.0.0',
       };
 
       resume = {
@@ -163,9 +160,6 @@ export async function processCandidateHandler(
         }],
         education: 'Military Training and Education',
         certifications: [],
-        createdAt: new Date().toISOString(),
-        modelName: 'fallback-v1',
-        modelVersion: '1.0.0',
       };
 
       modelName = 'fallback-v1';
