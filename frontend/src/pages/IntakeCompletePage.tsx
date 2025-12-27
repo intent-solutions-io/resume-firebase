@@ -185,10 +185,20 @@ export function IntakeCompletePage() {
         }
       }
 
-      const { downloadUrl } = await response.json();
+      // Get the binary file as a blob
+      const blob = await response.blob();
 
-      // Open the download URL in a new tab
-      window.open(downloadUrl, '_blank');
+      // Create a download link and trigger the download
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `resume.${format}`;
+      document.body.appendChild(a);
+      a.click();
+
+      // Clean up
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
     } catch (err) {
       console.error('Download failed:', err);
 
