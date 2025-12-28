@@ -7,7 +7,8 @@ import type { GenerationInput, GenerationOutput } from '../types/candidate.js';
 // Configuration from environment
 const PROJECT_ID = process.env.GCP_PROJECT_ID || 'resume-gen-intent-dev';
 const LOCATION = process.env.VERTEX_LOCATION || 'us-central1';
-const MODEL_NAME = process.env.GEMINI_MODEL_NAME || 'gemini-1.5-flash';
+// Gemini 2.0 Flash - GA release, 1M token context, multimodal
+const MODEL_NAME = process.env.GEMINI_MODEL_NAME || 'gemini-2.0-flash-001';
 
 // Initialize Vertex AI
 const vertexAI = new VertexAI({
@@ -80,7 +81,7 @@ BULLET POINT FORMULA (MANDATORY FOR EVERY BULLET):
 Action verb + what you did + scale + how you did it + measurable result + why it mattered
 
 Example:
-"Streamlined logistics process across 5 teams by implementing tracking system, cutting cycle time by 30% and improving on-time delivery to 95%."
+"Streamlined logistics process across 5 teams by implementing a tracking system, cutting cycle time by 30% and improving on-time delivery to 95% to enhance mission readiness."
 
 EVERY bullet must include:
 - Strong action verb (Led, Managed, Streamlined, Improved, Coordinated, Implemented, Achieved)
@@ -181,7 +182,7 @@ You must respond with ONLY valid JSON matching this exact structure:
     ],
     "education": "string ([Degree] — [School], [City, ST] • [Year or In Progress])",
     "certifications": ["string (PMP, CAPM, Lean Six Sigma, CompTIA, OSHA, CDL, etc.)"],
-    "awards": ["string ([Award] — Recognized for [business-relevant reason])" ] or null
+    "awards": ["string ([Award] — Recognized for [business-relevant reason])"] or null
   }
 }
 
@@ -234,7 +235,7 @@ CRITICAL INSTRUCTIONS FOR THIS RESUME:
 9. Translate military job titles to civilian equivalents BUT always preserve the original military context for credibility
 10. Include comprehensive scope statement for each role using ALL available metrics from documents: "Led [#] personnel across [#] bases/locations; secured [#] acres; managed/protected [$] in assets; supported [#] personnel and [$] in infrastructure"
 11. ALWAYS include both start and end dates: "Month YYYY – Month YYYY" (e.g., "Dec 2014 – Sep 2015")
-12. Preserve specific location names for credibility: "Base Name, Country" or "City, ST" (e.g., "RAF Alconbury, England")
+12. Preserve specific location names for credibility: "City, ST" format (e.g., "Fort Bragg, NC")
 
 Generate the CandidateProfile and GeneratedResume JSON now.
 Remember:
