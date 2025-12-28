@@ -309,9 +309,6 @@ export function IntakeDocumentsPage() {
                 <div
                   key={fileInfo.id}
                   style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '1rem',
                     padding: '0.75rem 1rem',
                     backgroundColor:
                       fileInfo.status === 'success'
@@ -330,54 +327,90 @@ export function IntakeDocumentsPage() {
                         : 'var(--border-light)',
                   }}
                 >
-                  {/* File Icon */}
-                  <div
-                    style={{
-                      width: '40px',
-                      height: '40px',
-                      borderRadius: '8px',
-                      backgroundColor: 'var(--bg-white)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                    }}
-                  >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2">
-                      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-                      <polyline points="14 2 14 8 20 8" />
-                    </svg>
-                  </div>
-
-                  {/* File Info */}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p
+                  {/* Top row: Icon, Filename, Remove button */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                    {/* File Icon */}
+                    <div
                       style={{
-                        margin: 0,
-                        fontWeight: 500,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                        color: 'var(--text-primary)',
+                        width: '36px',
+                        height: '36px',
+                        borderRadius: '8px',
+                        backgroundColor: 'var(--bg-white)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
                       }}
                     >
-                      {fileInfo.file.name}
-                    </p>
-                    <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                      {(fileInfo.file.size / 1024).toFixed(1)} KB
-                    </p>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2">
+                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                        <polyline points="14 2 14 8 20 8" />
+                      </svg>
+                    </div>
+
+                    {/* File Info - full width, no truncation issues */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p
+                        style={{
+                          margin: 0,
+                          fontWeight: 500,
+                          fontSize: '0.875rem',
+                          wordBreak: 'break-word',
+                          color: 'var(--text-primary)',
+                        }}
+                      >
+                        {fileInfo.file.name}
+                      </p>
+                      <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                        {(fileInfo.file.size / 1024).toFixed(1)} KB
+                      </p>
+                    </div>
+
+                    {/* Remove button (pending only) */}
+                    {fileInfo.status === 'pending' && (
+                      <button
+                        onClick={() => removeFile(fileInfo.id)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: 'var(--error-red)',
+                          cursor: 'pointer',
+                          padding: '0.5rem',
+                          borderRadius: '6px',
+                          flexShrink: 0,
+                        }}
+                        title="Remove file"
+                      >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <line x1="18" y1="6" x2="6" y2="18" />
+                          <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                      </button>
+                    )}
+
+                    {/* Status indicators */}
+                    {fileInfo.status === 'uploading' && (
+                      <div className="spinner" style={{ flexShrink: 0 }} />
+                    )}
+                    {fileInfo.status === 'success' && (
+                      <span className="badge badge-success" style={{ flexShrink: 0 }}>Uploaded</span>
+                    )}
+                    {fileInfo.status === 'error' && (
+                      <span className="badge badge-error" style={{ flexShrink: 0 }}>Failed</span>
+                    )}
                   </div>
 
-                  {/* Document Type Select */}
+                  {/* Bottom row: Document Type Select (full width) */}
                   <select
                     value={fileInfo.type}
                     onChange={(e) => updateFileType(fileInfo.id, e.target.value as DocumentType)}
                     disabled={fileInfo.status !== 'pending'}
                     style={{
+                      width: '100%',
                       padding: '0.5rem',
                       borderRadius: '6px',
-                      minWidth: '140px',
                       fontSize: '0.875rem',
+                      backgroundColor: fileInfo.status !== 'pending' ? 'var(--bg-light)' : 'white',
                     }}
                   >
                     {Object.entries(DOCUMENT_TYPE_LABELS).map(([value, label]) => (
@@ -386,39 +419,6 @@ export function IntakeDocumentsPage() {
                       </option>
                     ))}
                   </select>
-
-                  {/* Status/Actions */}
-                  {fileInfo.status === 'pending' && (
-                    <button
-                      onClick={() => removeFile(fileInfo.id)}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: 'var(--error-red)',
-                        cursor: 'pointer',
-                        padding: '0.5rem',
-                        borderRadius: '6px',
-                      }}
-                      title="Remove file"
-                    >
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <line x1="18" y1="6" x2="6" y2="18" />
-                        <line x1="6" y1="6" x2="18" y2="18" />
-                      </svg>
-                    </button>
-                  )}
-
-                  {fileInfo.status === 'uploading' && (
-                    <div className="spinner" />
-                  )}
-
-                  {fileInfo.status === 'success' && (
-                    <span className="badge badge-success">Uploaded</span>
-                  )}
-
-                  {fileInfo.status === 'error' && (
-                    <span className="badge badge-error">Failed</span>
-                  )}
                 </div>
               ))}
             </div>

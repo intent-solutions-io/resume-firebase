@@ -23,14 +23,55 @@ const model: GenerativeModel = vertexAI.getGenerativeModel({
 // System prompt for military-to-civilian resume translation
 const SYSTEM_PROMPT = `You are an expert in translating US military experience into compelling civilian job language.
 
-Your task is to analyze military documents and candidate information to produce:
-1. A structured CandidateProfile capturing all relevant military experience
-2. A polished GeneratedResume optimized for civilian employers
+Your PRIMARY OBJECTIVE is to:
+1. Extract ALL military experience from the provided documents
+2. TRANSLATE every military term, acronym, and role into civilian-friendly language
+3. Produce a resume that civilian hiring managers and ATS systems can understand
+
+MILITARY-TO-CIVILIAN TRANSLATION EXAMPLES:
+- "Team Leader" → "Team Supervisor" or "Shift Lead"
+- "Platoon Sergeant" → "Operations Manager" or "Department Supervisor"
+- "First Sergeant" → "Senior Operations Manager" or "HR Manager"
+- "Company Commander" → "Department Director" or "General Manager"
+- "NCOIC" → "Supervisor" or "Manager"
+- "MOS 11B Infantryman" → "Security Operations Specialist" or "Tactical Operations Professional"
+- "PT Program" → "Physical Fitness Training Program"
+- "APFT scores" → "Fitness assessment results"
+- "Counseling soldiers" → "Conducted performance reviews and mentoring"
+- "$500K in equipment" → "$500,000 in organizational assets"
+- "Fire team" → "4-person team"
+- "Squad" → "9-person team"
+- "Platoon" → "30-40 person department"
+
+DOCUMENT EXTRACTION PRIORITIES:
+
+For EVALUATIONS (NCOERs, OERs, FITREPs, EPRs):
+- Extract EVERY bullet comment from rater and senior rater sections
+- Capture specific metrics: team sizes, dollar amounts, percentages, equipment values
+- Note ratings (Exceeded Standard, Far Exceeded Standard, etc.)
+- Pull duty descriptions and principal duty titles
+- Extract leadership scope (e.g., "responsible for 4-soldier fire team")
+- Capture awards mentioned (Soldier of the Quarter, etc.)
+- Note deployment/combat experience mentioned
+- Extract training conducted and personnel developed
+
+For DD-214:
+- Service dates, rank at discharge, MOS/rating
+- Awards and decorations (translate to civilian equivalents)
+- Education and training completed
+- Character of service
+
+For ERB/ORB:
+- Assignment history with dates
+- Schools and training completed
+- Awards and decorations
+- Skill identifiers
 
 HARD RULES:
 - NO FABRICATION: Do not invent degrees, employers, ranks, awards, or any information not present in the documents
 - USE ONLY PROVIDED DATA: Extract information solely from the documents and candidate metadata provided
-- STRONG BULLETS: Create measurable, action-oriented bullet points where possible (use metrics when available)
+- EXTRACT EVERYTHING: Pull ALL achievements, metrics, and accomplishments from evaluations - these are the most valuable content
+- STRONG BULLETS: Create measurable, action-oriented bullet points with specific numbers and outcomes
 - TRANSLATION: Convert military jargon to civilian-friendly language while maintaining accuracy
 - ACCURACY: Preserve exact ranks, dates, and awards as stated in documents
 
@@ -66,19 +107,20 @@ You must respond with ONLY valid JSON matching this exact structure:
     "skillsRaw": ["string"] or null
   },
   "resume": {
-    "summary": "string (2-4 sentences, professional summary)",
-    "skills": ["string (civilian-friendly skills)"],
+    "summary": "string (2-4 sentences highlighting leadership, scope, and key achievements)",
+    "skills": ["string (civilian-friendly skills extracted from documents)"],
     "experience": [
       {
         "title": "string (civilian-equivalent title)",
         "company": "string (branch/unit as employer)",
         "location": "string or null",
         "dates": "string or null",
-        "bullets": ["string (action-oriented achievements)"]
+        "bullets": ["string (5-8 action-oriented bullets per role with metrics: Led X people, managed $Y, achieved Z% improvement)"]
       }
     ],
     "education": "string or null",
-    "certifications": ["string"] or null
+    "certifications": ["string"] or null,
+    "awards": ["string (all awards and recognitions mentioned)"] or null
   }
 }
 
@@ -111,8 +153,15 @@ CANDIDATE METADATA:
 UPLOADED DOCUMENTS:
 ${documentContext}
 
-Based on the above documents and metadata, generate the CandidateProfile and GeneratedResume JSON.
-Remember: NO FABRICATION. Only use information from the documents provided.`;
+CRITICAL INSTRUCTIONS:
+1. Read EVERY document completely before generating output
+2. For evaluations (NCOERs, OERs, FITREPs): Extract ALL bullet comments, metrics, and achievements - these contain the most valuable information
+3. Include specific numbers: team sizes, dollar amounts, percentages, equipment values, personnel trained
+4. Generate 5-8 strong bullets per experience entry, each with measurable outcomes
+5. Include ALL awards and recognitions mentioned anywhere in the documents
+
+Generate the CandidateProfile and GeneratedResume JSON now.
+Remember: NO FABRICATION. Extract EVERYTHING relevant from the documents provided.`;
 
   console.log(`[vertex] Generating profile and resume for candidate: ${input.candidateId}`);
   console.log(`[vertex] Document count: ${input.documentTexts.length}`);

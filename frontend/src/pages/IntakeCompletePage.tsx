@@ -529,30 +529,52 @@ export function IntakeCompletePage() {
           )}
 
           {/* Generate Resume Button */}
-          {canGenerate && !generating && (
+          {canGenerate && (
             <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-              <button
-                onClick={handleGenerateResume}
-                className="primary"
-                disabled={!hasDocuments}
-                style={{
-                  padding: '1rem 2rem',
-                  fontSize: '1.125rem',
-                  opacity: hasDocuments ? 1 : 0.5,
-                  cursor: hasDocuments ? 'pointer' : 'not-allowed',
-                }}
-              >
-                Generate My Resume
-              </button>
-              <p style={{ marginTop: '0.75rem', color: 'var(--text-muted)', fontSize: '0.75rem' }}>
-                {hasDocuments ? (
-                  'Our AI will analyze your documents and create a civilian-friendly resume.'
-                ) : (
-                  <span style={{ color: 'var(--error-red)', fontWeight: 500 }}>
-                    ⚠️ Please upload at least one document before generating your resume.
-                  </span>
-                )}
-              </p>
+              {generating ? (
+                /* Immediate loading feedback while waiting for API */
+                <div
+                  style={{
+                    backgroundColor: 'var(--info-light)',
+                    padding: '1.5rem',
+                    borderRadius: '12px',
+                    border: '1px solid var(--info-blue)',
+                  }}
+                >
+                  <div className="spinner" style={{ width: '32px', height: '32px', margin: '0 auto 1rem' }} />
+                  <p style={{ color: 'var(--info-blue)', fontWeight: 600, marginBottom: '0.25rem' }}>
+                    Starting resume generation...
+                  </p>
+                  <p style={{ color: 'var(--info-blue)', fontSize: '0.875rem', margin: 0 }}>
+                    Please wait, this may take a moment.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <button
+                    onClick={handleGenerateResume}
+                    className="primary"
+                    disabled={!hasDocuments}
+                    style={{
+                      padding: '1rem 2rem',
+                      fontSize: '1.125rem',
+                      opacity: hasDocuments ? 1 : 0.5,
+                      cursor: hasDocuments ? 'pointer' : 'not-allowed',
+                    }}
+                  >
+                    Generate My Resume
+                  </button>
+                  <p style={{ marginTop: '0.75rem', color: 'var(--text-muted)', fontSize: '0.75rem' }}>
+                    {hasDocuments ? (
+                      'Our AI will analyze your documents and create a civilian-friendly resume.'
+                    ) : (
+                      <span style={{ color: 'var(--error-red)', fontWeight: 500 }}>
+                        Please upload at least one document before generating your resume.
+                      </span>
+                    )}
+                  </p>
+                </>
+              )}
             </div>
           )}
 
