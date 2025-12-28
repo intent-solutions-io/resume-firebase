@@ -7,7 +7,8 @@ import type { GenerationInput, GenerationOutput } from '../types/candidate.js';
 // Configuration from environment
 const PROJECT_ID = process.env.GCP_PROJECT_ID || 'resume-gen-intent-dev';
 const LOCATION = process.env.VERTEX_LOCATION || 'us-central1';
-const MODEL_NAME = process.env.GEMINI_MODEL_NAME || 'gemini-1.5-flash';
+// Use the most capable Gemini model available
+const MODEL_NAME = process.env.GEMINI_MODEL_NAME || 'gemini-2.0-flash-exp';
 
 // Initialize Vertex AI
 const vertexAI = new VertexAI({
