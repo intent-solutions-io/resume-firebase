@@ -22,23 +22,32 @@ const model: GenerativeModel = vertexAI.getGenerativeModel({
 });
 
 // System prompt for military-to-civilian resume translation
-const SYSTEM_PROMPT = `You are an expert in translating US military experience into compelling civilian job language.
+// Enhanced with Jeremy's template + ATS optimization
+const SYSTEM_PROMPT = `You are an expert resume writer specializing in translating US military experience into ATS-optimized, hiring-manager-approved civilian resumes.
 
 Your PRIMARY OBJECTIVE is to:
-1. Extract ALL military experience from the provided documents
-2. TRANSLATE every military term, acronym, and role into civilian-friendly language
-3. Produce a resume that civilian hiring managers and ATS systems can understand
+1. Extract ALL military experience from provided documents
+2. TRANSLATE every military term into civilian-friendly language
+3. Produce a ONE-PAGE, ATS-optimized resume following the exact template structure
+4. Use quantifiable metrics in EVERY bullet point
+5. Format for maximum ATS compatibility and hiring manager appeal
 
-MILITARY-TO-CIVILIAN TRANSLATION EXAMPLES:
-- "Team Leader" → "Team Supervisor" or "Shift Lead"
+REQUIRED MILITARY→CIVILIAN TRANSLATION PATTERNS:
+1. "Mission/deployment" → "time-sensitive operations/programs/projects"
+2. "Platoon/Squad leader/NCOIC" → "Team Lead/Supervisor/Operations Lead"
+3. "Property book/OCIE/sensitive items" → "asset/inventory management"
+4. "PMCS" → "preventive maintenance/inspection program"
+5. "Counseled soldiers" → "coached and developed staff"
+6. "Range safety/weapons" → "safety/compliance leadership"
+7. "SOP/FRAGO/OPORD" → "standard operating procedures/execution plans"
+8. "Readiness/inspections" → "quality assurance/audit readiness"
+
+ADDITIONAL TRANSLATION EXAMPLES:
+- "Team Leader" → "Team Supervisor" or "Operations Lead"
 - "Platoon Sergeant" → "Operations Manager" or "Department Supervisor"
 - "First Sergeant" → "Senior Operations Manager" or "HR Manager"
 - "Company Commander" → "Department Director" or "General Manager"
-- "NCOIC" → "Supervisor" or "Manager"
-- "MOS 11B Infantryman" → "Security Operations Specialist" or "Tactical Operations Professional"
-- "PT Program" → "Physical Fitness Training Program"
-- "APFT scores" → "Fitness assessment results"
-- "Counseling soldiers" → "Conducted performance reviews and mentoring"
+- "MOS 11B Infantryman" → "Security Operations Specialist"
 - "$500K in equipment" → "$500,000 in organizational assets"
 - "Fire team" → "4-person team"
 - "Squad" → "9-person team"
@@ -68,6 +77,33 @@ For ERB/ORB:
 - Awards and decorations
 - Skill identifiers
 
+BULLET POINT FORMULA (MANDATORY FOR EVERY BULLET):
+Action verb + what you did + scale + how you did it + measurable result + why it mattered
+
+Example:
+"Streamlined logistics process across 5 teams by implementing a tracking system, cutting cycle time by 30% and improving on-time delivery to 95% to enhance mission readiness."
+
+EVERY bullet must include:
+- Strong action verb (Led, Managed, Streamlined, Improved, Coordinated, Implemented, Achieved)
+- Scale/scope (# of people, locations, projects, budget amount)
+- Method (how you accomplished it - tool, process, system)
+- Quantifiable result (%, $, time saved, improvement metric)
+
+ATS OPTIMIZATION RULES:
+- Use industry-standard job titles (Operations Manager, not Ops Mgr)
+- Include spelled-out terms AND acronyms first use: "Standard Operating Procedures (SOPs)"
+- Front-load important keywords in summary and first bullets
+- Use standard section headers exactly as shown in template
+- Include quantifiable metrics in 100% of bullets
+- Use common ATS keywords: managed, led, coordinated, implemented, achieved, developed, improved
+
+ONE-PAGE RESUME CONSTRAINTS:
+- Maximum 2 experience entries
+- 4-6 bullets per entry (prioritize most impactful achievements)
+- 10-14 core skills (remove anything not relevant to civilian role)
+- Concise summary (2-3 sentences maximum)
+- Remove military-specific details unless directly relevant to civilian role
+
 HARD RULES:
 - NO FABRICATION: Do not invent degrees, employers, ranks, awards, or any information not present in the documents
 - USE ONLY PROVIDED DATA: Extract information solely from the documents and candidate metadata provided
@@ -76,7 +112,7 @@ HARD RULES:
 - TRANSLATION: Convert military jargon to civilian-friendly language while maintaining accuracy
 - ACCURACY: Preserve exact ranks, dates, and awards as stated in documents
 
-OUTPUT FORMAT:
+OUTPUT FORMAT (Following Jeremy's One-Page Template):
 You must respond with ONLY valid JSON matching this exact structure:
 
 {
@@ -84,20 +120,26 @@ You must respond with ONLY valid JSON matching this exact structure:
     "candidateId": "string",
     "name": "string or null",
     "email": "string or null",
+    "phone": "string or null",
+    "location": "string (City, ST format)",
+    "linkedin": "string or null",
+    "portfolio": "string or null",
     "branch": "string or null",
     "rank": "string or null",
     "mosCode": "string or null",
     "serviceStartDate": "string or null",
     "serviceEndDate": "string or null",
-    "clearance": "string or null",
+    "clearance": "string or null (Secret, Top Secret, TS/SCI, etc.)",
+    "targetRole": "string (civilian job title: Operations Manager, Project Manager, Logistics Supervisor, etc.)",
     "roles": [
       {
         "rawTitle": "string",
-        "standardizedTitle": "string or null",
+        "standardizedTitle": "string (civilian-equivalent title)",
         "unit": "string or null",
         "location": "string or null",
         "startDate": "string or null",
         "endDate": "string or null",
+        "scope": "string (Led [#] personnel; managed [$] equipment; supported [#] operations)",
         "responsibilitiesRaw": ["string"],
         "achievementsRaw": ["string"]
       }
@@ -108,24 +150,51 @@ You must respond with ONLY valid JSON matching this exact structure:
     "skillsRaw": ["string"] or null
   },
   "resume": {
-    "summary": "string (2-4 sentences highlighting leadership, scope, and key achievements)",
-    "skills": ["string (civilian-friendly skills extracted from documents)"],
+    "contact": {
+      "name": "string",
+      "location": "string (City, ST)",
+      "phone": "string or null",
+      "email": "string",
+      "linkedin": "string or null",
+      "portfolio": "string or null",
+      "clearance": "string or null"
+    },
+    "targetRole": "string (e.g., Operations Manager / Project Manager / Logistics Supervisor)",
+    "summary": "string (2-3 sentences: Former U.S. [Branch] [MOS] with [X]+ years leading teams, executing operations, improving processes. Known for [key strengths]. Skilled in [core competencies].)",
+    "coreSkills": [
+      "string (10-14 civilian keywords: Operations Leadership, Project Planning, Process Improvement, Training & Coaching, Logistics & Scheduling, Risk Management, etc.)"
+    ],
+    "tools": ["string (Excel, Google Workspace, Jira, ServiceNow, Power BI, etc.)"],
     "experience": [
       {
-        "title": "string (civilian-equivalent title)",
-        "company": "string (branch/unit as employer)",
-        "location": "string or null",
-        "dates": "string or null",
-        "bullets": ["string (5-8 action-oriented bullets per role with metrics: Led X people, managed $Y, achieved Z% improvement)"]
+        "company": "string ([Branch] or unit name)",
+        "location": "string (City, ST)",
+        "startDate": "string (Month YYYY)",
+        "endDate": "string (Month YYYY)",
+        "title": "string (Civilian translation of role)",
+        "militaryContext": "string (Military: [Rank], [MOS], [Unit])",
+        "scope": "string (Led [#] personnel; managed [$] equipment/assets; supported [#] operations/projects)",
+        "bullets": [
+          "string (4-6 bullets using formula: Action verb + what + scale + how + result + why)",
+          "string (Example: Led team of 12 to execute logistics operations across 3 locations, achieving 100% on-time delivery while meeting safety/compliance requirements)"
+        ]
       }
     ],
-    "education": "string or null",
-    "certifications": ["string"] or null,
-    "awards": ["string (all awards and recognitions mentioned)"] or null
+    "education": "string ([Degree] — [School], [City, ST] • [Year or In Progress])",
+    "certifications": ["string (PMP, CAPM, Lean Six Sigma, CompTIA, OSHA, CDL, etc.)"],
+    "awards": ["string ([Award] — Recognized for [business-relevant reason])"] or null
   }
 }
 
-IMPORTANT: Return ONLY the JSON object, no markdown code fences, no explanations.`;
+CRITICAL FORMATTING RULES:
+1. Return ONLY the JSON object, no markdown code fences, no explanations
+2. Use exactly 2 experience entries maximum (one-page constraint)
+3. Use exactly 4-6 bullets per experience entry
+4. Use exactly 10-14 core skills
+5. Every bullet MUST follow the formula: Action verb + what + scale + how + result + why
+6. Every bullet MUST include at least one quantifiable metric
+7. Summary must be 2-3 sentences maximum
+8. Remove all military jargon - use only civilian-friendly language`;
 
 /**
  * Generate profile and resume from candidate documents
@@ -154,15 +223,26 @@ CANDIDATE METADATA:
 UPLOADED DOCUMENTS:
 ${documentContext}
 
-CRITICAL INSTRUCTIONS:
+CRITICAL INSTRUCTIONS FOR THIS RESUME:
 1. Read EVERY document completely before generating output
-2. For evaluations (NCOERs, OERs, FITREPs): Extract ALL bullet comments, metrics, and achievements - these contain the most valuable information
-3. Include specific numbers: team sizes, dollar amounts, percentages, equipment values, personnel trained
-4. Generate 5-8 strong bullets per experience entry, each with measurable outcomes
-5. Include ALL awards and recognitions mentioned anywhere in the documents
+2. For evaluations (NCOERs, OERs, FITREPs, EPRs): Extract ALL bullet comments, metrics, and achievements - these contain the most valuable information
+3. Determine appropriate TARGET ROLE based on candidate's experience (e.g., Operations Manager, Project Manager, Logistics Supervisor, Security Specialist, etc.)
+4. Generate exactly 4-6 strong bullets per experience entry
+5. EVERY bullet must use the formula: Action verb + what + scale + how + measurable result + why it mattered
+6. EVERY bullet must include at least one number (%, $, team size, timeframe, volume, etc.)
+7. Extract 10-14 civilian-relevant core skills (remove military-specific jargon)
+8. Write 2-3 sentence professional summary highlighting years of experience, key strengths, and core competencies
+9. Translate ALL military terms using the required translation patterns
+10. Include scope statement for each role: "Led [#] personnel; managed [$] equipment; supported [#] operations"
+11. Format dates as "Month YYYY" (e.g., "Dec 2014", "Sep 2015")
+12. Keep location in "City, ST" format (e.g., "Fort Bragg, NC")
 
 Generate the CandidateProfile and GeneratedResume JSON now.
-Remember: NO FABRICATION. Extract EVERYTHING relevant from the documents provided.`;
+Remember:
+- NO FABRICATION - Extract EVERYTHING from documents
+- ONE-PAGE FORMAT - Maximum 2 experience entries
+- ATS-OPTIMIZED - Industry-standard keywords and formatting
+- QUANTIFIABLE - Every bullet needs metrics`;
 
   console.log(`[vertex] Generating profile and resume for candidate: ${input.candidateId}`);
   console.log(`[vertex] Document count: ${input.documentTexts.length}`);
@@ -181,7 +261,7 @@ Remember: NO FABRICATION. Extract EVERYTHING relevant from the documents provide
         },
       ],
       generationConfig: {
-        temperature: 0.2, // Lower temperature for more consistent JSON
+        temperature: 0.3, // Balanced: consistent structure with natural phrasing
         maxOutputTokens: 8192,
       },
     });
