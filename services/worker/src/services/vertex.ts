@@ -233,7 +233,7 @@ CRITICAL INSTRUCTIONS FOR THIS RESUME:
 7. Extract 10-14 civilian-relevant core skills (keep technical terms that demonstrate expertise)
 8. Write professional summary using ACTUAL SPECIFICS from documents (real job titles, actual specialties, concrete scope) - avoid generic phrases
 9. Translate military job titles to civilian equivalents BUT always preserve the original military context for credibility
-10. Include comprehensive scope statement for each role using ALL available metrics from documents: "Led [#] personnel across [#] bases/locations; secured [#] acres; managed/protected [$] in assets; supported [#] personnel and [$] in infrastructure"
+10. Include comprehensive scope statement for each role using ALL available metrics from documents: "Led [#] personnel across [#] bases/locations; secured [#] acres; managed [$] in assets; protected [$] in infrastructure; supported [#] personnel and [$] in infrastructure"
 11. ALWAYS include both start and end dates: "Month YYYY – Month YYYY" (e.g., "Dec 2014 – Sep 2015")
 12. Preserve specific location names for credibility: "City, ST" format (e.g., "Fort Bragg, NC")
 
