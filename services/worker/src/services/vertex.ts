@@ -97,11 +97,11 @@ ATS OPTIMIZATION RULES:
 - Use common ATS keywords: managed, led, coordinated, implemented, achieved, developed, improved
 
 ONE-PAGE RESUME CONSTRAINTS:
-- Maximum 2 experience entries
-- 4-6 bullets per entry (prioritize most impactful achievements)
-- 10-14 core skills (remove anything not relevant to civilian role)
-- Concise summary (2-3 sentences maximum)
-- Remove military-specific details unless directly relevant to civilian role
+- Maximum 2 experience entries (combine similar roles if needed)
+- 4-8 bullets per entry (prioritize most impactful achievements with full context)
+- 10-14 core skills (civilian-relevant but preserve technical specificity)
+- Concise summary (2-3 sentences highlighting specific accomplishments and scope)
+- PRESERVE credibility details: specific base names, exact dollar amounts, personnel counts, geographic scope, asset values
 
 HARD RULES:
 - NO FABRICATION: Do not invent degrees, employers, ranks, awards, or any information not present in the documents
@@ -188,12 +188,12 @@ You must respond with ONLY valid JSON matching this exact structure:
 CRITICAL FORMATTING RULES:
 1. Return ONLY the JSON object, no markdown code fences, no explanations
 2. Use exactly 2 experience entries maximum (one-page constraint)
-3. Use exactly 4-6 bullets per experience entry
+3. Use 4-8 bullets per experience entry (aim for 6-8 when rich content available)
 4. Use exactly 10-14 core skills
-5. Every bullet MUST follow the formula: Action verb + what + scale + how + result + why
-6. Every bullet MUST include at least one quantifiable metric
-7. Summary must be 2-3 sentences maximum
-8. Remove all military jargon - use only civilian-friendly language`;
+5. Every bullet MUST include rich context: specific task + full scope/scale + method + quantifiable results
+6. Every bullet MUST include multiple quantifiable metrics - preserve ALL specific numbers from documents (%, $, team size, assets, timeframes, locations)
+7. Summary must use SPECIFIC details from candidate's actual experience (not generic statements)
+8. Translate military job titles to civilian equivalents BUT preserve all credibility context (specific base/unit names, exact dollar amounts, personnel counts)`;
 
 /**
  * Generate profile and resume from candidate documents
@@ -226,15 +226,15 @@ CRITICAL INSTRUCTIONS FOR THIS RESUME:
 1. Read EVERY document completely before generating output
 2. For evaluations (NCOERs, OERs, FITREPs, EPRs): Extract ALL bullet comments, metrics, and achievements - these contain the most valuable information
 3. Determine appropriate TARGET ROLE based on candidate's experience (e.g., Operations Manager, Project Manager, Logistics Supervisor, Security Specialist, etc.)
-4. Generate exactly 4-6 strong bullets per experience entry
-5. EVERY bullet must use the formula: Action verb + what + scale + how + measurable result + why it mattered
-6. EVERY bullet must include at least one number (%, $, team size, timeframe, volume, etc.)
-7. Extract 10-14 civilian-relevant core skills (remove military-specific jargon)
-8. Write 2-3 sentence professional summary highlighting years of experience, key strengths, and core competencies
-9. Translate ALL military terms using the required translation patterns
-10. Include scope statement for each role: "Led [#] personnel; managed [$] equipment; supported [#] operations"
-11. Format dates as "Month YYYY" (e.g., "Dec 2014", "Sep 2015")
-12. Keep location in "City, ST" format (e.g., "RAF Alconbury, England")
+4. Generate 4-8 strong bullets per experience entry (use 6-8 bullets when rich content is available from evaluations)
+5. EVERY bullet must include FULL CONTEXT from source documents: specific task + complete scope (all locations, all assets, all personnel) + method + all measurable results mentioned
+6. PRESERVE ALL SPECIFIC NUMBERS from documents - do not summarize or reduce: exact dollar amounts, personnel counts, asset values, acreage, timeframes, percentages, locations
+7. Extract 10-14 civilian-relevant core skills (keep technical terms that demonstrate expertise)
+8. Write professional summary using ACTUAL SPECIFICS from documents (real job titles, actual specialties, concrete scope) - avoid generic phrases
+9. Translate military job titles to civilian equivalents BUT always preserve the original military context for credibility
+10. Include comprehensive scope statement for each role using ALL available metrics from documents: "Led [#] personnel across [#] bases/locations; secured [#] acres; managed/protected [$] in assets; supported [#] personnel and [$] in infrastructure"
+11. ALWAYS include both start and end dates: "Month YYYY – Month YYYY" (e.g., "Dec 2014 – Sep 2015")
+12. Preserve specific location names for credibility: "Base Name, Country" or "City, ST" (e.g., "RAF Alconbury, England")
 
 Generate the CandidateProfile and GeneratedResume JSON now.
 Remember:
