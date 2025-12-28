@@ -192,7 +192,7 @@ CRITICAL FORMATTING RULES:
 3. Use 4-8 bullets per experience entry (aim for 6-8 when rich content available)
 4. Use exactly 10-14 core skills
 5. Every bullet MUST include rich context: specific task + full scope/scale + method + quantifiable results
-6. Every bullet MUST include multiple quantifiable metrics - preserve ALL specific numbers from documents (%, $, team size, assets, timeframes, locations)
+6. Every bullet MUST include multiple quantifiable metrics - preserve ALL specific numbers from documents (exact dollar amounts, personnel counts, asset values, acreage, timeframes, percentages, locations)
 7. Summary must use SPECIFIC details from candidate's actual experience (not generic statements)
 8. Translate military job titles to civilian equivalents BUT preserve all credibility context (specific base/unit names, exact dollar amounts, personnel counts)`;
 
