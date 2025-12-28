@@ -234,7 +234,7 @@ CRITICAL INSTRUCTIONS FOR THIS RESUME:
 9. Translate ALL military terms using the required translation patterns
 10. Include scope statement for each role: "Led [#] personnel; managed [$] equipment; supported [#] operations"
 11. Format dates as "Month YYYY" (e.g., "Dec 2014", "Sep 2015")
-12. Keep location in "City, ST" format (e.g., "RAF Alconbury, England")
+12. Keep location in "City, ST" format (e.g., "Fort Bragg, NC")
 
 Generate the CandidateProfile and GeneratedResume JSON now.
 Remember:
