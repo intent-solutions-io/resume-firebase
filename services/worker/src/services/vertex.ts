@@ -181,7 +181,7 @@ You must respond with ONLY valid JSON matching this exact structure:
     ],
     "education": "string ([Degree] — [School], [City, ST] • [Year or In Progress])",
     "certifications": ["string (PMP, CAPM, Lean Six Sigma, CompTIA, OSHA, CDL, etc.)"],
-    "awards": ["string ([Award] — Recognized for [business-relevant reason])" ] or null
+    "awards": ["string ([Award] — Recognized for [business-relevant reason])"] or null
   }
 }
 
