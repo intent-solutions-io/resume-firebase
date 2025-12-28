@@ -80,7 +80,7 @@ BULLET POINT FORMULA (MANDATORY FOR EVERY BULLET):
 Action verb + what you did + scale + how you did it + measurable result + why it mattered
 
 Example:
-"Streamlined logistics process across 5 teams by implementing tracking system, cutting cycle time by 30% and improving on-time delivery to 95%."
+"Streamlined logistics process across 5 teams by implementing a tracking system, cutting cycle time by 30% and improving on-time delivery to 95% to enhance mission readiness."
 
 EVERY bullet must include:
 - Strong action verb (Led, Managed, Streamlined, Improved, Coordinated, Implemented, Achieved)
