@@ -7,8 +7,8 @@ import type { GenerationInput, GenerationOutput } from '../types/candidate.js';
 // Configuration from environment
 const PROJECT_ID = process.env.GCP_PROJECT_ID || 'resume-gen-intent-dev';
 const LOCATION = process.env.VERTEX_LOCATION || 'us-central1';
-// Use Gemini Pro for best quality (stable production model)
-const MODEL_NAME = process.env.GEMINI_MODEL_NAME || 'gemini-1.5-pro-002';
+// Gemini 2.0 Flash - GA release, 1M token context, multimodal
+const MODEL_NAME = process.env.GEMINI_MODEL_NAME || 'gemini-2.0-flash-001';
 
 // Initialize Vertex AI
 const vertexAI = new VertexAI({
