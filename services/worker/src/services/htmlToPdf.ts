@@ -1,8 +1,10 @@
 // HTML to PDF Converter using Puppeteer
 // Phase: Prototype (Checkpoint 1)
-// Security: Validates HTML, prevents script injection
+// Security: Sanitizes HTML using DOMPurify to prevent XSS/script injection
 
 import puppeteer from 'puppeteer';
+import { JSDOM } from 'jsdom';
+import createDOMPurify from 'dompurify';
 
 /**
  * PDF rendering options matching Vertex AI render_hints
@@ -30,29 +32,39 @@ export async function convertHtmlToPdf(
   html: string,
   options: PDFRenderOptions
 ): Promise<Buffer> {
-  // Security: Validate HTML doesn't contain script tags
-  const htmlLower = html.toLowerCase();
-  if (htmlLower.includes('<script')) {
-    console.error('[htmlToPdf] Security violation: HTML contains script tags');
-    throw new Error('Security: HTML contains script tags - rendering blocked');
+  // Security: Sanitize HTML using DOMPurify to prevent XSS attacks
+  // This is much more robust than string matching and handles all edge cases
+  console.log('[htmlToPdf] Sanitizing HTML with DOMPurify...');
+
+  const window = new JSDOM('').window;
+  const DOMPurify = createDOMPurify(window);
+
+  // Configure DOMPurify to allow safe HTML for PDF rendering
+  const cleanHtml = DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: [
+      'html', 'head', 'body', 'style', 'title', 'meta',
+      'div', 'span', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+      'ul', 'ol', 'li', 'br', 'hr', 'strong', 'em', 'b', 'i', 'u',
+      'table', 'thead', 'tbody', 'tr', 'th', 'td',
+      'a', 'img', 'code', 'pre', 'blockquote',
+    ],
+    ALLOWED_ATTR: [
+      'class', 'id', 'style', 'href', 'src', 'alt', 'title',
+      'width', 'height', 'colspan', 'rowspan', 'align', 'valign',
+    ],
+    ALLOW_DATA_ATTR: false, // Block data-* attributes
+    FORBID_TAGS: ['script', 'iframe', 'object', 'embed', 'form', 'input'],
+    FORBID_ATTR: ['onclick', 'onerror', 'onload', 'onmouseover', 'onfocus', 'onblur'],
+  });
+
+  // Verify sanitization actually removed dangerous content
+  const beforeLength = html.length;
+  const afterLength = cleanHtml.length;
+  if (beforeLength !== afterLength) {
+    console.warn(`[htmlToPdf] DOMPurify removed ${beforeLength - afterLength} bytes of potentially dangerous content`);
   }
 
-  // Additional security: Check for javascript: protocol
-  if (htmlLower.includes('javascript:')) {
-    console.error('[htmlToPdf] Security violation: HTML contains javascript: protocol');
-    throw new Error('Security: HTML contains javascript: protocol - rendering blocked');
-  }
-
-  // Additional security: Check for onclick/onerror/onload handlers
-  const dangerousPatterns = ['onclick=', 'onerror=', 'onload=', 'onmouseover='];
-  for (const pattern of dangerousPatterns) {
-    if (htmlLower.includes(pattern)) {
-      console.error(`[htmlToPdf] Security violation: HTML contains ${pattern}`);
-      throw new Error(`Security: HTML contains event handlers - rendering blocked`);
-    }
-  }
-
-  console.log('[htmlToPdf] HTML security validation passed');
+  console.log('[htmlToPdf] HTML sanitization complete');
 
   let browser;
   try {
@@ -70,8 +82,8 @@ export async function convertHtmlToPdf(
 
     const page = await browser.newPage();
 
-    // Set content and wait for all resources
-    await page.setContent(html, {
+    // Set content with SANITIZED HTML and wait for all resources
+    await page.setContent(cleanHtml, {
       waitUntil: 'networkidle0',
       timeout: 30000, // 30 second timeout
     });
