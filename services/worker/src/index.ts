@@ -10,6 +10,8 @@ import {
   candidateStatusHandler,
   resumeDownloadHandler,
 } from './handlers/processCandidateHandler.js';
+// PROTOTYPE: 3-PDF Resume Bundle (Checkpoint 1)
+import { prototypeThreePdfHandler } from './handlers/prototypeThreePdfHandler.js';
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -42,6 +44,9 @@ app.post('/internal/generateArtifact', generateArtifactHandler);
 app.post('/internal/processCandidate', processCandidateHandler);
 app.get('/internal/candidateStatus/:candidateId', candidateStatusHandler);
 app.get('/internal/resumeDownload/:candidateId/:format', resumeDownloadHandler);
+
+// PROTOTYPE: 3-PDF Resume Bundle Testing (Checkpoint 1)
+app.post('/internal/prototype/threePdf', prototypeThreePdfHandler);
 
 // Error handling
 app.use(
