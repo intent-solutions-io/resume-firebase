@@ -18,13 +18,25 @@ import { fetchCandidateDocuments } from '../lib/adminData';
 // Worker API URL from environment
 const WORKER_URL = import.meta.env.VITE_WORKER_URL || 'http://localhost:8080';
 
-// Resume export data from Firestore
+// Resume export data from Firestore (legacy single resume)
 interface ResumeExport {
   pdfPath?: string;
   docxPath?: string;
   exportGeneratedAt?: unknown;
   exportError?: string;
 }
+
+// Bundle export data from Firestore (3-PDF bundle)
+interface BundleExport {
+  militaryPdfPath?: string;
+  civilianPdfPath?: string;
+  crosswalkPdfPath?: string;
+  exportGeneratedAt?: unknown;
+  exportError?: string;
+}
+
+// Download format types
+type DownloadFormat = 'pdf' | 'docx' | 'military' | 'civilian' | 'crosswalk';
 
 // Step indicator component
 function StepIndicator({ currentStep }: { currentStep: number }) {
@@ -73,14 +85,80 @@ function StatusBadge({ status }: { status: CandidateStatus }) {
   return <span className={`badge ${config.className}`}>{config.label}</span>;
 }
 
+// Download icon SVG component
+function DownloadIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+      <polyline points="7 10 12 15 17 10" />
+      <line x1="12" y1="15" x2="12" y2="3" />
+    </svg>
+  );
+}
+
+// Reusable download button component
+interface DownloadButtonProps {
+  format: DownloadFormat;
+  label: string;
+  description?: string;
+  color: string;
+  downloading: DownloadFormat | null;
+  onDownload: (format: DownloadFormat) => void;
+  fullWidth?: boolean;
+}
+
+function DownloadButton({
+  format,
+  label,
+  description,
+  color,
+  downloading,
+  onDownload,
+  fullWidth = false,
+}: DownloadButtonProps) {
+  const isDownloading = downloading === format;
+  const isDisabled = downloading !== null;
+
+  return (
+    <button
+      onClick={() => onDownload(format)}
+      disabled={isDisabled}
+      style={{
+        backgroundColor: isDownloading ? 'var(--border-medium)' : color,
+        color: 'white',
+        padding: description ? '1rem 1.5rem' : '0.875rem 1.5rem',
+        fontSize: '1rem',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: description ? '0.75rem' : '0.5rem',
+        width: fullWidth ? '100%' : 'auto',
+      }}
+    >
+      <DownloadIcon />
+      {description ? (
+        <span>
+          {isDownloading ? 'Downloading...' : label}
+          <span style={{ fontSize: '0.75rem', display: 'block', opacity: 0.9 }}>
+            {description}
+          </span>
+        </span>
+      ) : (
+        isDownloading ? 'Downloading...' : label
+      )}
+    </button>
+  );
+}
+
 export function IntakeCompletePage() {
   const { candidateId } = useParams<{ candidateId: string }>();
   const [candidate, setCandidate] = useState<Candidate | null>(null);
   const [resumeExport, setResumeExport] = useState<ResumeExport | null>(null);
+  const [bundleExport, setBundleExport] = useState<BundleExport | null>(null);
   const [documents, setDocuments] = useState<CandidateDocument[]>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
-  const [downloading, setDownloading] = useState<'pdf' | 'docx' | null>(null);
+  const [downloading, setDownloading] = useState<DownloadFormat | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [processingElapsed, setProcessingElapsed] = useState(0);
 
@@ -103,7 +181,7 @@ export function IntakeCompletePage() {
     return () => unsubscribe();
   }, [candidateId]);
 
-  // Real-time subscription to resume exports
+  // Real-time subscription to resume exports (legacy single resume)
   useEffect(() => {
     if (!candidateId) return;
 
@@ -114,6 +192,23 @@ export function IntakeCompletePage() {
       if (snapshot.exists()) {
         const data = snapshot.data() as ResumeExport;
         setResumeExport(data);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [candidateId]);
+
+  // Real-time subscription to bundle exports (3-PDF bundle)
+  useEffect(() => {
+    if (!candidateId) return;
+
+    const db = getFirestoreDb();
+    const bundleRef = doc(db, 'resumeBundles', candidateId);
+
+    const unsubscribe = onSnapshot(bundleRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.data() as BundleExport;
+        setBundleExport(data);
       }
     });
 
@@ -154,11 +249,20 @@ export function IntakeCompletePage() {
   }, [candidate?.status]);
 
   // Handle download
-  async function handleDownload(format: 'pdf' | 'docx') {
+  async function handleDownload(format: DownloadFormat) {
     if (!candidateId) return;
 
     setDownloading(format);
     setError(null);
+
+    // Determine filename based on format
+    const filenames: Record<DownloadFormat, string> = {
+      pdf: 'resume.pdf',
+      docx: 'resume.docx',
+      military: 'resume-military.pdf',
+      civilian: 'resume-civilian.pdf',
+      crosswalk: 'resume-crosswalk.pdf',
+    };
 
     try {
       const response = await fetch(
@@ -192,7 +296,7 @@ export function IntakeCompletePage() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `resume.${format}`;
+      a.download = filenames[format];
       document.body.appendChild(a);
       a.click();
 
@@ -588,75 +692,102 @@ export function IntakeCompletePage() {
                 marginBottom: '1.5rem',
               }}
             >
-              <p style={{ color: '#276749', fontWeight: 600, marginBottom: '1rem', textAlign: 'center' }}>
-                Download your resume in your preferred format:
-              </p>
+              {/* 3-PDF Bundle Downloads */}
+              {(bundleExport?.militaryPdfPath || bundleExport?.civilianPdfPath || bundleExport?.crosswalkPdfPath) ? (
+                <>
+                  <p style={{ color: '#276749', fontWeight: 600, marginBottom: '0.5rem', textAlign: 'center' }}>
+                    Your Resume Bundle is Ready!
+                  </p>
+                  <p style={{ color: '#276749', fontSize: '0.875rem', marginBottom: '1rem', textAlign: 'center' }}>
+                    Download all three versions of your resume:
+                  </p>
 
-              {/* Download buttons */}
-              {(resumeExport?.pdfPath || resumeExport?.docxPath) && (
-                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-                  {resumeExport?.pdfPath && (
-                    <button
-                      onClick={() => handleDownload('pdf')}
-                      disabled={downloading !== null}
-                      style={{
-                        backgroundColor: downloading === 'pdf' ? 'var(--border-medium)' : '#276749',
-                        color: 'white',
-                        padding: '0.875rem 1.5rem',
-                        fontSize: '1rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                      }}
-                    >
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-                        <polyline points="7 10 12 15 17 10" />
-                        <line x1="12" y1="15" x2="12" y2="3" />
-                      </svg>
-                      {downloading === 'pdf' ? 'Downloading...' : 'Download PDF'}
-                    </button>
-                  )}
-                  {resumeExport?.docxPath && (
-                    <button
-                      onClick={() => handleDownload('docx')}
-                      disabled={downloading !== null}
-                      style={{
-                        backgroundColor: downloading === 'docx' ? 'var(--border-medium)' : 'var(--info-blue)',
-                        color: 'white',
-                        padding: '0.875rem 1.5rem',
-                        fontSize: '1rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                      }}
-                    >
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-                        <polyline points="7 10 12 15 17 10" />
-                        <line x1="12" y1="15" x2="12" y2="3" />
-                      </svg>
-                      {downloading === 'docx' ? 'Downloading...' : 'Download Word'}
-                    </button>
-                  )}
-                </div>
-              )}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    {bundleExport?.civilianPdfPath && (
+                      <DownloadButton
+                        format="civilian"
+                        label="Civilian Resume"
+                        description="ATS-optimized for private sector jobs"
+                        color="#276749"
+                        downloading={downloading}
+                        onDownload={handleDownload}
+                        fullWidth
+                      />
+                    )}
+                    {bundleExport?.militaryPdfPath && (
+                      <DownloadButton
+                        format="military"
+                        label="Military Resume"
+                        description="For federal/government positions"
+                        color="var(--info-blue)"
+                        downloading={downloading}
+                        onDownload={handleDownload}
+                        fullWidth
+                      />
+                    )}
+                    {bundleExport?.crosswalkPdfPath && (
+                      <DownloadButton
+                        format="crosswalk"
+                        label="Translation Crosswalk"
+                        description="Military to civilian term mapping"
+                        color="#C59141"
+                        downloading={downloading}
+                        onDownload={handleDownload}
+                        fullWidth
+                      />
+                    )}
+                  </div>
 
-              {/* Waiting for exports */}
-              {!resumeExport?.pdfPath && !resumeExport?.docxPath && (
+                  {/* Bundle export error */}
+                  {bundleExport?.exportError && (
+                    <p style={{ color: 'var(--error-red)', fontSize: '0.75rem', marginTop: '0.75rem', textAlign: 'center' }}>
+                      Note: {bundleExport.exportError}
+                    </p>
+                  )}
+                </>
+              ) : (resumeExport?.pdfPath || resumeExport?.docxPath) ? (
+                /* Legacy single resume downloads */
+                <>
+                  <p style={{ color: '#276749', fontWeight: 600, marginBottom: '1rem', textAlign: 'center' }}>
+                    Download your resume in your preferred format:
+                  </p>
+
+                  <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+                    {resumeExport?.pdfPath && (
+                      <DownloadButton
+                        format="pdf"
+                        label="Download PDF"
+                        color="#276749"
+                        downloading={downloading}
+                        onDownload={handleDownload}
+                      />
+                    )}
+                    {resumeExport?.docxPath && (
+                      <DownloadButton
+                        format="docx"
+                        label="Download Word"
+                        color="var(--info-blue)"
+                        downloading={downloading}
+                        onDownload={handleDownload}
+                      />
+                    )}
+                  </div>
+
+                  {/* Export error */}
+                  {resumeExport?.exportError && (
+                    <p style={{ color: 'var(--error-red)', fontSize: '0.75rem', marginTop: '0.75rem', textAlign: 'center' }}>
+                      Note: {resumeExport.exportError}
+                    </p>
+                  )}
+                </>
+              ) : (
+                /* Waiting for exports */
                 <div style={{ textAlign: 'center' }}>
                   <div className="spinner" style={{ margin: '0 auto 0.5rem' }} />
                   <p style={{ color: '#276749', fontSize: '0.875rem' }}>
-                    Generating downloadable files...
+                    Generating your resume bundle...
                   </p>
                 </div>
-              )}
-
-              {/* Export error */}
-              {resumeExport?.exportError && (
-                <p style={{ color: 'var(--error-red)', fontSize: '0.75rem', marginTop: '0.75rem', textAlign: 'center' }}>
-                  Note: {resumeExport.exportError}
-                </p>
               )}
             </div>
           )}

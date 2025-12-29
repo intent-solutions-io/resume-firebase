@@ -2,6 +2,7 @@
 // Phase 1.9: AI Profile & Resume Pipeline
 // Phase 2.0: Resume Export (PDF/DOCX)
 // Phase 2.1: Internal Slack Notifications
+// Phase 2.5: 3-PDF Resume Bundle (Military + Civilian + Crosswalk)
 
 import { Request, Response } from 'express';
 import { Firestore, FieldValue } from '@google-cloud/firestore';
@@ -11,8 +12,15 @@ import {
   getModelInfo,
 } from '../services/vertex.js';
 import {
+  generateResumeBundle,
+  getBundleModelInfo,
+} from '../services/vertexBundle.js';
+import {
   exportResumeForCandidate,
 } from '../services/exportResume.js';
+import {
+  exportBundleForCandidate,
+} from '../services/exportBundle.js';
 import {
   notifyNewCandidate,
   notifyResumeReady,
@@ -22,6 +30,7 @@ import type {
   CandidateProfile,
   GeneratedResume,
   GenerationInput,
+  BundleGenerationOutput,
 } from '../types/candidate.js';
 
 const firestore = new Firestore({
@@ -32,6 +41,7 @@ const firestore = new Firestore({
 const candidatesCollection = firestore.collection('candidates');
 const profilesCollection = firestore.collection('candidateProfiles');
 const resumesCollection = firestore.collection('resumes');
+const resumeBundlesCollection = firestore.collection('resumeBundles');
 
 /**
  * Process candidate documents and generate profile + resume
@@ -102,7 +112,7 @@ export async function processCandidateHandler(
 
     console.log(`[processCandidate] Extracted ${documentTexts.length} documents`);
 
-    // 4. Call Vertex AI to generate profile and resume
+    // 4. Call Vertex AI to generate 3-PDF bundle (Military + Civilian + Crosswalk)
     const input: GenerationInput = {
       candidateId,
       name: candidate.name,
@@ -115,57 +125,89 @@ export async function processCandidateHandler(
 
     let profile: Omit<CandidateProfile, 'createdAt' | 'modelName' | 'modelVersion'>;
     let resume: Omit<GeneratedResume, 'createdAt' | 'modelName' | 'modelVersion'>;
+    let bundleOutput: BundleGenerationOutput | null = null;
     let modelName: string;
     let modelVersion: string;
+    let usedBundleGeneration = false;
 
+    // Try 3-PDF bundle generation first
     try {
-      const result = await generateProfileAndResume(input);
-      profile = result.profile;
-      resume = result.resume;
-      const modelInfo = getModelInfo();
+      console.log('[processCandidate] Attempting 3-PDF bundle generation...');
+      bundleOutput = await generateResumeBundle(input);
+      profile = bundleOutput.profile;
+
+      // Create a simplified resume object from the bundle for backwards compatibility
+      resume = {
+        summary: `Generated 3-PDF bundle for ${candidate.name}. Military, Civilian, and Crosswalk resumes available.`,
+        skills: profile.skillsRaw || [],
+        experience: profile.roles?.map(role => ({
+          title: role.standardizedTitle || role.rawTitle,
+          company: role.unit || candidate.branch,
+          location: role.location || '',
+          dates: role.startDate && role.endDate ? `${role.startDate} - ${role.endDate}` : '',
+          bullets: [...(role.responsibilitiesRaw || []), ...(role.achievementsRaw || [])],
+        })) || [],
+        education: profile.education?.join('; '),
+        certifications: profile.certifications || [],
+      };
+
+      const modelInfo = getBundleModelInfo();
       modelName = modelInfo.modelName;
       modelVersion = modelInfo.modelVersion;
-    } catch (vertexError) {
-      console.warn('[processCandidate] Vertex AI failed, using fallback resume generation:', vertexError);
+      usedBundleGeneration = true;
+      console.log('[processCandidate] 3-PDF bundle generation successful');
+    } catch (bundleError) {
+      console.warn('[processCandidate] Bundle generation failed, falling back to single resume:', bundleError);
 
-      // TEMPORARY WORKAROUND: Create basic resume from extracted text
-      // This allows testing the complete flow without Vertex AI access
-      const combinedText = documentTexts.map(d => d.text).join('\n\n');
-      const textPreview = combinedText.substring(0, 500);
+      // Fallback to original single-resume generation
+      try {
+        const result = await generateProfileAndResume(input);
+        profile = result.profile;
+        resume = result.resume;
+        const modelInfo = getModelInfo();
+        modelName = modelInfo.modelName;
+        modelVersion = modelInfo.modelVersion;
+      } catch (vertexError) {
+        console.warn('[processCandidate] Vertex AI fallback also failed, using basic fallback:', vertexError);
 
-      profile = {
-        candidateId,
-        roles: [{
-          rawTitle: 'Military Professional',
-          responsibilitiesRaw: ['Leadership and team management', 'Military operations'],
-          achievementsRaw: ['Served with distinction'],
-        }],
-        skillsRaw: ['Leadership', 'Team Management', 'Communication'],
-        certifications: [],
-      };
+        // FINAL FALLBACK: Create basic resume from extracted text
+        const combinedText = documentTexts.map(d => d.text).join('\n\n');
+        const textPreview = combinedText.substring(0, 500);
 
-      resume = {
-        summary: `${candidate.rank || 'Military'} professional with experience in ${candidate.branch || 'service'}. Document preview: ${textPreview}...`,
-        skills: ['Leadership', 'Team Management', 'Communication', 'Problem Solving'],
-        experience: [{
-          title: candidate.rank || 'Service Member',
-          company: candidate.branch || 'Military',
-          location: 'United States',
-          dates: 'Various',
-          bullets: [
-            'Served with distinction in military capacity',
-            'Demonstrated leadership and teamwork',
-            'Applied technical and professional skills',
-          ],
-        }],
-        education: 'Military Training and Education',
-        certifications: [],
-      };
+        profile = {
+          candidateId,
+          roles: [{
+            rawTitle: 'Military Professional',
+            responsibilitiesRaw: ['Leadership and team management', 'Military operations'],
+            achievementsRaw: ['Served with distinction'],
+          }],
+          skillsRaw: ['Leadership', 'Team Management', 'Communication'],
+          certifications: [],
+        };
 
-      modelName = 'fallback-v1';
-      modelVersion = '1.0.0';
+        resume = {
+          summary: `${candidate.rank || 'Military'} professional with experience in ${candidate.branch || 'service'}. Document preview: ${textPreview}...`,
+          skills: ['Leadership', 'Team Management', 'Communication', 'Problem Solving'],
+          experience: [{
+            title: candidate.rank || 'Service Member',
+            company: candidate.branch || 'Military',
+            location: 'United States',
+            dates: 'Various',
+            bullets: [
+              'Served with distinction in military capacity',
+              'Demonstrated leadership and teamwork',
+              'Applied technical and professional skills',
+            ],
+          }],
+          education: 'Military Training and Education',
+          certifications: [],
+        };
 
-      console.log('[processCandidate] Created fallback resume - AI generation will be available once Vertex AI is configured');
+        modelName = 'fallback-v1';
+        modelVersion = '1.0.0';
+
+        console.log('[processCandidate] Created basic fallback resume');
+      }
     }
 
     // 5. Model metadata already set above
@@ -199,14 +241,39 @@ export async function processCandidateHandler(
       updatedAt: FieldValue.serverTimestamp(),
     });
 
-    // 9. Generate PDF and DOCX exports (Phase 2.0)
+    // 9. Generate PDF exports (Phase 2.0 / Phase 2.5)
     let exportResult = { pdfPath: '', docxPath: '', errors: [] as string[] };
-    try {
-      exportResult = await exportResumeForCandidate(candidateId);
-      console.log(`[processCandidate] Exports generated: PDF=${!!exportResult.pdfPath}, DOCX=${!!exportResult.docxPath}`);
-    } catch (exportError) {
-      console.error('[processCandidate] Export failed (non-fatal):', exportError);
-      exportResult.errors.push(exportError instanceof Error ? exportError.message : 'Export failed');
+    let bundleExportResult = { militaryPdfPath: '', civilianPdfPath: '', crosswalkPdfPath: '', errors: [] as string[] };
+
+    if (usedBundleGeneration && bundleOutput) {
+      // Save bundle to Firestore first
+      const bundleData = {
+        ...bundleOutput.bundle,
+        profile: bundleOutput.profile,
+        createdAt: timestamp,
+        modelName,
+        modelVersion,
+      };
+      await resumeBundlesCollection.doc(candidateId).set(bundleData);
+      console.log('[processCandidate] Saved resume bundle to Firestore');
+
+      // Export 3-PDF bundle
+      try {
+        bundleExportResult = await exportBundleForCandidate(candidateId, bundleOutput.bundle);
+        console.log(`[processCandidate] Bundle exports generated: Military=${!!bundleExportResult.militaryPdfPath}, Civilian=${!!bundleExportResult.civilianPdfPath}, Crosswalk=${!!bundleExportResult.crosswalkPdfPath}`);
+      } catch (exportError) {
+        console.error('[processCandidate] Bundle export failed (non-fatal):', exportError);
+        bundleExportResult.errors.push(exportError instanceof Error ? exportError.message : 'Bundle export failed');
+      }
+    } else {
+      // Fallback: Generate single PDF and DOCX exports
+      try {
+        exportResult = await exportResumeForCandidate(candidateId);
+        console.log(`[processCandidate] Exports generated: PDF=${!!exportResult.pdfPath}, DOCX=${!!exportResult.docxPath}`);
+      } catch (exportError) {
+        console.error('[processCandidate] Export failed (non-fatal):', exportError);
+        exportResult.errors.push(exportError instanceof Error ? exportError.message : 'Export failed');
+      }
     }
 
     // 10. Send resume ready Slack notification (Phase 2.1)
@@ -237,16 +304,34 @@ export async function processCandidateHandler(
 
     console.log(`[processCandidate] Completed successfully for: ${candidateId}`);
 
-    res.status(200).json({
+    // Build response with appropriate export paths
+    const response: Record<string, unknown> = {
       status: 'ok',
       candidateId,
       newStatus: 'resume_ready',
       profileId: candidateId,
       resumeId: candidateId,
-      pdfPath: exportResult.pdfPath || undefined,
-      docxPath: exportResult.docxPath || undefined,
-      exportErrors: exportResult.errors.length > 0 ? exportResult.errors : undefined,
-    });
+      bundleGenerated: usedBundleGeneration,
+    };
+
+    if (usedBundleGeneration) {
+      // Include 3-PDF bundle paths
+      response.militaryPdfPath = bundleExportResult.militaryPdfPath || undefined;
+      response.civilianPdfPath = bundleExportResult.civilianPdfPath || undefined;
+      response.crosswalkPdfPath = bundleExportResult.crosswalkPdfPath || undefined;
+      if (bundleExportResult.errors.length > 0) {
+        response.exportErrors = bundleExportResult.errors;
+      }
+    } else {
+      // Include single resume paths (fallback)
+      response.pdfPath = exportResult.pdfPath || undefined;
+      response.docxPath = exportResult.docxPath || undefined;
+      if (exportResult.errors.length > 0) {
+        response.exportErrors = exportResult.errors;
+      }
+    }
+
+    res.status(200).json(response);
   } catch (error) {
     console.error(`[processCandidate] Error processing ${candidateId}:`, error);
 
@@ -318,7 +403,7 @@ export async function candidateStatusHandler(
 /**
  * Get signed download URLs for resume exports
  * GET /internal/resumeDownload/:candidateId/:format
- * format: 'pdf' or 'docx'
+ * format: 'pdf', 'docx', 'military', 'civilian', or 'crosswalk'
  */
 export async function resumeDownloadHandler(
   req: Request,
@@ -331,26 +416,63 @@ export async function resumeDownloadHandler(
     return;
   }
 
-  if (!format || !['pdf', 'docx'].includes(format)) {
-    res.status(400).json({ error: 'format must be "pdf" or "docx"' });
+  const validFormats = ['pdf', 'docx', 'military', 'civilian', 'crosswalk'];
+  if (!format || !validFormats.includes(format)) {
+    res.status(400).json({ error: 'format must be one of: pdf, docx, military, civilian, crosswalk' });
     return;
   }
 
   try {
-    // Get resume document to find export paths
-    const resumeDoc = await resumesCollection.doc(candidateId).get();
+    let storagePath: string | undefined;
+    let filename: string;
 
-    if (!resumeDoc.exists) {
-      res.status(404).json({ error: 'Resume not found' });
-      return;
+    // Check if this is a bundle format request
+    if (['military', 'civilian', 'crosswalk'].includes(format)) {
+      // Get bundle document to find export paths
+      const bundleDoc = await resumeBundlesCollection.doc(candidateId).get();
+
+      if (!bundleDoc.exists) {
+        res.status(404).json({ error: 'Resume bundle not found' });
+        return;
+      }
+
+      const bundle = bundleDoc.data() as {
+        militaryPdfPath?: string;
+        civilianPdfPath?: string;
+        crosswalkPdfPath?: string;
+      };
+
+      // Use mapping object for cleaner path/filename resolution
+      const bundlePathMap: Record<string, { path: string | undefined; filename: string }> = {
+        military: { path: bundle.militaryPdfPath, filename: 'resume-military.pdf' },
+        civilian: { path: bundle.civilianPdfPath, filename: 'resume-civilian.pdf' },
+        crosswalk: { path: bundle.crosswalkPdfPath, filename: 'resume-crosswalk.pdf' },
+      };
+
+      const pathData = bundlePathMap[format];
+      if (pathData) {
+        storagePath = pathData.path;
+        filename = pathData.filename;
+      } else {
+        filename = 'resume.pdf';
+      }
+    } else {
+      // Get legacy resume document to find export paths
+      const resumeDoc = await resumesCollection.doc(candidateId).get();
+
+      if (!resumeDoc.exists) {
+        res.status(404).json({ error: 'Resume not found' });
+        return;
+      }
+
+      const resume = resumeDoc.data() as GeneratedResume & {
+        pdfPath?: string;
+        docxPath?: string;
+      };
+
+      storagePath = format === 'pdf' ? resume.pdfPath : resume.docxPath;
+      filename = `resume.${format}`;
     }
-
-    const resume = resumeDoc.data() as GeneratedResume & {
-      pdfPath?: string;
-      docxPath?: string;
-    };
-
-    const storagePath = format === 'pdf' ? resume.pdfPath : resume.docxPath;
 
     if (!storagePath) {
       res.status(404).json({ error: `${format.toUpperCase()} export not available` });
@@ -367,8 +489,9 @@ export async function resumeDownloadHandler(
     const file = bucket.file(storagePath);
 
     // Set response headers for download
-    const contentType = format === 'pdf' ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-    const filename = `resume.${format}`;
+    const contentType = format === 'docx'
+      ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      : 'application/pdf';
 
     res.setHeader('Content-Type', contentType);
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
