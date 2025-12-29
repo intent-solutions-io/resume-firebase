@@ -259,7 +259,7 @@ export function AdminCandidateDetailPage() {
                 </p>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  {documents.map((doc: any) => (
+                  {documents.map((doc: CandidateDocument) => (
                     <div
                       key={doc.id}
                       style={{
