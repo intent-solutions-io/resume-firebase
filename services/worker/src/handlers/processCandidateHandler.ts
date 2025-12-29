@@ -12,15 +12,8 @@ import {
   getModelInfo,
 } from '../services/vertex.js';
 import {
-  generateResumeBundle,
-  getBundleModelInfo,
-} from '../services/vertexBundle.js';
-import {
   exportResumeForCandidate,
 } from '../services/exportResume.js';
-import {
-  exportBundleForCandidate,
-} from '../services/exportBundle.js';
 import {
   notifyNewCandidate,
   notifyResumeReady,
@@ -36,7 +29,6 @@ import type {
   CandidateProfile,
   GeneratedResume,
   GenerationInput,
-  BundleGenerationOutput,
 } from '../types/candidate.js';
 import type {
   ThreePDFGenerationOutput,
@@ -134,11 +126,9 @@ export async function processCandidateHandler(
 
     let profile: Omit<CandidateProfile, 'createdAt' | 'modelName' | 'modelVersion'>;
     let resume: Omit<GeneratedResume, 'createdAt' | 'modelName' | 'modelVersion'>;
-    let bundleOutput: BundleGenerationOutput | null = null;
     let modelName: string;
     let modelVersion: string;
     let threePdfBundle: ThreePDFGenerationOutput | null = null;
-    let usedBundleGeneration = false;
 
     // Try 3-PDF bundle generation first
     try {
@@ -245,37 +235,14 @@ export async function processCandidateHandler(
 
     // 9. Generate PDF exports (Phase 2.0 / Phase 2.5)
     let exportResult = { pdfPath: '', docxPath: '', errors: [] as string[] };
-    let bundleExportResult = { militaryPdfPath: '', civilianPdfPath: '', crosswalkPdfPath: '', errors: [] as string[] };
 
-    if (usedBundleGeneration && bundleOutput) {
-      // Save bundle to Firestore first
-      const bundleData = {
-        ...bundleOutput.bundle,
-        profile: bundleOutput.profile,
-        createdAt: timestamp,
-        modelName,
-        modelVersion,
-      };
-      await resumeBundlesCollection.doc(candidateId).set(bundleData);
-      console.log('[processCandidate] Saved resume bundle to Firestore');
-
-      // Export 3-PDF bundle
-      try {
-        bundleExportResult = await exportBundleForCandidate(candidateId, bundleOutput.bundle);
-        console.log(`[processCandidate] Bundle exports generated: Military=${!!bundleExportResult.militaryPdfPath}, Civilian=${!!bundleExportResult.civilianPdfPath}, Crosswalk=${!!bundleExportResult.crosswalkPdfPath}`);
-      } catch (exportError) {
-        console.error('[processCandidate] Bundle export failed (non-fatal):', exportError);
-        bundleExportResult.errors.push(exportError instanceof Error ? exportError.message : 'Bundle export failed');
-      }
-    } else {
-      // Fallback: Generate single PDF and DOCX exports
-      try {
-        exportResult = await exportResumeForCandidate(candidateId);
-        console.log(`[processCandidate] Exports generated: PDF=${!!exportResult.pdfPath}, DOCX=${!!exportResult.docxPath}`);
-      } catch (exportError) {
-        console.error('[processCandidate] Export failed (non-fatal):', exportError);
-        exportResult.errors.push(exportError instanceof Error ? exportError.message : 'Export failed');
-      }
+    // Fallback: Generate single PDF and DOCX exports
+    try {
+      exportResult = await exportResumeForCandidate(candidateId);
+      console.log(`[processCandidate] Exports generated: PDF=${!!exportResult.pdfPath}, DOCX=${!!exportResult.docxPath}`);
+    } catch (exportError) {
+      console.error('[processCandidate] Export failed (non-fatal):', exportError);
+      exportResult.errors.push(exportError instanceof Error ? exportError.message : 'Export failed');
     }
 
     // 9.5. Export 3-PDF Resume Bundle (Phase: Checkpoint 3)
@@ -327,31 +294,19 @@ export async function processCandidateHandler(
 
     console.log(`[processCandidate] Completed successfully for: ${candidateId}`);
 
-    // Build response with appropriate export paths
+    // Build response with export paths
     const response: Record<string, unknown> = {
       status: 'ok',
       candidateId,
       newStatus: 'resume_ready',
       profileId: candidateId,
       resumeId: candidateId,
-      bundleGenerated: usedBundleGeneration,
+      pdfPath: exportResult.pdfPath || undefined,
+      docxPath: exportResult.docxPath || undefined,
     };
 
-    if (usedBundleGeneration) {
-      // Include 3-PDF bundle paths
-      response.militaryPdfPath = bundleExportResult.militaryPdfPath || undefined;
-      response.civilianPdfPath = bundleExportResult.civilianPdfPath || undefined;
-      response.crosswalkPdfPath = bundleExportResult.crosswalkPdfPath || undefined;
-      if (bundleExportResult.errors.length > 0) {
-        response.exportErrors = bundleExportResult.errors;
-      }
-    } else {
-      // Include single resume paths (fallback)
-      response.pdfPath = exportResult.pdfPath || undefined;
-      response.docxPath = exportResult.docxPath || undefined;
-      if (exportResult.errors.length > 0) {
-        response.exportErrors = exportResult.errors;
-      }
+    if (exportResult.errors.length > 0) {
+      response.exportErrors = exportResult.errors;
     }
 
     res.status(200).json(response);
@@ -488,7 +443,7 @@ export async function resumeDownloadHandler(
         return;
       }
 
-      const resume = resumeDoc.data() as GeneratedResume;
+      const resume = resumeDoc.data() as GeneratedResume & { pdfPath?: string; docxPath?: string };
 
       if (format === 'pdf') {
         storagePath = resume.pdfPath;
