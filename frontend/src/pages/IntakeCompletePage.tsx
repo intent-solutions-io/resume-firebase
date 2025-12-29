@@ -24,6 +24,12 @@ interface ResumeExport {
   docxPath?: string;
   exportGeneratedAt?: unknown;
   exportError?: string;
+  // Phase: 3-PDF Resume Bundle (Checkpoint 3.5)
+  threePdfPaths?: {
+    militaryPdfPath: string;
+    civilianPdfPath: string;
+    crosswalkPdfPath: string;
+  };
 }
 
 // Step indicator component
@@ -80,7 +86,7 @@ export function IntakeCompletePage() {
   const [documents, setDocuments] = useState<CandidateDocument[]>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
-  const [downloading, setDownloading] = useState<'pdf' | 'docx' | null>(null);
+  const [downloading, setDownloading] = useState<'pdf' | 'docx' | 'military' | 'civilian' | 'crosswalk' | 'bundle' | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [processingElapsed, setProcessingElapsed] = useState(0);
 
@@ -154,16 +160,19 @@ export function IntakeCompletePage() {
   }, [candidate?.status]);
 
   // Handle download
-  async function handleDownload(format: 'pdf' | 'docx') {
+  async function handleDownload(format: 'pdf' | 'docx' | 'military' | 'civilian' | 'crosswalk' | 'bundle') {
     if (!candidateId) return;
 
     setDownloading(format);
     setError(null);
 
     try {
-      const response = await fetch(
-        `${WORKER_URL}/internal/resumeDownload/${candidateId}/${format}`
-      );
+      // Build the download URL
+      const url = format === 'bundle'
+        ? `${WORKER_URL}/internal/resumeDownload/${candidateId}/bundle`
+        : `${WORKER_URL}/internal/resumeDownload/${candidateId}/${format}`;
+
+      const response = await fetch(url);
 
       if (!response.ok) {
         // Handle specific HTTP error codes
@@ -188,16 +197,32 @@ export function IntakeCompletePage() {
       // Get the binary file as a blob
       const blob = await response.blob();
 
+      // Determine filename based on format
+      let filename: string;
+      if (format === 'bundle') {
+        filename = 'resume-bundle.zip';
+      } else if (format === 'military') {
+        filename = 'resume-military.pdf';
+      } else if (format === 'civilian') {
+        filename = 'resume-civilian.pdf';
+      } else if (format === 'crosswalk') {
+        filename = 'resume-crosswalk.pdf';
+      } else if (format === 'docx') {
+        filename = 'resume.docx';
+      } else {
+        filename = 'resume.pdf';
+      }
+
       // Create a download link and trigger the download
-      const url = window.URL.createObjectURL(blob);
+      const downloadUrl = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url;
-      a.download = `resume.${format}`;
+      a.href = downloadUrl;
+      a.download = filename;
       document.body.appendChild(a);
       a.click();
 
       // Clean up
-      window.URL.revokeObjectURL(url);
+      window.URL.revokeObjectURL(downloadUrl);
       document.body.removeChild(a);
     } catch (err) {
       console.error('Download failed:', err);
@@ -588,75 +613,295 @@ export function IntakeCompletePage() {
                 marginBottom: '1.5rem',
               }}
             >
-              <p style={{ color: '#276749', fontWeight: 600, marginBottom: '1rem', textAlign: 'center' }}>
-                Download your resume in your preferred format:
-              </p>
-
-              {/* Download buttons */}
-              {(resumeExport?.pdfPath || resumeExport?.docxPath) && (
-                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-                  {resumeExport?.pdfPath && (
-                    <button
-                      onClick={() => handleDownload('pdf')}
-                      disabled={downloading !== null}
-                      style={{
-                        backgroundColor: downloading === 'pdf' ? 'var(--border-medium)' : '#276749',
-                        color: 'white',
-                        padding: '0.875rem 1.5rem',
-                        fontSize: '1rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                      }}
-                    >
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-                        <polyline points="7 10 12 15 17 10" />
-                        <line x1="12" y1="15" x2="12" y2="3" />
-                      </svg>
-                      {downloading === 'pdf' ? 'Downloading...' : 'Download PDF'}
-                    </button>
-                  )}
-                  {resumeExport?.docxPath && (
-                    <button
-                      onClick={() => handleDownload('docx')}
-                      disabled={downloading !== null}
-                      style={{
-                        backgroundColor: downloading === 'docx' ? 'var(--border-medium)' : 'var(--info-blue)',
-                        color: 'white',
-                        padding: '0.875rem 1.5rem',
-                        fontSize: '1rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                      }}
-                    >
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-                        <polyline points="7 10 12 15 17 10" />
-                        <line x1="12" y1="15" x2="12" y2="3" />
-                      </svg>
-                      {downloading === 'docx' ? 'Downloading...' : 'Download Word'}
-                    </button>
-                  )}
-                </div>
-              )}
-
-              {/* Waiting for exports */}
-              {!resumeExport?.pdfPath && !resumeExport?.docxPath && (
-                <div style={{ textAlign: 'center' }}>
-                  <div className="spinner" style={{ margin: '0 auto 0.5rem' }} />
-                  <p style={{ color: '#276749', fontSize: '0.875rem' }}>
-                    Generating downloadable files...
+              {/* 3-PDF Resume Bundle Available */}
+              {resumeExport?.threePdfPaths ? (
+                <>
+                  <h3 style={{ color: '#276749', fontWeight: 600, marginBottom: '0.5rem', textAlign: 'center' }}>
+                    Your Resume Bundle is Ready!
+                  </h3>
+                  <p style={{ color: '#276749', fontSize: '0.875rem', marginBottom: '1.5rem', textAlign: 'center' }}>
+                    Download individual resumes or get all 3 in one ZIP file:
                   </p>
-                </div>
-              )}
 
-              {/* Export error */}
-              {resumeExport?.exportError && (
-                <p style={{ color: 'var(--error-red)', fontSize: '0.75rem', marginTop: '0.75rem', textAlign: 'center' }}>
-                  Note: {resumeExport.exportError}
-                </p>
+                  {/* Individual PDF Downloads - Grid Layout */}
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+                    gap: '1rem',
+                    marginBottom: '1rem',
+                  }}>
+                    {/* Military Resume */}
+                    <button
+                      onClick={() => handleDownload('military')}
+                      disabled={downloading !== null}
+                      style={{
+                        backgroundColor: downloading === 'military' ? 'var(--border-medium)' : '#2d3748',
+                        color: 'white',
+                        padding: '1rem',
+                        fontSize: '0.9rem',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        border: 'none',
+                        borderRadius: '8px',
+                        cursor: downloading === null ? 'pointer' : 'not-allowed',
+                        opacity: downloading === null ? 1 : 0.7,
+                        transition: 'all 0.2s',
+                      }}
+                    >
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                        <polyline points="14 2 14 8 20 8" />
+                        <line x1="12" y1="18" x2="12" y2="12" />
+                        <line x1="9" y1="15" x2="15" y2="15" />
+                      </svg>
+                      <span style={{ fontWeight: 600 }}>Military Resume</span>
+                      <span style={{ fontSize: '0.75rem', opacity: 0.9 }}>
+                        {downloading === 'military' ? 'Downloading...' : 'Full military detail'}
+                      </span>
+                    </button>
+
+                    {/* Civilian Resume */}
+                    <button
+                      onClick={() => handleDownload('civilian')}
+                      disabled={downloading !== null}
+                      style={{
+                        backgroundColor: downloading === 'civilian' ? 'var(--border-medium)' : 'var(--info-blue)',
+                        color: 'white',
+                        padding: '1rem',
+                        fontSize: '0.9rem',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        border: 'none',
+                        borderRadius: '8px',
+                        cursor: downloading === null ? 'pointer' : 'not-allowed',
+                        opacity: downloading === null ? 1 : 0.7,
+                        transition: 'all 0.2s',
+                      }}
+                    >
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                        <polyline points="14 2 14 8 20 8" />
+                        <circle cx="12" cy="13" r="2" />
+                        <path d="M12 15v3" />
+                      </svg>
+                      <span style={{ fontWeight: 600 }}>Civilian Resume</span>
+                      <span style={{ fontSize: '0.75rem', opacity: 0.9 }}>
+                        {downloading === 'civilian' ? 'Downloading...' : 'Civilian-friendly version'}
+                      </span>
+                    </button>
+
+                    {/* Crosswalk Resume */}
+                    <button
+                      onClick={() => handleDownload('crosswalk')}
+                      disabled={downloading !== null}
+                      style={{
+                        backgroundColor: downloading === 'crosswalk' ? 'var(--border-medium)' : '#C59141',
+                        color: 'white',
+                        padding: '1rem',
+                        fontSize: '0.9rem',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        border: 'none',
+                        borderRadius: '8px',
+                        cursor: downloading === null ? 'pointer' : 'not-allowed',
+                        opacity: downloading === null ? 1 : 0.7,
+                        transition: 'all 0.2s',
+                      }}
+                    >
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                        <polyline points="14 2 14 8 20 8" />
+                        <line x1="8" y1="13" x2="16" y2="13" />
+                        <line x1="8" y1="17" x2="16" y2="17" />
+                      </svg>
+                      <span style={{ fontWeight: 600 }}>Crosswalk Guide</span>
+                      <span style={{ fontSize: '0.75rem', opacity: 0.9 }}>
+                        {downloading === 'crosswalk' ? 'Downloading...' : 'Side-by-side comparison'}
+                      </span>
+                    </button>
+                  </div>
+
+                  {/* Download All Button */}
+                  <div style={{ textAlign: 'center' }}>
+                    <button
+                      onClick={() => handleDownload('bundle')}
+                      disabled={downloading !== null}
+                      style={{
+                        backgroundColor: downloading === 'bundle' ? 'var(--border-medium)' : '#276749',
+                        color: 'white',
+                        padding: '1rem 2rem',
+                        fontSize: '1rem',
+                        fontWeight: 600,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.75rem',
+                        border: 'none',
+                        borderRadius: '8px',
+                        cursor: downloading === null ? 'pointer' : 'not-allowed',
+                        opacity: downloading === null ? 1 : 0.7,
+                        transition: 'all 0.2s',
+                      }}
+                    >
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                        <polyline points="7 10 12 15 17 10" />
+                        <line x1="12" y1="15" x2="12" y2="3" />
+                      </svg>
+                      {downloading === 'bundle' ? 'Downloading ZIP...' : 'Download All (ZIP)'}
+                    </button>
+                  </div>
+
+                  {/* Legacy Format Downloads - Collapsed */}
+                  {(resumeExport?.pdfPath || resumeExport?.docxPath) && (
+                    <details style={{ marginTop: '1.5rem', padding: '1rem', backgroundColor: 'rgba(39, 103, 73, 0.1)', borderRadius: '8px' }}>
+                      <summary style={{ cursor: 'pointer', fontWeight: 500, color: '#276749', fontSize: '0.875rem' }}>
+                        Legacy Formats (PDF & Word)
+                      </summary>
+                      <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+                        {resumeExport?.pdfPath && (
+                          <button
+                            onClick={() => handleDownload('pdf')}
+                            disabled={downloading !== null}
+                            style={{
+                              backgroundColor: downloading === 'pdf' ? 'var(--border-medium)' : '#276749',
+                              color: 'white',
+                              padding: '0.625rem 1rem',
+                              fontSize: '0.875rem',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.5rem',
+                              border: 'none',
+                              borderRadius: '6px',
+                              cursor: downloading === null ? 'pointer' : 'not-allowed',
+                              opacity: downloading === null ? 1 : 0.7,
+                            }}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                              <polyline points="7 10 12 15 17 10" />
+                              <line x1="12" y1="15" x2="12" y2="3" />
+                            </svg>
+                            {downloading === 'pdf' ? 'Downloading...' : 'PDF'}
+                          </button>
+                        )}
+                        {resumeExport?.docxPath && (
+                          <button
+                            onClick={() => handleDownload('docx')}
+                            disabled={downloading !== null}
+                            style={{
+                              backgroundColor: downloading === 'docx' ? 'var(--border-medium)' : 'var(--info-blue)',
+                              color: 'white',
+                              padding: '0.625rem 1rem',
+                              fontSize: '0.875rem',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.5rem',
+                              border: 'none',
+                              borderRadius: '6px',
+                              cursor: downloading === null ? 'pointer' : 'not-allowed',
+                              opacity: downloading === null ? 1 : 0.7,
+                            }}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                              <polyline points="7 10 12 15 17 10" />
+                              <line x1="12" y1="15" x2="12" y2="3" />
+                            </svg>
+                            {downloading === 'docx' ? 'Downloading...' : 'Word'}
+                          </button>
+                        )}
+                      </div>
+                    </details>
+                  )}
+                </>
+              ) : (
+                /* Fallback: Legacy format downloads if 3-PDF not available */
+                <>
+                  <p style={{ color: '#276749', fontWeight: 600, marginBottom: '1rem', textAlign: 'center' }}>
+                    Download your resume in your preferred format:
+                  </p>
+
+                  {/* Download buttons */}
+                  {(resumeExport?.pdfPath || resumeExport?.docxPath) && (
+                    <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+                      {resumeExport?.pdfPath && (
+                        <button
+                          onClick={() => handleDownload('pdf')}
+                          disabled={downloading !== null}
+                          style={{
+                            backgroundColor: downloading === 'pdf' ? 'var(--border-medium)' : '#276749',
+                            color: 'white',
+                            padding: '0.875rem 1.5rem',
+                            fontSize: '1rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            border: 'none',
+                            borderRadius: '8px',
+                            cursor: downloading === null ? 'pointer' : 'not-allowed',
+                            opacity: downloading === null ? 1 : 0.7,
+                          }}
+                        >
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                            <polyline points="7 10 12 15 17 10" />
+                            <line x1="12" y1="15" x2="12" y2="3" />
+                          </svg>
+                          {downloading === 'pdf' ? 'Downloading...' : 'Download PDF'}
+                        </button>
+                      )}
+                      {resumeExport?.docxPath && (
+                        <button
+                          onClick={() => handleDownload('docx')}
+                          disabled={downloading !== null}
+                          style={{
+                            backgroundColor: downloading === 'docx' ? 'var(--border-medium)' : 'var(--info-blue)',
+                            color: 'white',
+                            padding: '0.875rem 1.5rem',
+                            fontSize: '1rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            border: 'none',
+                            borderRadius: '8px',
+                            cursor: downloading === null ? 'pointer' : 'not-allowed',
+                            opacity: downloading === null ? 1 : 0.7,
+                          }}
+                        >
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                            <polyline points="7 10 12 15 17 10" />
+                            <line x1="12" y1="15" x2="12" y2="3" />
+                          </svg>
+                          {downloading === 'docx' ? 'Downloading...' : 'Download Word'}
+                        </button>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Waiting for exports */}
+                  {!resumeExport?.pdfPath && !resumeExport?.docxPath && (
+                    <div style={{ textAlign: 'center' }}>
+                      <div className="spinner" style={{ margin: '0 auto 0.5rem' }} />
+                      <p style={{ color: '#276749', fontSize: '0.875rem' }}>
+                        Generating downloadable files...
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Export error */}
+                  {resumeExport?.exportError && (
+                    <p style={{ color: 'var(--error-red)', fontSize: '0.75rem', marginTop: '0.75rem', textAlign: 'center' }}>
+                      Note: {resumeExport.exportError}
+                    </p>
+                  )}
+                </>
               )}
             </div>
           )}
