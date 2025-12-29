@@ -267,7 +267,7 @@ Generate the 3-PDF bundle JSON now.`;
       ],
       generationConfig: {
         temperature: 0.3, // Balanced for structured output with natural language
-        maxOutputTokens: 16384, // Increased for 3 HTML documents
+        maxOutputTokens: 8192, // Max for Gemini 2.0 Flash (3 HTML documents)
       },
     });
 
