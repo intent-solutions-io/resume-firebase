@@ -59,6 +59,18 @@ export interface GeneratedResume {
   createdAt: Timestamp | string;
   modelName: string;
   modelVersion: string;
+  // Phase: 3-PDF Resume Bundle (Checkpoint 3)
+  threePdfPaths?: ThreePDFPaths;
+}
+
+// ============================================
+// 3-PDF Resume Bundle Types (Phase: Checkpoint 3)
+// ============================================
+
+export interface ThreePDFPaths {
+  militaryPdfPath: string;
+  civilianPdfPath: string;
+  crosswalkPdfPath: string;
 }
 
 // ============================================

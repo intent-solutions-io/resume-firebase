@@ -17,6 +17,12 @@ import {
   notifyNewCandidate,
   notifyResumeReady,
 } from '../services/slackNotifier.js';
+import {
+  generateThreePdfResume,
+} from '../services/vertexThreePdf.js';
+import {
+  exportThreePdfBundle,
+} from '../services/exportThreePdf.js';
 import type {
   Candidate,
   CandidateProfile,
@@ -209,6 +215,32 @@ export async function processCandidateHandler(
       exportResult.errors.push(exportError instanceof Error ? exportError.message : 'Export failed');
     }
 
+    // 9.5. Generate 3-PDF Resume Bundle (Phase: Checkpoint 3)
+    try {
+      console.log('[processCandidate] Generating 3-PDF bundle...');
+      const threePdfOutput = await generateThreePdfResume({
+        candidateId,
+        name: candidate.name,
+        email: candidate.email,
+        branch: candidate.branch,
+        rank: candidate.rank,
+        mos: candidate.mos,
+        documentTexts,
+      });
+
+      const threePdfPaths = await exportThreePdfBundle(candidateId, threePdfOutput);
+
+      // Update resume document with 3-PDF paths
+      await resumesCollection.doc(candidateId).update({
+        threePdfPaths,
+      });
+
+      console.log(`[processCandidate] 3-PDF bundle generated successfully`);
+    } catch (threePdfError) {
+      console.error('[processCandidate] 3-PDF generation failed (non-fatal):', threePdfError);
+      exportResult.errors.push(`3-PDF: ${threePdfError instanceof Error ? threePdfError.message : 'Unknown error'}`);
+    }
+
     // 10. Send resume ready Slack notification (Phase 2.1)
     // Only send if resumeSlackNotifiedAt is not set (de-duplication)
     const savedResumeDoc = await resumesCollection.doc(candidateId).get();
@@ -318,7 +350,7 @@ export async function candidateStatusHandler(
 /**
  * Get signed download URLs for resume exports
  * GET /internal/resumeDownload/:candidateId/:format
- * format: 'pdf' or 'docx'
+ * format: 'pdf', 'docx', 'military', 'civilian', 'crosswalk'
  */
 export async function resumeDownloadHandler(
   req: Request,
@@ -331,8 +363,9 @@ export async function resumeDownloadHandler(
     return;
   }
 
-  if (!format || !['pdf', 'docx'].includes(format)) {
-    res.status(400).json({ error: 'format must be "pdf" or "docx"' });
+  const validFormats = ['pdf', 'docx', 'military', 'civilian', 'crosswalk'];
+  if (!format || !validFormats.includes(format)) {
+    res.status(400).json({ error: `format must be one of: ${validFormats.join(', ')}` });
     return;
   }
 
@@ -350,7 +383,29 @@ export async function resumeDownloadHandler(
       docxPath?: string;
     };
 
-    const storagePath = format === 'pdf' ? resume.pdfPath : resume.docxPath;
+    // Determine storage path based on format
+    let storagePath: string | undefined;
+    let filename: string;
+
+    if (format === 'pdf') {
+      storagePath = resume.pdfPath;
+      filename = 'resume.pdf';
+    } else if (format === 'docx') {
+      storagePath = resume.docxPath;
+      filename = 'resume.docx';
+    } else if (format === 'military') {
+      storagePath = resume.threePdfPaths?.militaryPdfPath;
+      filename = 'resume-military.pdf';
+    } else if (format === 'civilian') {
+      storagePath = resume.threePdfPaths?.civilianPdfPath;
+      filename = 'resume-civilian.pdf';
+    } else if (format === 'crosswalk') {
+      storagePath = resume.threePdfPaths?.crosswalkPdfPath;
+      filename = 'resume-crosswalk.pdf';
+    } else {
+      res.status(400).json({ error: 'Invalid format' });
+      return;
+    }
 
     if (!storagePath) {
       res.status(404).json({ error: `${format.toUpperCase()} export not available` });
@@ -367,8 +422,9 @@ export async function resumeDownloadHandler(
     const file = bucket.file(storagePath);
 
     // Set response headers for download
-    const contentType = format === 'pdf' ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-    const filename = `resume.${format}`;
+    const contentType = format === 'docx'
+      ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      : 'application/pdf';
 
     res.setHeader('Content-Type', contentType);
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
@@ -391,6 +447,95 @@ export async function resumeDownloadHandler(
     if (!res.headersSent) {
       res.status(500).json({
         error: 'Failed to generate download',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+}
+
+/**
+ * Generate and download ZIP bundle with all 3 PDFs
+ * GET /internal/resumeDownload/:candidateId/bundle
+ */
+export async function resumeBundleDownloadHandler(
+  req: Request,
+  res: Response
+): Promise<void> {
+  const { candidateId } = req.params;
+
+  if (!candidateId) {
+    res.status(400).json({ error: 'candidateId is required' });
+    return;
+  }
+
+  try {
+    // Get resume document to find export paths
+    const resumeDoc = await resumesCollection.doc(candidateId).get();
+
+    if (!resumeDoc.exists) {
+      res.status(404).json({ error: 'Resume not found' });
+      return;
+    }
+
+    const resume = resumeDoc.data() as GeneratedResume;
+
+    if (!resume.threePdfPaths) {
+      res.status(404).json({ error: '3-PDF bundle not available' });
+      return;
+    }
+
+    const { militaryPdfPath, civilianPdfPath, crosswalkPdfPath } = resume.threePdfPaths;
+
+    // Stream files directly from Storage and create ZIP on the fly
+    const { Storage } = await import('@google-cloud/storage');
+    const archiver = (await import('archiver')).default;
+
+    const storage = new Storage({
+      projectId: process.env.GCP_PROJECT_ID || 'resume-gen-intent-dev',
+    });
+
+    const bucket = storage.bucket(process.env.FIREBASE_STORAGE_BUCKET || 'resume-gen-intent-dev.firebasestorage.app');
+
+    // Set response headers for ZIP download
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', 'attachment; filename="resume-bundle.zip"');
+
+    // Create ZIP archive
+    const archive = archiver('zip', { zlib: { level: 9 } });
+
+    // Pipe archive to response
+    archive.pipe(res);
+
+    // Handle errors
+    archive.on('error', (error) => {
+      console.error('[resumeBundleDownload] Archive error:', error);
+      if (!res.headersSent) {
+        res.status(500).json({
+          error: 'Failed to create ZIP bundle',
+          message: error.message,
+        });
+      }
+    });
+
+    // Add all 3 PDFs to the archive
+    const militaryFile = bucket.file(militaryPdfPath);
+    const civilianFile = bucket.file(civilianPdfPath);
+    const crosswalkFile = bucket.file(crosswalkPdfPath);
+
+    archive.append(militaryFile.createReadStream(), { name: 'resume-military.pdf' });
+    archive.append(civilianFile.createReadStream(), { name: 'resume-civilian.pdf' });
+    archive.append(crosswalkFile.createReadStream(), { name: 'resume-crosswalk.pdf' });
+
+    // Finalize the archive
+    await archive.finalize();
+
+    console.log(`[resumeBundleDownload] ZIP bundle created for: ${candidateId}`);
+
+  } catch (error) {
+    console.error('[resumeBundleDownload] Error:', error);
+    if (!res.headersSent) {
+      res.status(500).json({
+        error: 'Failed to generate ZIP bundle',
         message: error instanceof Error ? error.message : 'Unknown error',
       });
     }
