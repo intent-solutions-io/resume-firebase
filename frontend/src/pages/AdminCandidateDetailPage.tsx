@@ -259,7 +259,7 @@ export function AdminCandidateDetailPage() {
                 </p>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  {documents.map((doc: any) => (
+                  {documents.map((doc: CandidateDocument) => (
                     <div
                       key={doc.id}
                       style={{
@@ -361,7 +361,7 @@ export function AdminCandidateDetailPage() {
                   {resume.experience && resume.experience.length > 0 && (
                     <div style={{ marginBottom: '1rem' }}>
                       <h4 style={{ fontSize: '0.875rem', marginBottom: '0.5rem' }}>Experience</h4>
-                      {resume.experience.slice(0, 3).map((exp: any, i: number) => (
+                      {resume.experience.slice(0, 3).map((exp: ResumeExperience, i: number) => (
                         <div
                           key={i}
                           style={{

@@ -71,7 +71,7 @@ export async function convertHtmlToPdf(
     // Launch Puppeteer with system Chromium (in Docker container)
     browser = await puppeteer.launch({
       headless: true,
-      executablePath: '/usr/bin/chromium',
+      executablePath: process.env.CHROMIUM_PATH || '/usr/bin/chromium',
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
