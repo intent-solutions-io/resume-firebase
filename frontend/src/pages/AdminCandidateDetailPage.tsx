@@ -146,7 +146,7 @@ export function AdminCandidateDetailPage() {
     );
   }
 
-  const { documents, profile, resume } = data;
+  const { documents = [], profile, resume } = data;
   const isResumeReady = data.status === 'resume_ready';
 
   return (
@@ -204,7 +204,7 @@ export function AdminCandidateDetailPage() {
               <InfoRow label="Branch" value={data.branch} />
               <InfoRow label="Rank" value={data.rank} />
               <InfoRow label="MOS/Rate" value={data.mos} />
-              <InfoRow label="Status" value={<StatusBadge status={data.status} />} />
+              <InfoRow label="Status" value={<StatusBadge status={data.status || 'created'} />} />
               {data.errorMessage && (
                 <InfoRow
                   label="Error"
@@ -259,7 +259,7 @@ export function AdminCandidateDetailPage() {
                 </p>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  {documents.map((doc) => (
+                  {documents.map((doc: CandidateDocument) => (
                     <div
                       key={doc.id}
                       style={{
@@ -329,7 +329,7 @@ export function AdminCandidateDetailPage() {
                     <div style={{ marginBottom: '1rem' }}>
                       <h4 style={{ fontSize: '0.875rem', marginBottom: '0.5rem' }}>Skills</h4>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                        {resume.skills.slice(0, 10).map((skill, i) => (
+                        {resume.skills.slice(0, 10).map((skill: string, i: number) => (
                           <span
                             key={i}
                             style={{
@@ -361,7 +361,7 @@ export function AdminCandidateDetailPage() {
                   {resume.experience && resume.experience.length > 0 && (
                     <div style={{ marginBottom: '1rem' }}>
                       <h4 style={{ fontSize: '0.875rem', marginBottom: '0.5rem' }}>Experience</h4>
-                      {resume.experience.slice(0, 3).map((exp, i) => (
+                      {resume.experience.slice(0, 3).map((exp: ResumeExperience, i: number) => (
                         <div
                           key={i}
                           style={{
@@ -480,7 +480,7 @@ export function AdminCandidateDetailPage() {
                   <div style={{ marginTop: '0.75rem' }}>
                     <h4 style={{ fontSize: '0.875rem', marginBottom: '0.5rem' }}>Certifications</h4>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                      {profile.certifications.map((cert, i) => (
+                      {profile.certifications.map((cert: string, i: number) => (
                         <span
                           key={i}
                           style={{
@@ -508,7 +508,7 @@ export function AdminCandidateDetailPage() {
                         color: 'var(--text-secondary)',
                       }}
                     >
-                      {profile.awards.slice(0, 5).map((award, i) => (
+                      {profile.awards.slice(0, 5).map((award: string, i: number) => (
                         <li key={i}>{award}</li>
                       ))}
                       {profile.awards.length > 5 && (
