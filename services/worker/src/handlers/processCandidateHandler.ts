@@ -29,6 +29,9 @@ import type {
   GeneratedResume,
   GenerationInput,
 } from '../types/candidate.js';
+import type {
+  ThreePDFGenerationOutput,
+} from '../types/threePdf.js';
 
 const firestore = new Firestore({
   projectId: process.env.GCP_PROJECT_ID || 'resume-gen-intent-dev',
@@ -123,11 +126,21 @@ export async function processCandidateHandler(
     let resume: Omit<GeneratedResume, 'createdAt' | 'modelName' | 'modelVersion'>;
     let modelName: string;
     let modelVersion: string;
+    let threePdfBundle: ThreePDFGenerationOutput | null = null;
 
     try {
-      const result = await generateProfileAndResume(input);
-      profile = result.profile;
-      resume = result.resume;
+      // TODO: OPTIMIZATION NEEDED - Currently making 2 AI calls with same input
+      // Future: Merge into single call that returns both structured profile + HTML artifacts
+      // Current: Run in parallel to minimize latency (cost still 2x)
+      const [profileResumeResult, threePdfResult] = await Promise.all([
+        generateProfileAndResume(input),
+        generateThreePdfResume(input),
+      ]);
+
+      profile = profileResumeResult.profile;
+      resume = profileResumeResult.resume;
+      threePdfBundle = threePdfResult;
+
       const modelInfo = getModelInfo();
       modelName = modelInfo.modelName;
       modelVersion = modelInfo.modelVersion;
@@ -215,30 +228,25 @@ export async function processCandidateHandler(
       exportResult.errors.push(exportError instanceof Error ? exportError.message : 'Export failed');
     }
 
-    // 9.5. Generate 3-PDF Resume Bundle (Phase: Checkpoint 3)
-    try {
-      console.log('[processCandidate] Generating 3-PDF bundle...');
-      const threePdfOutput = await generateThreePdfResume({
-        candidateId,
-        name: candidate.name,
-        email: candidate.email,
-        branch: candidate.branch,
-        rank: candidate.rank,
-        mos: candidate.mos,
-        documentTexts,
-      });
+    // 9.5. Export 3-PDF Resume Bundle (Phase: Checkpoint 3)
+    // Bundle was already generated in step 4 in parallel - just export to PDFs
+    if (threePdfBundle) {
+      try {
+        console.log('[processCandidate] Exporting 3-PDF bundle to storage...');
+        const threePdfPaths = await exportThreePdfBundle(candidateId, threePdfBundle);
 
-      const threePdfPaths = await exportThreePdfBundle(candidateId, threePdfOutput);
+        // Update resume document with 3-PDF paths
+        await resumesCollection.doc(candidateId).update({
+          threePdfPaths,
+        });
 
-      // Update resume document with 3-PDF paths
-      await resumesCollection.doc(candidateId).update({
-        threePdfPaths,
-      });
-
-      console.log(`[processCandidate] 3-PDF bundle generated successfully`);
-    } catch (threePdfError) {
-      console.error('[processCandidate] 3-PDF generation failed (non-fatal):', threePdfError);
-      exportResult.errors.push(`3-PDF: ${threePdfError instanceof Error ? threePdfError.message : 'Unknown error'}`);
+        console.log(`[processCandidate] 3-PDF bundle exported successfully`);
+      } catch (threePdfError) {
+        console.error('[processCandidate] 3-PDF export failed (non-fatal):', threePdfError);
+        exportResult.errors.push(`3-PDF: ${threePdfError instanceof Error ? threePdfError.message : 'Unknown error'}`);
+      }
+    } else {
+      console.log('[processCandidate] Skipping 3-PDF export (fallback mode - no bundle generated)');
     }
 
     // 10. Send resume ready Slack notification (Phase 2.1)
