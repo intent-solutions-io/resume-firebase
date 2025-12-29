@@ -4,15 +4,11 @@
 
 import { Request, Response } from 'express';
 import { Firestore } from '@google-cloud/firestore';
-import { Storage } from '@google-cloud/storage';
 import { generateThreePdfResume } from '../services/vertexThreePdf.js';
 import { exportThreePdfBundle } from '../services/exportThreePdf.js';
+import { extractDocumentTexts } from '../services/textExtraction.js';
 
 const firestore = new Firestore({
-  projectId: process.env.GCP_PROJECT_ID || 'resume-gen-intent-dev',
-});
-
-const storage = new Storage({
   projectId: process.env.GCP_PROJECT_ID || 'resume-gen-intent-dev',
 });
 
@@ -59,57 +55,11 @@ export async function prototypeThreePdfHandler(
     const candidate = candidateDoc.data()!;
     console.log(`[prototype] Found candidate: ${candidate.name}`);
 
-    // Fetch candidate documents
-    const documentsSnapshot = await firestore
-      .collection('candidateDocuments')
-      .where('candidateId', '==', candidateId)
-      .get();
+    // Extract text from documents using proper text extraction service
+    console.log('[prototype] Extracting text from uploaded documents...');
+    const documentTexts = await extractDocumentTexts(candidateId);
 
-    if (documentsSnapshot.empty) {
-      res.status(400).json({
-        error: 'No documents found',
-        message: 'Candidate has no uploaded documents to process',
-      });
-      return;
-    }
-
-    console.log(`[prototype] Found ${documentsSnapshot.size} documents`);
-
-    // Extract text from documents
-    const bucket = storage.bucket(
-      process.env.FIREBASE_STORAGE_BUCKET ||
-        'resume-gen-intent-dev.firebasestorage.app'
-    );
-
-    const documentTexts = await Promise.all(
-      documentsSnapshot.docs.map(async (doc) => {
-        const docData = doc.data();
-        try {
-          // Read document text from storage
-          const file = bucket.file(docData.storagePath);
-          const [contents] = await file.download();
-          const text = contents.toString('utf-8');
-
-          return {
-            type: docData.type || 'unknown',
-            fileName: docData.fileName || 'unknown',
-            text: text.substring(0, 50000), // Limit to prevent token overflow
-          };
-        } catch (error) {
-          console.error(`[prototype] Failed to read document: ${docData.fileName}`, error);
-          return {
-            type: docData.type || 'unknown',
-            fileName: docData.fileName || 'unknown',
-            text: '', // Empty if read fails
-          };
-        }
-      })
-    );
-
-    // Filter out empty documents
-    const validDocuments = documentTexts.filter((doc) => doc.text.length > 0);
-
-    if (validDocuments.length === 0) {
+    if (documentTexts.length === 0) {
       res.status(400).json({
         error: 'No readable documents',
         message: 'Could not extract text from any documents',
@@ -117,7 +67,14 @@ export async function prototypeThreePdfHandler(
       return;
     }
 
-    console.log(`[prototype] Extracted text from ${validDocuments.length} documents`);
+    console.log(`[prototype] Successfully extracted text from ${documentTexts.length} documents`);
+
+    // Limit text length to prevent token overflow (50K chars per document)
+    const validDocuments = documentTexts.map(doc => ({
+      type: doc.type,
+      fileName: doc.fileName,
+      text: doc.text.substring(0, 50000),
+    }));
 
     // Generate 3-PDF bundle with Vertex AI
     console.log('[prototype] Calling Vertex AI...');
