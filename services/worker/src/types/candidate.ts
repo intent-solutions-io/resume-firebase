@@ -134,9 +134,54 @@ export interface GenerationInput {
   rank?: string;
   mos?: string;
   documentTexts: ExtractedDocument[];
+  targetRole?: string;
 }
 
 export interface GenerationOutput {
   profile: Omit<CandidateProfile, 'createdAt' | 'modelName' | 'modelVersion'>;
   resume: Omit<GeneratedResume, 'createdAt' | 'modelName' | 'modelVersion'>;
+}
+
+// ============================================
+// 3-PDF Resume Bundle Types
+// ============================================
+
+export interface ResumeArtifact {
+  format: 'html';
+  filename: string;
+  content_html: string;
+}
+
+export interface RenderHints {
+  page_size: 'LETTER';
+  margins_in: {
+    top: number;
+    right: number;
+    bottom: number;
+    left: number;
+  };
+  font_stack: string;
+}
+
+export interface BundleQA {
+  target_role_used: string;
+  bullets_translated_count: number;
+  terms_mapped_count: number;
+  placeholders_used: boolean;
+  no_fabrication_confirmed: boolean;
+}
+
+export interface ResumeBundleOutput {
+  artifacts: {
+    resume_military: ResumeArtifact;
+    resume_civilian: ResumeArtifact;
+    resume_crosswalk: ResumeArtifact;
+  };
+  render_hints: RenderHints;
+  qa: BundleQA;
+}
+
+export interface BundleGenerationOutput {
+  profile: Omit<CandidateProfile, 'createdAt' | 'modelName' | 'modelVersion'>;
+  bundle: ResumeBundleOutput;
 }

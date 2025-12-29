@@ -1,5 +1,6 @@
 // Storage Path Helper for Resume Exports
 // Phase 2.0: Resume Export (PDF/DOCX)
+// Phase 2.5: 3-PDF Bundle Export
 
 /**
  * Generate storage paths for resume exports
@@ -19,6 +20,30 @@ export function getResumeExportPaths(
   return {
     pdfPath: `${basePath}.pdf`,
     docxPath: `${basePath}.docx`,
+    timestamp: ts,
+  };
+}
+
+/**
+ * Generate storage paths for 3-PDF bundle exports
+ * Convention: candidates/{candidateId}/exports/{timestamp}-{type}.pdf
+ */
+export function getBundleExportPaths(
+  candidateId: string,
+  timestamp?: string
+): {
+  militaryPdfPath: string;
+  civilianPdfPath: string;
+  crosswalkPdfPath: string;
+  timestamp: string;
+} {
+  const ts = timestamp || new Date().toISOString().replace(/[:.]/g, '-');
+  const basePath = `candidates/${candidateId}/exports/${ts}`;
+
+  return {
+    militaryPdfPath: `${basePath}-resume-military.pdf`,
+    civilianPdfPath: `${basePath}-resume-civilian.pdf`,
+    crosswalkPdfPath: `${basePath}-resume-crosswalk.pdf`,
     timestamp: ts,
   };
 }
