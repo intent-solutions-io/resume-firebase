@@ -54,65 +54,41 @@ export async function exportBundleForCandidate(
   });
 
   try {
-    // Generate Military Resume PDF
-    let militaryGenerated = false;
-    try {
-      const pdfBuffer = await generatePdfFromHtml(browser, bundle.artifacts.resume_military.content_html);
-      await bucket.file(militaryPdfPath).save(pdfBuffer, {
-        contentType: 'application/pdf',
-        metadata: {
-          candidateId,
-          exportTimestamp: timestamp,
-          resumeType: 'military',
-        },
-      });
-      console.log(`[exportBundle] Military PDF saved to: ${militaryPdfPath}`);
-      militaryGenerated = true;
-    } catch (error) {
-      const msg = `Military PDF generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`;
-      console.error(`[exportBundle] ${msg}`);
-      errors.push(msg);
-    }
+    // Define artifacts to generate with their configurations
+    const artifactsToGenerate = [
+      { type: 'military', html: bundle.artifacts.resume_military.content_html, path: militaryPdfPath },
+      { type: 'civilian', html: bundle.artifacts.resume_civilian.content_html, path: civilianPdfPath },
+      { type: 'crosswalk', html: bundle.artifacts.resume_crosswalk.content_html, path: crosswalkPdfPath },
+    ];
 
-    // Generate Civilian Resume PDF
-    let civilianGenerated = false;
-    try {
-      const pdfBuffer = await generatePdfFromHtml(browser, bundle.artifacts.resume_civilian.content_html);
-      await bucket.file(civilianPdfPath).save(pdfBuffer, {
-        contentType: 'application/pdf',
-        metadata: {
-          candidateId,
-          exportTimestamp: timestamp,
-          resumeType: 'civilian',
-        },
-      });
-      console.log(`[exportBundle] Civilian PDF saved to: ${civilianPdfPath}`);
-      civilianGenerated = true;
-    } catch (error) {
-      const msg = `Civilian PDF generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`;
-      console.error(`[exportBundle] ${msg}`);
-      errors.push(msg);
-    }
+    // Generate all PDFs in parallel for better performance
+    const generationResults = await Promise.all(
+      artifactsToGenerate.map(async (artifact) => {
+        try {
+          const pdfBuffer = await generatePdfFromHtml(browser, artifact.html);
+          await bucket.file(artifact.path).save(pdfBuffer, {
+            contentType: 'application/pdf',
+            metadata: {
+              candidateId,
+              exportTimestamp: timestamp,
+              resumeType: artifact.type,
+            },
+          });
+          console.log(`[exportBundle] ${artifact.type} PDF saved to: ${artifact.path}`);
+          return { type: artifact.type, success: true };
+        } catch (error) {
+          const msg = `${artifact.type} PDF generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`;
+          console.error(`[exportBundle] ${msg}`);
+          errors.push(msg);
+          return { type: artifact.type, success: false };
+        }
+      })
+    );
 
-    // Generate Crosswalk PDF
-    let crosswalkGenerated = false;
-    try {
-      const pdfBuffer = await generatePdfFromHtml(browser, bundle.artifacts.resume_crosswalk.content_html);
-      await bucket.file(crosswalkPdfPath).save(pdfBuffer, {
-        contentType: 'application/pdf',
-        metadata: {
-          candidateId,
-          exportTimestamp: timestamp,
-          resumeType: 'crosswalk',
-        },
-      });
-      console.log(`[exportBundle] Crosswalk PDF saved to: ${crosswalkPdfPath}`);
-      crosswalkGenerated = true;
-    } catch (error) {
-      const msg = `Crosswalk PDF generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`;
-      console.error(`[exportBundle] ${msg}`);
-      errors.push(msg);
-    }
+    // Extract results
+    const militaryGenerated = generationResults.find(r => r.type === 'military')?.success ?? false;
+    const civilianGenerated = generationResults.find(r => r.type === 'civilian')?.success ?? false;
+    const crosswalkGenerated = generationResults.find(r => r.type === 'crosswalk')?.success ?? false;
 
     // Update Firestore with export paths
     const updateData: Record<string, unknown> = {

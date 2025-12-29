@@ -85,6 +85,71 @@ function StatusBadge({ status }: { status: CandidateStatus }) {
   return <span className={`badge ${config.className}`}>{config.label}</span>;
 }
 
+// Download icon SVG component
+function DownloadIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+      <polyline points="7 10 12 15 17 10" />
+      <line x1="12" y1="15" x2="12" y2="3" />
+    </svg>
+  );
+}
+
+// Reusable download button component
+interface DownloadButtonProps {
+  format: DownloadFormat;
+  label: string;
+  description?: string;
+  color: string;
+  downloading: DownloadFormat | null;
+  onDownload: (format: DownloadFormat) => void;
+  fullWidth?: boolean;
+}
+
+function DownloadButton({
+  format,
+  label,
+  description,
+  color,
+  downloading,
+  onDownload,
+  fullWidth = false,
+}: DownloadButtonProps) {
+  const isDownloading = downloading === format;
+  const isDisabled = downloading !== null;
+
+  return (
+    <button
+      onClick={() => onDownload(format)}
+      disabled={isDisabled}
+      style={{
+        backgroundColor: isDownloading ? 'var(--border-medium)' : color,
+        color: 'white',
+        padding: description ? '1rem 1.5rem' : '0.875rem 1.5rem',
+        fontSize: '1rem',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: description ? '0.75rem' : '0.5rem',
+        width: fullWidth ? '100%' : 'auto',
+      }}
+    >
+      <DownloadIcon />
+      {description ? (
+        <span>
+          {isDownloading ? 'Downloading...' : label}
+          <span style={{ fontSize: '0.75rem', display: 'block', opacity: 0.9 }}>
+            {description}
+          </span>
+        </span>
+      ) : (
+        isDownloading ? 'Downloading...' : label
+      )}
+    </button>
+  );
+}
+
 export function IntakeCompletePage() {
   const { candidateId } = useParams<{ candidateId: string }>();
   const [candidate, setCandidate] = useState<Candidate | null>(null);
@@ -638,97 +703,38 @@ export function IntakeCompletePage() {
                   </p>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                    {/* Civilian Resume - Primary, most commonly used */}
                     {bundleExport?.civilianPdfPath && (
-                      <button
-                        onClick={() => handleDownload('civilian')}
-                        disabled={downloading !== null}
-                        style={{
-                          backgroundColor: downloading === 'civilian' ? 'var(--border-medium)' : '#276749',
-                          color: 'white',
-                          padding: '1rem 1.5rem',
-                          fontSize: '1rem',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: '0.75rem',
-                          width: '100%',
-                        }}
-                      >
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-                          <polyline points="7 10 12 15 17 10" />
-                          <line x1="12" y1="15" x2="12" y2="3" />
-                        </svg>
-                        <span>
-                          {downloading === 'civilian' ? 'Downloading...' : 'Civilian Resume'}
-                          <span style={{ fontSize: '0.75rem', display: 'block', opacity: 0.9 }}>
-                            ATS-optimized for private sector jobs
-                          </span>
-                        </span>
-                      </button>
+                      <DownloadButton
+                        format="civilian"
+                        label="Civilian Resume"
+                        description="ATS-optimized for private sector jobs"
+                        color="#276749"
+                        downloading={downloading}
+                        onDownload={handleDownload}
+                        fullWidth
+                      />
                     )}
-
-                    {/* Military Resume */}
                     {bundleExport?.militaryPdfPath && (
-                      <button
-                        onClick={() => handleDownload('military')}
-                        disabled={downloading !== null}
-                        style={{
-                          backgroundColor: downloading === 'military' ? 'var(--border-medium)' : 'var(--info-blue)',
-                          color: 'white',
-                          padding: '1rem 1.5rem',
-                          fontSize: '1rem',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: '0.75rem',
-                          width: '100%',
-                        }}
-                      >
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-                          <polyline points="7 10 12 15 17 10" />
-                          <line x1="12" y1="15" x2="12" y2="3" />
-                        </svg>
-                        <span>
-                          {downloading === 'military' ? 'Downloading...' : 'Military Resume'}
-                          <span style={{ fontSize: '0.75rem', display: 'block', opacity: 0.9 }}>
-                            For federal/government positions
-                          </span>
-                        </span>
-                      </button>
+                      <DownloadButton
+                        format="military"
+                        label="Military Resume"
+                        description="For federal/government positions"
+                        color="var(--info-blue)"
+                        downloading={downloading}
+                        onDownload={handleDownload}
+                        fullWidth
+                      />
                     )}
-
-                    {/* Crosswalk Document */}
                     {bundleExport?.crosswalkPdfPath && (
-                      <button
-                        onClick={() => handleDownload('crosswalk')}
-                        disabled={downloading !== null}
-                        style={{
-                          backgroundColor: downloading === 'crosswalk' ? 'var(--border-medium)' : '#C59141',
-                          color: 'white',
-                          padding: '1rem 1.5rem',
-                          fontSize: '1rem',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: '0.75rem',
-                          width: '100%',
-                        }}
-                      >
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-                          <polyline points="7 10 12 15 17 10" />
-                          <line x1="12" y1="15" x2="12" y2="3" />
-                        </svg>
-                        <span>
-                          {downloading === 'crosswalk' ? 'Downloading...' : 'Translation Crosswalk'}
-                          <span style={{ fontSize: '0.75rem', display: 'block', opacity: 0.9 }}>
-                            Military to civilian term mapping
-                          </span>
-                        </span>
-                      </button>
+                      <DownloadButton
+                        format="crosswalk"
+                        label="Translation Crosswalk"
+                        description="Military to civilian term mapping"
+                        color="#C59141"
+                        downloading={downloading}
+                        onDownload={handleDownload}
+                        fullWidth
+                      />
                     )}
                   </div>
 
@@ -748,48 +754,22 @@ export function IntakeCompletePage() {
 
                   <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
                     {resumeExport?.pdfPath && (
-                      <button
-                        onClick={() => handleDownload('pdf')}
-                        disabled={downloading !== null}
-                        style={{
-                          backgroundColor: downloading === 'pdf' ? 'var(--border-medium)' : '#276749',
-                          color: 'white',
-                          padding: '0.875rem 1.5rem',
-                          fontSize: '1rem',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.5rem',
-                        }}
-                      >
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-                          <polyline points="7 10 12 15 17 10" />
-                          <line x1="12" y1="15" x2="12" y2="3" />
-                        </svg>
-                        {downloading === 'pdf' ? 'Downloading...' : 'Download PDF'}
-                      </button>
+                      <DownloadButton
+                        format="pdf"
+                        label="Download PDF"
+                        color="#276749"
+                        downloading={downloading}
+                        onDownload={handleDownload}
+                      />
                     )}
                     {resumeExport?.docxPath && (
-                      <button
-                        onClick={() => handleDownload('docx')}
-                        disabled={downloading !== null}
-                        style={{
-                          backgroundColor: downloading === 'docx' ? 'var(--border-medium)' : 'var(--info-blue)',
-                          color: 'white',
-                          padding: '0.875rem 1.5rem',
-                          fontSize: '1rem',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.5rem',
-                        }}
-                      >
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-                          <polyline points="7 10 12 15 17 10" />
-                          <line x1="12" y1="15" x2="12" y2="3" />
-                        </svg>
-                        {downloading === 'docx' ? 'Downloading...' : 'Download Word'}
-                      </button>
+                      <DownloadButton
+                        format="docx"
+                        label="Download Word"
+                        color="var(--info-blue)"
+                        downloading={downloading}
+                        onDownload={handleDownload}
+                      />
                     )}
                   </div>
 

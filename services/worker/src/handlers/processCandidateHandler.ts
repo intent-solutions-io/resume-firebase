@@ -442,21 +442,19 @@ export async function resumeDownloadHandler(
         crosswalkPdfPath?: string;
       };
 
-      switch (format) {
-        case 'military':
-          storagePath = bundle.militaryPdfPath;
-          filename = 'resume-military.pdf';
-          break;
-        case 'civilian':
-          storagePath = bundle.civilianPdfPath;
-          filename = 'resume-civilian.pdf';
-          break;
-        case 'crosswalk':
-          storagePath = bundle.crosswalkPdfPath;
-          filename = 'resume-crosswalk.pdf';
-          break;
-        default:
-          filename = 'resume.pdf';
+      // Use mapping object for cleaner path/filename resolution
+      const bundlePathMap: Record<string, { path: string | undefined; filename: string }> = {
+        military: { path: bundle.militaryPdfPath, filename: 'resume-military.pdf' },
+        civilian: { path: bundle.civilianPdfPath, filename: 'resume-civilian.pdf' },
+        crosswalk: { path: bundle.crosswalkPdfPath, filename: 'resume-crosswalk.pdf' },
+      };
+
+      const pathData = bundlePathMap[format];
+      if (pathData) {
+        storagePath = pathData.path;
+        filename = pathData.filename;
+      } else {
+        filename = 'resume.pdf';
       }
     } else {
       // Get legacy resume document to find export paths
