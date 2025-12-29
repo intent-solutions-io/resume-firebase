@@ -48,11 +48,14 @@ export function AdminCandidatesPage() {
   useEffect(() => {
     setLoading(true);
 
-    const filter = statusFilter || undefined;
     const unsubscribe = subscribeToAllCandidates((data) => {
-      setCandidates(data);
+      // Filter locally if needed
+      const filtered = statusFilter
+        ? data.filter(c => c.status === statusFilter)
+        : data;
+      setCandidates(filtered);
       setLoading(false);
-    }, filter);
+    });
 
     return () => unsubscribe();
   }, [statusFilter]);
