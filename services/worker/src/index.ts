@@ -9,6 +9,7 @@ import {
   processCandidateHandler,
   candidateStatusHandler,
   resumeDownloadHandler,
+  resumeBundleDownloadHandler,
 } from './handlers/processCandidateHandler.js';
 // PROTOTYPE: 3-PDF Resume Bundle (Checkpoint 1)
 import { prototypeThreePdfHandler } from './handlers/prototypeThreePdfHandler.js';
@@ -40,9 +41,10 @@ app.use('/health', healthRouter);
 app.post('/internal/processCase', processCaseHandler);
 app.post('/internal/generateArtifact', generateArtifactHandler);
 
-// Operation Hired endpoints (Phase 1.9 + 2.0)
+// Operation Hired endpoints (Phase 1.9 + 2.0 + 3-PDF Bundle)
 app.post('/internal/processCandidate', processCandidateHandler);
 app.get('/internal/candidateStatus/:candidateId', candidateStatusHandler);
+app.get('/internal/resumeDownload/:candidateId/bundle', resumeBundleDownloadHandler);
 app.get('/internal/resumeDownload/:candidateId/:format', resumeDownloadHandler);
 
 // PROTOTYPE: 3-PDF Resume Bundle Testing (Checkpoint 1)
