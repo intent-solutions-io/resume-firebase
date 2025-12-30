@@ -50,32 +50,39 @@ CRITICAL RULES (VIOLATION = SYSTEM FAILURE)
 8) Professional American English only
 9) Output ONLY valid JSON - no markdown code fences, no extra commentary
 
-ONE-PAGE ENFORCEMENT (NON-NEGOTIABLE):
-Military Resume:
-- Header: 2-3 lines (name, contact info, clearance/MOS if present)
-- Summary: 2-3 sentences MAX (60-80 words)
-- Skills: 10-14 items in 2-3 columns
-- Experience: Max 2 roles with 4-6 bullets each
-- Education: 1-2 lines
-- Certifications: 1 line (if any)
-- Awards: 1 line optional
+ONE-PAGE ENFORCEMENT (CRITICAL - RESUME MUST FIT ON ONE PAGE):
+**Priority Order:**
+1. Header (Required - 3 lines: name, email, branch|rank|MOS)
+2. Professional Summary (Required - 2-4 sentences, NOT bullets)
+3. Skills (Required - exactly 10 skills in 2-column boxed grid)
+4. Professional Experience (Required - most recent position with 6-8 bullets)
+5. Additional experience if space allows (reduce to 3-4 bullets or omit)
+6. Education (Required - 1-2 lines maximum)
+7. Certifications (If any - 1 line maximum)
 
-Civilian Resume (Jeremy's Template):
-- Header: [NAME] on line 1, contact info on line 2, TARGET ROLE on line 3
-- Professional Summary: 2-3 sentences (60-75 words) - outcome-focused with specific metrics
-- Core Skills: 10-14 items in bullet columns
-- Experience: Max 2 roles with 4-6 bullets each
-- Education: 1-2 lines
-- Certifications: 1 line (if any)
-- Awards/Recognition: 1 line optional
+**If Space is Tight (NEVER go to second page):**
+- Reduce Professional Summary to 2-3 sentences
+- Show only most recent position with 6 bullets
+- Keep Education to 1 line
+- Reduce margins to 0.5in (already set in CSS)
+- Font stays at 10-10.5pt (do NOT reduce below 10pt)
+
+**Typography & Spacing (to maximize one-page fit):**
+- Body text: 10-10.5pt
+- Section headers: 11pt uppercase bold
+- Name in header: 18pt
+- Line spacing: 1.15-1.3 (tight but readable)
+- Margins: 0.5-0.6in all sides
+- Section spacing: 10-12pt between sections
+- Single line spacing within sections
 
 DETAIL PRESERVATION (while staying on one page):
 1) Keep ALL specific numbers - dollar amounts, personnel counts, percentages, locations
-2) Generate 4-6 HIGH-IMPACT bullets per role (quality over quantity for one-page fit)
-3) EVERY bullet: action verb + what + scope/scale + how + measurable result
+2) Generate 6-8 HIGH-IMPACT bullets for most recent position
+3) EVERY bullet: [Action verb] + [what] + [scope/scale numbers] + [measurable result]
 4) Preserve specific base/unit names in MILITARY resume only
-5) Dates format: "Mon YYYY – Mon YYYY" (e.g., "Jun 2020 – Jun 2024")
-6) NO generic statements like "Highly motivated and skilled professional" - use specific accomplishments
+5) Dates format: "Mon Year – Mon Year" (e.g., "Jun 2020 – Jun 2024")
+6) NO generic statements like "Highly motivated and skilled professional"
 
 MILITARY→CIVILIAN TRANSLATION DICTIONARY:
 Leadership & Roles:
@@ -158,74 +165,127 @@ CIVILIAN RESUME HTML STRUCTURE (use this EXACT structure):
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
-  font-family: 'Arial', 'Helvetica', sans-serif;
+  font-family: 'Arial', 'Calibri', 'Helvetica', sans-serif;
   font-size: 10.5pt;
-  line-height: 1.3;
+  line-height: 1.15;
   color: #000;
   max-width: 100%;
+  padding: 0.5in 0.6in;
 }
-.header { text-align: center; margin-bottom: 8px; }
-.header h1 { font-size: 16pt; font-weight: bold; margin-bottom: 3px; }
-.header .contact { font-size: 9.5pt; margin-bottom: 3px; }
-.header .target-role { font-size: 11pt; font-weight: bold; margin-top: 5px; }
-.section { margin-bottom: 10px; }
+.header {
+  text-align: center;
+  margin-bottom: 12pt;
+  border-bottom: 1pt solid #333;
+  padding-bottom: 8pt;
+}
+.header h1 {
+  font-size: 18pt;
+  font-weight: bold;
+  margin-bottom: 4pt;
+  letter-spacing: 0.5pt;
+}
+.header .email {
+  font-size: 10pt;
+  margin-bottom: 3pt;
+}
+.header .branch-info {
+  font-size: 10pt;
+  color: #333;
+}
+.section {
+  margin-bottom: 11pt;
+  page-break-inside: avoid;
+}
 .section-title {
   font-size: 11pt;
   font-weight: bold;
   text-transform: uppercase;
-  border-bottom: 1.5pt solid #000;
-  margin-bottom: 5px;
-  padding-bottom: 1px;
+  letter-spacing: 0.5pt;
+  margin-bottom: 6pt;
+  color: #000;
 }
-.summary { text-align: justify; font-size: 10pt; line-height: 1.35; }
-.skills {
+.summary {
+  font-size: 10pt;
+  line-height: 1.3;
+  text-align: justify;
+}
+.skills-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 3px;
-  font-size: 9.5pt;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6pt;
+  margin-top: 6pt;
 }
-.skills li { list-style: none; padding-left: 8px; text-indent: -8px; }
-.skills li:before { content: "• "; font-weight: bold; }
-.job { margin-bottom: 8px; page-break-inside: avoid; }
+.skill-box {
+  background: rgba(0, 0, 0, 0.05);
+  border: 1pt solid rgba(0, 0, 0, 0.15);
+  border-radius: 3pt;
+  padding: 4pt 8pt;
+  font-size: 9.5pt;
+  text-align: center;
+  font-weight: 500;
+}
+.job {
+  margin-bottom: 10pt;
+  page-break-inside: avoid;
+}
 .job-header {
-  display: flex;
-  justify-content: space-between;
+  margin-bottom: 4pt;
+}
+.job-title {
   font-weight: bold;
   font-size: 10.5pt;
-  margin-bottom: 3px;
 }
-.job-title { font-weight: bold; }
-.job-dates { font-weight: normal; font-style: italic; }
-.job ul { margin-left: 18px; margin-top: 3px; }
+.job-org-dates {
+  font-size: 10pt;
+  font-style: italic;
+  color: #333;
+}
+.job ul {
+  margin-left: 20pt;
+  margin-top: 4pt;
+  list-style-type: disc;
+}
 .job li {
-  margin-bottom: 3px;
-  line-height: 1.3;
+  margin-bottom: 3pt;
+  line-height: 1.25;
   font-size: 10pt;
 }
-.education, .certifications { font-size: 10pt; line-height: 1.4; }
+.education-content,
+.certifications-content {
+  font-size: 10pt;
+  line-height: 1.3;
+  margin-top: 4pt;
+}
 </style>
 </head>
 <body>
-<!-- Use actual candidate data in header -->
+
 <div class="header">
   <h1>[CANDIDATE NAME]</h1>
-  <div class="contact">[City, ST] • [Phone] • [Email] • [LinkedIn if available] • [Clearance if available]</div>
-  <div class="target-role">TARGET ROLE: [Operations Manager / Logistics Supervisor / etc.]</div>
+  <div class="email">[candidate email]</div>
+  <div class="branch-info">[Branch] | [Rank if available] | MOS: [MOS if available]</div>
 </div>
 
 <div class="section">
   <div class="section-title">Professional Summary</div>
-  <p class="summary">Former U.S. [Branch] [MOS/Role] with [X]+ years leading teams, executing time-sensitive operations, and improving processes in high-accountability environments. [Specific accomplishment with metrics]. [Specific accomplishment with metrics]. Known for delivering results under pressure, coaching teams, and standardizing workflows to improve quality, speed, and compliance.</p>
+  <p class="summary">[2-4 sentence paragraph with specific accomplishments, leadership experience, and quantifiable results. NO generic phrases. Focus on what makes this candidate unique.]</p>
 </div>
 
 <div class="section">
-  <div class="section-title">Core Skills</div>
-  <ul class="skills">
-    <li>Operations Leadership</li>
-    <li>Project Planning</li>
-    <li>Process Improvement</li>
-    <!-- 10-14 items total, 3 columns -->
-  </ul>
+  <div class="section-title">Skills</div>
+  <div class="skills-grid">
+    <div class="skill-box">Leadership & Team Management</div>
+    <div class="skill-box">Security Risk Management</div>
+    <div class="skill-box">Asset Protection</div>
+    <div class="skill-box">Strategic Planning</div>
+    <div class="skill-box">Emergency Response</div>
+    <div class="skill-box">Training & Development</div>
+    <div class="skill-box">Quality Assurance</div>
+    <div class="skill-box">Process Improvement</div>
+    <div class="skill-box">Compliance & Auditing</div>
+    <div class="skill-box">Data Analysis</div>
+    <!-- Exactly 10 skills in 2 columns (5 per column) -->
+  </div>
 </div>
 
 <div class="section">
@@ -233,33 +293,32 @@ body {
 
   <div class="job">
     <div class="job-header">
-      <div class="job-title">[Civilian Job Title] | U.S. [Branch] — [City, ST]</div>
-      <div class="job-dates">[Mon YYYY] – [Mon YYYY]</div>
+      <div class="job-title">[Civilian Title Translation]</div>
+      <div class="job-org-dates">[Organization], [Location] | [Mon Year] – [Mon Year]</div>
     </div>
     <ul>
-      <li>[Bullet with action+scope+method+result]</li>
-      <li>[Bullet with action+scope+method+result]</li>
-      <!-- 4-6 bullets max -->
+      <li>[Action verb] + [specific task] + [scope/scale with numbers] + [measurable result]</li>
+      <li>[6-8 bullets per position, each with quantifiable metrics]</li>
     </ul>
   </div>
 
-  <!-- Max 2 jobs for one-page fit -->
+  <!-- Include only most recent 1-2 positions to fit one page -->
 </div>
 
 <div class="section">
   <div class="section-title">Education</div>
-  <div class="education">[Degree] — [School], [City, ST] • [Year]</div>
+  <div class="education-content">[Degree type and field]; [Additional education if any]</div>
 </div>
 
 <div class="section">
   <div class="section-title">Certifications</div>
-  <div class="certifications">[Cert 1] • [Cert 2] • [Cert 3]</div>
+  <div class="certifications-content">[Cert 1] • [Cert 2] • [Cert 3]</div>
 </div>
 
 </body>
 </html>
 
-MILITARY RESUME: Use same CSS but keep military terminology (units, bases, MOS)
+MILITARY RESUME: Use same CSS but keep military terminology in header (full unit names, bases, MOS)
 
 OUTPUT FORMAT (STRICT JSON — return ONLY JSON)
 {
@@ -319,22 +378,52 @@ A) resume_military.html (EXACTLY ONE PAGE)
 - CERTIFICATIONS: As stated (omit section if none)
 - AWARDS: Optional, 1 line only if present in documents
 
-B) resume_civilian.html (EXACTLY ONE PAGE - Jeremy's Template)
-- Header line 1: CANDIDATE NAME (actual name from metadata)
-- Header line 2: Actual city, ST • Actual phone • Actual email • LinkedIn (if available) • Clearance (if available)
-- Header line 3: TARGET ROLE: [inferred from MOS or default to "Operations / Program Management"]
-- PROFESSIONAL SUMMARY: 2-3 sentences (60-75 words) outcome-focused with SPECIFIC metrics
-  * NO generic phrases like "highly motivated and skilled professional"
-  * Use actual accomplishments: "Former U.S. Army infantry team leader with 4 years managing 12-person teams and executing 15+ time-sensitive operations across 3 countries, resulting in 100% mission success. Led asset management program for $2M in equipment with zero loss. Trained 50+ personnel on safety protocols, achieving superior ratings on all compliance audits."
-- CORE SKILLS: exactly 10-14 civilian keywords in 3-column grid for ATS
-- PROFESSIONAL EXPERIENCE: Max 2 roles with 4-6 bullets each
-  * Civilian title with military context: "Team Leader | U.S. Army — Location"
-  * Translate ALL jargon to civilian terms
-  * Expand acronyms on first use: "Antiterrorism (AT) program"
-  * Each bullet: action + scope + method + result
-  * Preserve credibility (dollar amounts, personnel counts) but remove unit names
-- EDUCATION: Civilian-friendly (if missing, use "High School Diploma")
-- CERTIFICATIONS: Civilian-friendly (omit if none)
+B) resume_civilian.html (EXACTLY ONE PAGE - Professional Template)
+HEADER (center-aligned with bottom border):
+- Line 1: CANDIDATE NAME (18pt bold, from metadata)
+- Line 2: Email address (actual email from metadata)
+- Line 3: Branch | Rank | MOS: XXXX (format exactly like this)
+- Add LinkedIn URL if available in documents (do NOT use placeholder if not found)
+- Bottom border under header section
+
+PROFESSIONAL SUMMARY (2-4 sentences, NOT bullets):
+- Focus on leadership experience, core competencies, key achievements
+- Use SPECIFIC accomplishments with quantifiable metrics
+- NO generic phrases like "highly motivated and skilled professional"
+- Translate all military terminology to civilian equivalents
+- Example: "Led security operations across 3 facilities protecting 4,200 personnel and $1B in assets. Managed 12-person team executing 15+ time-sensitive operations with 100% success rate. Recognized for exceptional performance in asset protection and emergency response coordination."
+
+SKILLS (exactly 10 skills in 2-column grid with transparent boxes):
+- Two columns, 5 skills per column
+- Each skill in a semi-transparent box with subtle border
+- Translate military skills to civilian equivalents:
+  * "Intelligence Analysis" → "Data Analysis" or "Threat Intelligence"
+  * "Antiterrorism" → "Security Risk Management"
+  * "Force Protection" → "Asset Protection"
+  * "Emergency Management" → "Emergency Response"
+
+PROFESSIONAL EXPERIENCE (6-8 bullets per position):
+- Job title: Translate to civilian equivalent (bold)
+  * "Section Chief, Intelligence" → "Security Intelligence Manager"
+  * "Squad Leader" → "Team Leader" or "Operations Supervisor"
+- Organization, Location | Dates (on same or next line)
+- Bullet points structure: [Action Verb] + [What] + [Quantifiable Result]
+- Start with strong verbs: Led, Managed, Coordinated, Developed, Implemented
+- Include metrics: numbers, percentages, dollar amounts
+- Translate military terms:
+  * "Personnel" not "troops"
+  * "Facilities" not "bases"
+  * "Assets" not "equipment"
+  * "Senior leadership" not ranks
+- Expand acronyms on first use only
+- If resume exceeds one page: show only 1-2 most recent positions
+
+EDUCATION (1-2 lines only):
+- Simple format: "BA degree; Pursuing MA in Cyber Security"
+- Or if just high school: "High School Diploma"
+
+CERTIFICATIONS (1 line, omit if none):
+- Format: "[Cert 1] • [Cert 2] • [Cert 3]"
 
 C) resume_crosswalk.html (1-2 PAGES)
 
