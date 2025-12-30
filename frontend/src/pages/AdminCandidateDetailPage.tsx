@@ -9,6 +9,8 @@ import {
   getStatusColor,
   getDocumentTypeLabel,
   CandidateWithDetails,
+  type CandidateDocument,
+  type ResumeExperience,
 } from '../lib/adminData';
 import { CandidateStatus, STATUS_LABELS } from '../lib/firestore';
 

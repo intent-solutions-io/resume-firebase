@@ -113,6 +113,7 @@ interface DownloadButtonProps {
   fullWidth?: boolean;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function DownloadButton({
   format,
   label,
@@ -160,6 +161,7 @@ export function IntakeCompletePage() {
   const { candidateId } = useParams<{ candidateId: string }>();
   const [candidate, setCandidate] = useState<Candidate | null>(null);
   const [resumeExport, setResumeExport] = useState<ResumeExport | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [bundleExport, setBundleExport] = useState<BundleExport | null>(null);
   const [documents, setDocuments] = useState<CandidateDocument[]>([]);
   const [loading, setLoading] = useState(true);
@@ -262,6 +264,7 @@ export function IntakeCompletePage() {
     setError(null);
 
     // Determine filename based on format
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const filenames: Record<DownloadFormat, string> = {
       pdf: 'resume.pdf',
       docx: 'resume.docx',
