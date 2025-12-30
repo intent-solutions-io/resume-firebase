@@ -70,6 +70,9 @@ export interface ThreePDFGenerationInput {
   candidateId: string;
   name: string;
   email: string;
+  phone?: string;
+  city?: string;
+  state?: string;
   branch: string;
   rank?: string;
   mos?: string;

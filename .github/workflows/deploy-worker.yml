@@ -48,7 +48,7 @@ jobs:
           docker build -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/worker:${{ github.sha }} \
                        -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/worker:latest \
                        -f services/worker/Dockerfile \
-                       services/worker
+                       .
 
           docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/worker:${{ github.sha }}
           docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/worker:latest
@@ -65,7 +65,7 @@ jobs:
             --memory 2Gi \
             --cpu 2 \
             --timeout 300 \
-            --set-env-vars "GCP_PROJECT_ID=${{ env.PROJECT_ID }},VERTEX_LOCATION=${{ env.REGION }},GEMINI_MODEL_NAME=gemini-1.5-flash,FIREBASE_STORAGE_BUCKET=resume-gen-intent-dev.firebasestorage.app,APP_BASE_URL=https://resume-gen-intent-dev.web.app"
+            --set-env-vars "GCP_PROJECT_ID=${{ env.PROJECT_ID }},VERTEX_LOCATION=${{ env.REGION }},GEMINI_MODEL_NAME=gemini-2.0-flash-exp,FIREBASE_STORAGE_BUCKET=resume-gen-intent-dev.firebasestorage.app,APP_BASE_URL=https://resume-gen-intent-dev.web.app"
 
       - name: Deployment Summary
         run: |
