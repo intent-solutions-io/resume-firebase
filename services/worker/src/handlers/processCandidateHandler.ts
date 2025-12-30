@@ -42,7 +42,6 @@ const firestore = new Firestore({
 const candidatesCollection = firestore.collection('candidates');
 const profilesCollection = firestore.collection('candidateProfiles');
 const resumesCollection = firestore.collection('resumes');
-const resumeBundlesCollection = firestore.collection('resumeBundles');
 
 /**
  * Process candidate documents and generate profile + resume
@@ -404,66 +403,35 @@ export async function resumeDownloadHandler(
     let storagePath: string | undefined;
     let filename: string;
 
-    // Check if this is a bundle format request
-    if (['military', 'civilian', 'crosswalk'].includes(format)) {
-      // Get bundle document to find export paths
-      const bundleDoc = await resumeBundlesCollection.doc(candidateId).get();
+    // Get resume document to find all export paths (including 3-PDF bundle)
+    const resumeDoc = await resumesCollection.doc(candidateId).get();
 
-      if (!bundleDoc.exists) {
-        res.status(404).json({ error: 'Resume bundle not found' });
-        return;
-      }
+    if (!resumeDoc.exists) {
+      res.status(404).json({ error: 'Resume not found' });
+      return;
+    }
 
-      const bundle = bundleDoc.data() as {
-        militaryPdfPath?: string;
-        civilianPdfPath?: string;
-        crosswalkPdfPath?: string;
-      };
+    const resume = resumeDoc.data() as GeneratedResume & { pdfPath?: string; docxPath?: string };
 
-      // Use mapping object for cleaner path/filename resolution
-      const bundlePathMap: Record<string, { path: string | undefined; filename: string }> = {
-        military: { path: bundle.militaryPdfPath, filename: 'resume-military.pdf' },
-        civilian: { path: bundle.civilianPdfPath, filename: 'resume-civilian.pdf' },
-        crosswalk: { path: bundle.crosswalkPdfPath, filename: 'resume-crosswalk.pdf' },
-      };
-
-      const pathData = bundlePathMap[format];
-      if (pathData) {
-        storagePath = pathData.path;
-        filename = pathData.filename;
-      } else {
-        filename = 'resume.pdf';
-      }
+    // Determine storage path based on format
+    if (format === 'pdf') {
+      storagePath = resume.pdfPath;
+      filename = 'resume.pdf';
+    } else if (format === 'docx') {
+      storagePath = resume.docxPath;
+      filename = 'resume.docx';
+    } else if (format === 'military') {
+      storagePath = resume.threePdfPaths?.militaryPdfPath;
+      filename = 'resume-military.pdf';
+    } else if (format === 'civilian') {
+      storagePath = resume.threePdfPaths?.civilianPdfPath;
+      filename = 'resume-civilian.pdf';
+    } else if (format === 'crosswalk') {
+      storagePath = resume.threePdfPaths?.crosswalkPdfPath;
+      filename = 'resume-crosswalk.pdf';
     } else {
-      // Get legacy resume document to find export paths
-      const resumeDoc = await resumesCollection.doc(candidateId).get();
-
-      if (!resumeDoc.exists) {
-        res.status(404).json({ error: 'Resume not found' });
-        return;
-      }
-
-      const resume = resumeDoc.data() as GeneratedResume & { pdfPath?: string; docxPath?: string };
-
-      if (format === 'pdf') {
-        storagePath = resume.pdfPath;
-        filename = 'resume.pdf';
-      } else if (format === 'docx') {
-        storagePath = resume.docxPath;
-        filename = 'resume.docx';
-      } else if (format === 'military') {
-        storagePath = resume.threePdfPaths?.militaryPdfPath;
-        filename = 'resume-military.pdf';
-      } else if (format === 'civilian') {
-        storagePath = resume.threePdfPaths?.civilianPdfPath;
-        filename = 'resume-civilian.pdf';
-      } else if (format === 'crosswalk') {
-        storagePath = resume.threePdfPaths?.crosswalkPdfPath;
-        filename = 'resume-crosswalk.pdf';
-      } else {
-        res.status(400).json({ error: 'Invalid format' });
-        return;
-      }
+      res.status(400).json({ error: 'Invalid format' });
+      return;
     }
 
     if (!storagePath) {
