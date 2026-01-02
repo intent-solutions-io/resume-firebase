@@ -353,27 +353,63 @@ OUTPUT FORMAT (STRICT JSON — return ONLY JSON)
   }
 }
 
+⚠️⚠️⚠️ CRITICAL HTML FORMATTING REQUIREMENTS (for ALL 3 artifacts) ⚠️⚠️⚠️
+
+EACH artifact (military, civilian, crosswalk) MUST be a COMPLETE HTML DOCUMENT with inline CSS styling.
+NEVER output plain text - ALWAYS use proper HTML structure with CSS classes and styling.
+
+REQUIRED STRUCTURE FOR ALL 3 PDFs:
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    /* Inline CSS styling HERE - see templates below for each artifact type */
+  </style>
+</head>
+<body>
+  <!-- Properly structured HTML content with CSS classes -->
+</body>
+</html>
+
 HTML REQUIREMENTS (for every artifact):
-- Must be complete HTML: <html><head><style>...</style></head><body>...</body></html>
+- Must be complete HTML document: <html><head><style>...</style></head><body>...</body></html>
 - Inline CSS ONLY inside <style> in <head> (no external links, no <link> tags)
+- Use proper HTML tags: <div>, <h1>, <h2>, <p>, <ul>, <li>, <table>, etc.
+- Use CSS classes for styling: .header, .section, .skill-box, .job, .bullet-pair, etc.
 - Use clean one-column layout suitable for printing
 - Use consistent typography; minimal colors; minimal lines/borders
-- Font: Inter, Arial, Helvetica, sans-serif
+- Font: Arial, Helvetica, sans-serif (or Inter, Calibri)
 - NO SCRIPT TAGS (security requirement)
+- NO PLAIN TEXT OUTPUT - everything must have proper HTML structure and CSS styling
 - Enforce one-page constraint for military and civilian resumes by keeping content concise
 
 CONTENT REQUIREMENTS:
 
 A) resume_military.html (EXACTLY ONE PAGE)
-- Header: Name, actual city/state from metadata, actual phone, actual email, LinkedIn if available
-- Optional on header line: MOS/Rate, Clearance (ONLY if present in documents)
-- PROFESSIONAL SUMMARY: 2-3 sentences (60-80 words) with SPECIFIC accomplishments from documents
-- CORE SKILLS: exactly 10-14 items in 3-column grid (military + transferable skills)
-- PROFESSIONAL EXPERIENCE: Max 2 roles with 4-6 bullets each
-  * Keep military titles/rank/unit: "Platoon Sergeant, 423d Security Forces Squadron"
+⚠️ CRITICAL: Military resume MUST use the SAME HTML structure and CSS as civilian resume ⚠️
+
+Use the EXACT SAME HTML template structure as civilian resume (see section B below), but with these differences:
+- Keep military terminology: full unit names, base names, MOS codes, military job titles
+- Example header: "U.S. Army | Staff Sergeant | MOS: 11B | Secret Clearance"
+- Example job title: "Infantry Squad Leader" (keep military title)
+- Example organization: "1st Battalion, 75th Infantry Regiment, Fort Benning, GA"
+- Preserve military context in bullets: specific base names, unit designations, military programs
+
+SAME CSS STYLING as civilian resume:
+- Use .header, .section, .section-title, .skills-grid, .skill-box, .job, .job-title classes
+- Same font sizes, margins, spacing
+- Same boxed skills layout in 2-column grid
+- Same bullet point formatting with <ul> and <li> tags
+
+Content Specifics:
+- PROFESSIONAL SUMMARY: 2-4 sentences with SPECIFIC accomplishments and metrics (NO generic phrases)
+- SKILLS: Exactly 10 skills in 2-column boxed grid using .skills-grid and .skill-box classes
+- PROFESSIONAL EXPERIENCE: Max 2 roles with 6-8 bullets each
+  * Keep military titles/rank/unit: "Staff Sergeant, 1st Battalion, 75th Infantry Regiment"
   * Preserve specific base names, dollar amounts, personnel counts
-  * Each bullet: action + full scope + method + measurable results
-  * Format: "Rank/Title, Unit — Location | Mon YYYY – Mon YYYY"
+  * Each bullet: action verb + task + scope/scale + method + measurable results
+  * Format: "Rank/Title, Unit — Base Name, State | Mon YYYY – Mon YYYY"
 - EDUCATION: As stated in documents (if missing, use "High School Diploma" only)
 - CERTIFICATIONS: As stated (omit section if none)
 - AWARDS: Optional, 1 line only if present in documents
@@ -514,28 +550,156 @@ CERTIFICATIONS (1 line, omit if none):
 - Format: "[Cert 1] • [Cert 2] • [Cert 3]"
 
 C) resume_crosswalk.html (1-2 PAGES)
+⚠️ CRITICAL: Crosswalk MUST be complete HTML document with inline CSS styling - NOT plain text ⚠️
 
-SECTION 1: TERM MAP TABLE
-Create HTML table with 4 columns: Military Term/Acronym | Civilian Translation | What It Signals | ATS Keywords
-Include EVERY acronym/jargon term found in source documents and military resume.
+REQUIRED HTML STRUCTURE FOR CROSSWALK:
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 10pt;
+  line-height: 1.4;
+  color: #000;
+  padding: 0.75in;
+  max-width: 100%;
+}
+h1 {
+  font-size: 16pt;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 20pt;
+  color: #1a1a1a;
+  border-bottom: 2pt solid #333;
+  padding-bottom: 8pt;
+}
+h2 {
+  font-size: 12pt;
+  font-weight: bold;
+  margin-top: 16pt;
+  margin-bottom: 10pt;
+  color: #1a1a1a;
+  text-transform: uppercase;
+  letter-spacing: 0.5pt;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20pt;
+}
+th {
+  background: #f0f0f0;
+  border: 1pt solid #999;
+  padding: 6pt 8pt;
+  text-align: left;
+  font-weight: bold;
+  font-size: 9.5pt;
+}
+td {
+  border: 1pt solid #ccc;
+  padding: 6pt 8pt;
+  font-size: 9.5pt;
+  vertical-align: top;
+}
+.bullet-pair {
+  margin-bottom: 16pt;
+  padding: 10pt;
+  background: #fafafa;
+  border-left: 3pt solid #666;
+}
+.bullet-label {
+  font-weight: bold;
+  font-size: 9pt;
+  color: #555;
+  margin-bottom: 4pt;
+}
+.bullet-text {
+  font-size: 10pt;
+  line-height: 1.3;
+  margin-bottom: 6pt;
+}
+.notes {
+  font-size: 9pt;
+  color: #666;
+  font-style: italic;
+}
+</style>
+</head>
+<body>
 
-Example rows:
-| AT | Antiterrorism | Security risk management | Security, Risk Management, Threat Assessment |
-| NCOIC | Team Lead/Supervisor | Leadership role | Leadership, Team Management, Supervision |
-| PMCS | Preventive Maintenance | Quality assurance | Quality Assurance, Maintenance, Inspection |
-| SOP | Standard Operating Procedure | Process documentation | Process Improvement, Documentation, Compliance |
+<h1>Military-to-Civilian Translation Crosswalk</h1>
 
-SECTION 2: BULLET CROSSWALK
-For EVERY bullet in resume_military, include:
+<h2>Section 1: Term Map Table</h2>
+<table>
+  <thead>
+    <tr>
+      <th>Military Term/Acronym</th>
+      <th>Civilian Translation</th>
+      <th>What It Signals</th>
+      <th>ATS Keywords</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>AT</td>
+      <td>Antiterrorism</td>
+      <td>Security risk management</td>
+      <td>Security, Risk Management, Threat Assessment</td>
+    </tr>
+    <tr>
+      <td>NCOIC</td>
+      <td>Team Lead/Supervisor</td>
+      <td>Leadership role</td>
+      <td>Leadership, Team Management, Supervision</td>
+    </tr>
+    <!-- Add ALL acronyms/terms found in source documents -->
+  </tbody>
+</table>
 
-Military Bullet: (verbatim from military resume)
-Civilian Bullet: (exactly as used in civilian resume)
-Translation Notes: (list acronym expansions, removed unit identifiers, clarified scope, placeholders used if any)
+<h2>Section 2: Bullet-by-Bullet Crosswalk</h2>
 
-Example:
-Military: "Led AT program securing 878 acres across 3 air bases, protecting 4,200 personnel and $1 billion in DoD and NATO assets."
-Civilian: "Led Antiterrorism program securing 878 acres across 3 locations, protecting 4,200 personnel and $1 billion in government and partner assets."
-Notes: Expanded "AT" to "Antiterrorism"; changed "air bases" to "locations"; changed "DoD and NATO" to "government and partner"
+<div class="bullet-pair">
+  <div class="bullet-label">Military Bullet:</div>
+  <div class="bullet-text">[Exact bullet from military resume with military terminology]</div>
+
+  <div class="bullet-label">Civilian Bullet:</div>
+  <div class="bullet-text">[Exact bullet from civilian resume with civilian terminology]</div>
+
+  <div class="bullet-label">Translation Notes:</div>
+  <div class="notes">[List all changes: acronym expansions, unit name removals, terminology translations]</div>
+</div>
+
+<!-- Repeat bullet-pair div for EVERY bullet from military resume -->
+
+</body>
+</html>
+
+SECTION 1: TERM MAP TABLE (in styled HTML table)
+- Include EVERY acronym/jargon term found in source documents and military resume
+- 4 columns: Military Term/Acronym | Civilian Translation | What It Signals | ATS Keywords
+- Use proper HTML table with <table>, <thead>, <tbody>, <tr>, <th>, <td> tags
+- Apply CSS styling from template above
+
+SECTION 2: BULLET CROSSWALK (in styled divs)
+For EVERY bullet in resume_military, create a styled .bullet-pair div showing:
+- Military Bullet: (verbatim from military resume)
+- Civilian Bullet: (exactly as used in civilian resume)
+- Translation Notes: (list acronym expansions, removed unit identifiers, clarified scope)
+
+Example bullet-pair div:
+<div class="bullet-pair">
+  <div class="bullet-label">Military Bullet:</div>
+  <div class="bullet-text">Led AT program securing 878 acres across RAF Alconbury, RAF Molesworth, and RAF Croughton, protecting 4,200 personnel and $1 billion in DoD and NATO assets.</div>
+
+  <div class="bullet-label">Civilian Bullet:</div>
+  <div class="bullet-text">Led Antiterrorism program securing 878 acres across 3 locations, protecting 4,200 personnel and $1 billion in government and partner assets.</div>
+
+  <div class="bullet-label">Translation Notes:</div>
+  <div class="notes">Expanded "AT" to "Antiterrorism"; replaced specific base names (RAF Alconbury, RAF Molesworth, RAF Croughton) with "3 locations"; changed "DoD and NATO" to "government and partner"</div>
+</div>
 
 QUALITY CHECKS (update qa object):
 - Count ALL bullets in military resume and ensure ALL appear in crosswalk section 2
