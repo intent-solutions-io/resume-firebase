@@ -13,6 +13,10 @@ import {
   HeadingLevel,
   AlignmentType,
   BorderStyle,
+  Table,
+  TableRow,
+  TableCell,
+  WidthType,
 } from 'docx';
 import { renderResumeToHtml, type CandidateHeader } from './resumeRender.js';
 import { getResumeExportPaths, getStorageBucket } from './storagePaths.js';
@@ -234,18 +238,55 @@ async function generateDocx(
     );
   }
 
-  // Skills section
+  // Skills section - horizontal boxes layout using table
   if (resume.skills && resume.skills.length > 0) {
     sections.push(createSectionHeading('SKILLS'));
-    for (const skill of resume.skills) {
-      sections.push(
-        new Paragraph({
-          text: skill,
-          bullet: { level: 0 },
+
+    // Create skill boxes in table format (4-5 per row)
+    const skillsPerRow = 5;
+    const rows: TableRow[] = [];
+
+    for (let i = 0; i < resume.skills.length; i += skillsPerRow) {
+      const rowSkills = resume.skills.slice(i, i + skillsPerRow);
+      const cells = rowSkills.map(skill =>
+        new TableCell({
+          children: [
+            new Paragraph({
+              text: skill,
+              alignment: AlignmentType.CENTER,
+            })
+          ],
+          shading: { fill: 'F5F5F5' },
+          borders: {
+            top: { style: BorderStyle.SINGLE, size: 1, color: 'D0D0D0' },
+            bottom: { style: BorderStyle.SINGLE, size: 1, color: 'D0D0D0' },
+            left: { style: BorderStyle.SINGLE, size: 1, color: 'D0D0D0' },
+            right: { style: BorderStyle.SINGLE, size: 1, color: 'D0D0D0' },
+          },
+          margins: { top: 50, bottom: 50, left: 100, right: 100 },
         })
       );
+
+      // Fill remaining cells if row is not complete
+      while (cells.length < skillsPerRow) {
+        cells.push(
+          new TableCell({
+            children: [new Paragraph({ text: '' })],
+            borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } },
+          })
+        );
+      }
+
+      rows.push(new TableRow({ children: cells }));
     }
-    sections.push(new Paragraph({ spacing: { after: 200 } }));
+
+    const skillsTable = new Table({
+      rows,
+      width: { size: 100, type: WidthType.PERCENTAGE },
+      margins: { top: 100, bottom: 200 },
+    });
+
+    sections.push(new Paragraph({ children: [skillsTable] }));
   }
 
   // Experience section

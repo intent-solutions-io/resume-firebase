@@ -191,9 +191,20 @@ ul {
 li {
   margin-bottom: 0.05in;
 }
-.skills-list {
-  column-count: 2;
-  column-gap: 0.5in;
+.skills-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.1in;
+  margin-bottom: 0.1in;
+}
+.skill-box {
+  display: inline-block;
+  padding: 0.05in 0.15in;
+  background: #f5f5f5;
+  border: 1px solid #d0d0d0;
+  border-radius: 3px;
+  font-size: 10pt;
+  white-space: nowrap;
 }
 .experience-entry {
   margin-bottom: 0.2in;
@@ -220,18 +231,18 @@ li {
 
 <section>
   <h2>Skills</h2>
-  <ul class="skills-list">
-    <li>Skill 1</li>
-    <li>Skill 2</li>
-    <li>Skill 3</li>
-    <li>Skill 4</li>
-    <li>Skill 5</li>
-    <li>Skill 6</li>
-    <li>Skill 7</li>
-    <li>Skill 8</li>
-    <li>Skill 9</li>
-    <li>Skill 10</li>
-  </ul>
+  <div class="skills-grid">
+    <span class="skill-box">Skill 1</span>
+    <span class="skill-box">Skill 2</span>
+    <span class="skill-box">Skill 3</span>
+    <span class="skill-box">Skill 4</span>
+    <span class="skill-box">Skill 5</span>
+    <span class="skill-box">Skill 6</span>
+    <span class="skill-box">Skill 7</span>
+    <span class="skill-box">Skill 8</span>
+    <span class="skill-box">Skill 9</span>
+    <span class="skill-box">Skill 10</span>
+  </div>
 </section>
 
 <section>
@@ -376,22 +387,24 @@ Use <header> tag with:
 
 Use <section> tags with <h2> for section titles:
 - Professional Summary: <p> with SPECIFIC metrics from documents
-- Skills: <ul class="skills-list"> with exactly 10 <li> items (will display in 2 columns via CSS)
-- Professional Experience: <div class="experience-entry"> with <h3> for job title, <p class="company"> for org/dates, <ul> for 6-8 bullets
+- Skills: <div class="skills-grid"> with <span class="skill-box"> for each skill (10-12 skills, will wrap horizontally 4-5 per row)
+- Professional Experience: <div class="experience-entry"> with <h3> for job title, <p class="company"> for org/dates, <ul> for 4-6 bullets
   * Keep military titles/rank/unit
   * Each bullet: verb + task + scope/numbers + method + result/numbers
+  * LIMIT to 4-6 bullets per role to ensure ONE PAGE (not 6-8)
 - Education: <p> with degree or "High School Diploma"
 - Certifications: <ul> with <li> items (only if present in documents)
 
 B) resume_civilian.html (EXACTLY ONE PAGE)
 Use EXACT SAME HTML structure as military, but:
 - Header: "Branch | Rank | MOS: [ACTUAL MOS CODE like 11B, NOT civilian translation]"
+  * Include LinkedIn URL if found in documents: <p class="contact">email | linkedin.com/in/username</p>
 - Professional Summary: <p> with SPECIFIC metrics, translate military terms
-- Skills: <ul class="skills-list"> with exactly 10 <li> items (civilian-translated)
+- Skills: <div class="skills-grid"> with <span class="skill-box"> for each skill (10-12 civilian-translated skills)
 - Professional Experience: <div class="experience-entry"> for each role
   * <h3> with civilian job title translation
   * <p class="company"> with "U.S. Army" or "U.S. Navy" (not unit names), Location | Dates
-  * <ul> with 6-8 <li> bullets, each with: verb + task + scope/numbers + method + result/numbers
+  * <ul> with 4-6 <li> bullets (NOT 6-8, keep it to ONE PAGE)
   * Translate ALL military jargon; expand acronyms on first use
 - Education: <p> with civilian-friendly phrasing
 - Certifications: <ul> with <li> items (only if present)
@@ -403,8 +416,8 @@ C) resume_crosswalk.html (1-2 PAGES)
 
 QUALITY CHECKLIST (verify before outputting):
 ☐ ALL 3 artifacts are complete HTML documents with inline CSS matching legacy format
-☐ Resume uses <header>, <section>, <h1>, <h2>, <h3>, <p>, <ul>, <li> tags (NOT divs)
-☐ Skills use <ul class="skills-list"> with <li> items (will display in 2 columns)
+☐ Resume uses <header>, <section>, <h1>, <h2>, <h3>, <p>, <div class="skills-grid">, <span class="skill-box"> tags
+☐ Skills use <div class="skills-grid"> with <span class="skill-box"> (NOT <ul> or <li>)
 ☐ Section headers <h2> have underline border-bottom
 ☐ Header has border-bottom separator line
 ☐ EVERY bullet has action + scope/numbers + method + result/numbers
@@ -446,14 +459,16 @@ UPLOADED DOCUMENTS:
 ${documentContext}
 
 ⚠️ CRITICAL REQUIREMENTS ⚠️
-1. Use EXACT HTML structure from legacy template: <header>, <section>, <h1>, <h2>, <h3>, <p>, <ul>, <li>
+1. Use EXACT HTML structure from legacy template: <header>, <section>, <h1>, <h2>, <h3>, <p>, <div class="skills-grid">, <span class="skill-box">
 2. Extract REAL accomplishments with SPECIFIC numbers from the documents above
-3. EVERY bullet must have: verb + task + scope/numbers + method + result/numbers
-4. NO generic phrases - use ACTUAL metrics from documents
-5. Skills MUST use <ul class="skills-list"> with <li> items (NOT divs, will auto-format to 2 columns)
-6. Generate 6-8 HIGH-IMPACT bullets per role (not weak statements)
-7. Summary must have SPECIFIC metrics from documents (not "4+ years of experience")
-8. Use Times New Roman font (already in CSS template)
+3. Extract LinkedIn URL from documents if present (look for linkedin.com URLs in text)
+4. EVERY bullet must have: verb + task + scope/numbers + method + result/numbers
+5. NO generic phrases - use ACTUAL metrics from documents
+6. Skills MUST use <div class="skills-grid"> with <span class="skill-box"> for each skill (NOT <ul>/<li>)
+7. Generate 4-6 HIGH-IMPACT bullets per role (NOT 6-8, must fit ONE PAGE)
+8. Summary must have SPECIFIC metrics from documents (not "4+ years of experience")
+9. Use Times New Roman font (already in CSS template)
+10. STRICT ONE-PAGE LIMIT: Reduce spacing/bullets/content as needed to fit exactly 1 page
 
 Generate the 3-PDF bundle JSON now. Return ONLY the JSON object (no markdown code fences).`;
 
