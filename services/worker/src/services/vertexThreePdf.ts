@@ -383,6 +383,21 @@ HEADER (center-aligned with bottom border):
 - Line 1: CANDIDATE NAME (18pt bold, from metadata)
 - Line 2: Email address (actual email from metadata)
 - Line 3: Branch | Rank | MOS: XXXX (format exactly like this)
+
+  ⚠️ CRITICAL: MOS FIELD FORMATTING RULE ⚠️
+  The MOS field in header line 3 MUST show the ACTUAL military occupational specialty CODE from the metadata.
+
+  ✅ CORRECT EXAMPLES:
+  - "U.S. Army | SSG | MOS: 11B"
+  - "U.S. Marine Corps | Sergeant | MOS: 0311"
+  - "U.S. Air Force | SSgt | MOS: 3D1X2"
+
+  ❌ WRONG (DO NOT DO THIS):
+  - "U.S. Army | SSG | MOS: Operations / Project Management" (this is civilian translation, NOT the MOS code)
+  - "U.S. Army | SSG | MOS: Infantry" (this is description, NOT the code)
+
+  The civilian translation of the MOS belongs in the target_role field used for ATS optimization, NOT in the header.
+
 - Add LinkedIn URL if available in documents (do NOT use placeholder if not found)
 - Bottom border under header section
 
@@ -391,25 +406,77 @@ PROFESSIONAL SUMMARY (2-4 sentences, NOT bullets):
 - Use SPECIFIC accomplishments with quantifiable metrics
 - NO generic phrases like "highly motivated and skilled professional"
 - Translate all military terminology to civilian equivalents
-- Example: "Led security operations across 3 facilities protecting 4,200 personnel and $1B in assets. Managed 12-person team executing 15+ time-sensitive operations with 100% success rate. Recognized for exceptional performance in asset protection and emergency response coordination."
+
+  ⚠️ QUALITY REQUIREMENT: EVERY sentence must contain SPECIFIC metrics or achievements ⚠️
+
+  ❌ BAD EXAMPLES (generic, no metrics, forbidden):
+  - "Dedicated professional with extensive experience in tactical operations and team leadership."
+  - "Highly motivated individual with strong work ethic and proven ability to succeed."
+  - "Experienced leader skilled in managing teams and executing projects under pressure."
+  - "Results-oriented professional with expertise in operations management and strategic planning."
+
+  ✅ GOOD EXAMPLES (specific metrics, strong):
+  - "Former U.S. Army infantry team leader with 4 years managing 12-person teams and executing 15+ time-sensitive operations across 3 countries, resulting in 100% mission success rate. Maintained $3M in tactical vehicles with zero loss. Trained 50+ personnel achieving superior audit ratings."
+
+  - "Led security operations across 878 acres at 3 facilities protecting 4,200 personnel and $1B in DoD assets through vulnerability assessments and threat mitigation protocols. Managed 12-person emergency response team with 100% incident resolution rate. Recognized with 3 commendations for exceptional performance."
+
+  - "Operations supervisor with 6 years directing logistics for 200+ personnel and managing $8M in equipment across multiple locations. Achieved 98% operational readiness while reducing maintenance costs by 15%. Developed training programs that improved team efficiency by 25%."
+
+  FORBIDDEN PHRASES (auto-reject if found):
+  - "Dedicated professional"
+  - "Highly motivated"
+  - "Strong work ethic"
+  - "Team player"
+  - "Results-oriented"
+  - "Proven track record"
+  - "Detail-oriented"
+  - Any phrase without specific numbers or achievements
 
 SKILLS (exactly 10 skills in 2-column grid with transparent boxes):
-- Two columns, 5 skills per column
-- Each skill in a semi-transparent box with subtle border
-- Translate military skills to civilian equivalents:
+⚠️ CRITICAL: You MUST use the .skills-grid and .skill-box CSS classes defined in the template ⚠️
+
+REQUIRED HTML STRUCTURE (use EXACTLY this pattern):
+<div class="section">
+  <div class="section-title">Skills</div>
+  <div class="skills-grid">
+    <div class="skill-box">Team Leadership & Management</div>
+    <div class="skill-box">Security Risk Management</div>
+    <div class="skill-box">Asset Protection & Accountability</div>
+    <div class="skill-box">Strategic Planning & Execution</div>
+    <div class="skill-box">Emergency Response Coordination</div>
+    <div class="skill-box">Training & Development</div>
+    <div class="skill-box">Quality Assurance & Auditing</div>
+    <div class="skill-box">Process Improvement</div>
+    <div class="skill-box">Compliance & Regulatory Standards</div>
+    <div class="skill-box">Data Analysis & Reporting</div>
+  </div>
+</div>
+
+❌ WRONG (DO NOT generate plain text or bullet lists):
+- Plain text: "Team Leadership, Security Risk Management, ..."
+- Bullets: "• Team Leadership" or "• Security Risk Management"
+- Paragraph format without div structure
+
+✅ CORRECT: Use the .skill-box div structure shown above with EXACTLY 10 skills in the .skills-grid container
+
+Skill Translation Guide (military → civilian):
   * "Intelligence Analysis" → "Data Analysis" or "Threat Intelligence"
   * "Antiterrorism" → "Security Risk Management"
   * "Force Protection" → "Asset Protection"
-  * "Emergency Management" → "Emergency Response"
+  * "Emergency Management" → "Emergency Response Coordination"
+  * "Property Accountability" → "Asset Tracking & Accountability"
+  * "PMCS / Maintenance" → "Quality Assurance & Preventive Maintenance"
 
 PROFESSIONAL EXPERIENCE (6-8 bullets per position):
+⚠️ CRITICAL: EVERY bullet MUST have quantifiable metrics - numbers, percentages, dollar amounts, or measurable results ⚠️
+
 - Job title: Translate to civilian equivalent (bold)
   * "Section Chief, Intelligence" → "Security Intelligence Manager"
   * "Squad Leader" → "Team Leader" or "Operations Supervisor"
 - Organization, Location | Dates (on same or next line)
-- Bullet points structure: [Action Verb] + [What] + [Quantifiable Result]
-- Start with strong verbs: Led, Managed, Coordinated, Developed, Implemented
-- Include metrics: numbers, percentages, dollar amounts
+- Bullet points structure: [Action Verb] + [What] + [Scope/Scale] + [Method] + [Quantifiable Result]
+- Start with strong verbs: Led, Managed, Coordinated, Developed, Implemented, Achieved, Executed, Directed, Streamlined, Optimized
+- EVERY bullet must include specific metrics
 - Translate military terms:
   * "Personnel" not "troops"
   * "Facilities" not "bases"
@@ -417,6 +484,27 @@ PROFESSIONAL EXPERIENCE (6-8 bullets per position):
   * "Senior leadership" not ranks
 - Expand acronyms on first use only
 - If resume exceeds one page: show only 1-2 most recent positions
+
+❌ WEAK BULLETS (vague, no metrics, forbidden):
+- "Maintained vehicles ensuring they were mission-ready for operations"
+- "Managed team of soldiers executing tactical missions"
+- "Conducted training for unit personnel on security procedures"
+- "Provided leadership and guidance to team members"
+- "Contributed to mission success through effective coordination" (NEVER use this type of vague statement)
+
+✅ STRONG BULLETS (specific metrics, quantifiable):
+- "Maintained three $1.2M Joint Light Tactical Vehicles (JLTV), achieving 98% operational readiness across 45 field operations with zero mechanical failures"
+- "Managed 12-person security team executing 15+ time-sensitive operations across 3 countries, achieving 100% mission success rate over 2-year period"
+- "Developed and delivered 40+ hours of security training to 50+ personnel, resulting in superior ratings on external audits and 25% improvement in response times"
+- "Led Antiterrorism program securing 878 acres at 3 facilities, protecting 4,200 personnel and $1B in assets through vulnerability assessments and threat mitigation protocols"
+- "Streamlined equipment accountability system for $3M in tactical gear, reducing audit discrepancies by 90% and achieving zero losses across 24-month deployment cycle"
+
+REQUIRED ELEMENTS IN EVERY BULLET:
+1. Strong action verb (Led, Managed, Coordinated, Implemented, Achieved, etc.)
+2. Specific task/program/project name
+3. Scope/scale (# people, $ amount, # locations, acreage, # operations)
+4. Method or approach (how you did it)
+5. Measurable result (%, $, time saved, quality metric, success rate)
 
 EDUCATION (1-2 lines only):
 - Simple format: "BA degree; Pursuing MA in Cyber Security"
