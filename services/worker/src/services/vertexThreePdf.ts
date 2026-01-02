@@ -119,161 +119,148 @@ HTML REQUIREMENTS (for ALL 3 artifacts)
 ✅ NO SCRIPT TAGS (security requirement)
 ⚠️ NEVER output plain text - ALWAYS use proper HTML structure with CSS styling
 
-MILITARY & CIVILIAN RESUME HTML TEMPLATE (use this EXACT structure):
+MILITARY & CIVILIAN RESUME HTML TEMPLATE (use this EXACT structure from working legacy PDF):
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resume</title>
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 body {
-  font-family: Arial, Calibri, Helvetica, sans-serif;
-  font-size: 10.5pt;
-  line-height: 1.15;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 11pt;
+  line-height: 1.4;
   color: #000;
-  max-width: 100%;
-  padding: 0.5in 0.6in;
+  max-width: 8.5in;
+  margin: 0 auto;
+  padding: 0.5in;
+  background: #fff;
 }
-.header {
+header {
   text-align: center;
-  margin-bottom: 12pt;
-  border-bottom: 1pt solid #333;
-  padding-bottom: 8pt;
+  margin-bottom: 0.5in;
+  border-bottom: 1px solid #333;
+  padding-bottom: 0.25in;
 }
-.header h1 {
+h1 {
   font-size: 18pt;
   font-weight: bold;
-  margin-bottom: 4pt;
-  letter-spacing: 0.5pt;
+  margin-bottom: 0.1in;
 }
-.header .email {
-  font-size: 10pt;
-  margin-bottom: 3pt;
-}
-.header .branch-info {
-  font-size: 10pt;
-  color: #333;
-}
-.section {
-  margin-bottom: 11pt;
-  page-break-inside: avoid;
-}
-.section-title {
-  font-size: 11pt;
+h2 {
+  font-size: 12pt;
   font-weight: bold;
   text-transform: uppercase;
-  letter-spacing: 0.5pt;
-  margin-bottom: 6pt;
-  color: #000;
+  border-bottom: 1px solid #666;
+  margin-top: 0.25in;
+  margin-bottom: 0.15in;
+  padding-bottom: 0.05in;
 }
-.summary {
-  font-size: 10pt;
-  line-height: 1.3;
-  text-align: justify;
-}
-.skills-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 6pt;
-  margin-top: 6pt;
-}
-.skill-box {
-  background: rgba(0, 0, 0, 0.05);
-  border: 1pt solid rgba(0, 0, 0, 0.15);
-  border-radius: 3pt;
-  padding: 4pt 8pt;
-  font-size: 9.5pt;
-  text-align: center;
-  font-weight: 500;
-}
-.job {
-  margin-bottom: 10pt;
-  page-break-inside: avoid;
-}
-.job-header {
-  margin-bottom: 4pt;
-}
-.job-title {
+h3 {
+  font-size: 11pt;
   font-weight: bold;
-  font-size: 10.5pt;
+  margin-bottom: 0.05in;
 }
-.job-org-dates {
+p {
+  margin-bottom: 0.1in;
+}
+.contact {
+  font-size: 10pt;
+}
+.military-info {
   font-size: 10pt;
   font-style: italic;
-  color: #333;
 }
-.job ul {
-  margin-left: 20pt;
-  margin-top: 4pt;
-  list-style-type: disc;
-}
-.job li {
-  margin-bottom: 3pt;
-  line-height: 1.25;
+.company {
+  font-style: italic;
   font-size: 10pt;
 }
-.education-content,
-.certifications-content {
-  font-size: 10pt;
-  line-height: 1.3;
-  margin-top: 4pt;
+section {
+  margin-bottom: 0.2in;
+}
+ul {
+  margin-left: 0.25in;
+  margin-bottom: 0.1in;
+}
+li {
+  margin-bottom: 0.05in;
+}
+.skills-list {
+  column-count: 2;
+  column-gap: 0.5in;
+}
+.experience-entry {
+  margin-bottom: 0.2in;
+}
+@media print {
+  body {
+    padding: 0;
+  }
 }
 </style>
 </head>
 <body>
 
-<div class="header">
+<header>
   <h1>CANDIDATE NAME</h1>
-  <div class="email">candidate@email.com</div>
-  <div class="branch-info">Branch | Rank | MOS: CODE</div>
-</div>
+  <p class="contact">candidate@email.com</p>
+  <p class="military-info">Branch | Rank | MOS: CODE</p>
+</header>
 
-<div class="section">
-  <div class="section-title">Professional Summary</div>
-  <p class="summary">2-4 sentences with SPECIFIC accomplishments and QUANTIFIABLE metrics. NO generic phrases.</p>
-</div>
+<section>
+  <h2>Professional Summary</h2>
+  <p>2-4 sentences with SPECIFIC accomplishments and QUANTIFIABLE metrics. NO generic phrases.</p>
+</section>
 
-<div class="section">
-  <div class="section-title">Skills</div>
-  <div class="skills-grid">
-    <div class="skill-box">Skill 1</div>
-    <div class="skill-box">Skill 2</div>
-    <div class="skill-box">Skill 3</div>
-    <div class="skill-box">Skill 4</div>
-    <div class="skill-box">Skill 5</div>
-    <div class="skill-box">Skill 6</div>
-    <div class="skill-box">Skill 7</div>
-    <div class="skill-box">Skill 8</div>
-    <div class="skill-box">Skill 9</div>
-    <div class="skill-box">Skill 10</div>
-  </div>
-</div>
+<section>
+  <h2>Skills</h2>
+  <ul class="skills-list">
+    <li>Skill 1</li>
+    <li>Skill 2</li>
+    <li>Skill 3</li>
+    <li>Skill 4</li>
+    <li>Skill 5</li>
+    <li>Skill 6</li>
+    <li>Skill 7</li>
+    <li>Skill 8</li>
+    <li>Skill 9</li>
+    <li>Skill 10</li>
+  </ul>
+</section>
 
-<div class="section">
-  <div class="section-title">Professional Experience</div>
+<section>
+  <h2>Professional Experience</h2>
 
-  <div class="job">
-    <div class="job-header">
-      <div class="job-title">Job Title</div>
-      <div class="job-org-dates">Organization, Location | Mon YYYY – Mon YYYY</div>
-    </div>
+  <div class="experience-entry">
+    <h3>Job Title</h3>
+    <p class="company">Organization, Location | Mon YYYY – Mon YYYY</p>
     <ul>
       <li>Verb + task + scope with numbers + method + measurable result with numbers</li>
       <li>Verb + task + scope with numbers + method + measurable result with numbers</li>
       <li>6-8 bullets per position, EACH with quantifiable metrics</li>
     </ul>
   </div>
-</div>
+</section>
 
-<div class="section">
-  <div class="section-title">Education</div>
-  <div class="education-content">Degree or High School Diploma</div>
-</div>
+<section>
+  <h2>Education</h2>
+  <p>Degree or High School Diploma</p>
+</section>
 
-<div class="section">
-  <div class="section-title">Certifications</div>
-  <div class="certifications-content">Cert 1 • Cert 2 • Cert 3</div>
-</div>
+<section>
+  <h2>Certifications</h2>
+  <ul>
+    <li>Cert 1</li>
+    <li>Cert 2</li>
+    <li>Cert 3</li>
+  </ul>
+</section>
 
 </body>
 </html>
@@ -382,26 +369,32 @@ td {
 CONTENT REQUIREMENTS:
 
 A) resume_military.html (EXACTLY ONE PAGE)
-- Header: Name, Email, "Branch | Rank | MOS: CODE"
-- Professional Summary: 2-4 sentences with SPECIFIC metrics from documents
-- Skills: Exactly 10 skills in .skills-grid with .skill-box divs (2-column layout)
-- Professional Experience: Max 2 roles with 6-8 bullets each
+Use <header> tag with:
+- <h1> for name
+- <p class="contact"> for email
+- <p class="military-info"> for "Branch | Rank | MOS: CODE"
+
+Use <section> tags with <h2> for section titles:
+- Professional Summary: <p> with SPECIFIC metrics from documents
+- Skills: <ul class="skills-list"> with exactly 10 <li> items (will display in 2 columns via CSS)
+- Professional Experience: <div class="experience-entry"> with <h3> for job title, <p class="company"> for org/dates, <ul> for 6-8 bullets
   * Keep military titles/rank/unit
   * Each bullet: verb + task + scope/numbers + method + result/numbers
-- Education: As stated or "High School Diploma"
-- Certifications: Only if present in documents
+- Education: <p> with degree or "High School Diploma"
+- Certifications: <ul> with <li> items (only if present in documents)
 
 B) resume_civilian.html (EXACTLY ONE PAGE)
-- Header: Name, Email, "Branch | Rank | MOS: [ACTUAL MOS CODE like 11B, NOT civilian translation]"
-- Professional Summary: 2-4 sentences with SPECIFIC metrics, translate military terms
-- Skills: Exactly 10 civilian-translated skills in .skills-grid with .skill-box divs
-- Professional Experience: Max 2 roles with 6-8 bullets each
-  * Translate job titles to civilian equivalents
-  * Organization: "U.S. Army" or "U.S. Navy" (not unit names)
-  * Each bullet: verb + task + scope/numbers + method + result/numbers
+Use EXACT SAME HTML structure as military, but:
+- Header: "Branch | Rank | MOS: [ACTUAL MOS CODE like 11B, NOT civilian translation]"
+- Professional Summary: <p> with SPECIFIC metrics, translate military terms
+- Skills: <ul class="skills-list"> with exactly 10 <li> items (civilian-translated)
+- Professional Experience: <div class="experience-entry"> for each role
+  * <h3> with civilian job title translation
+  * <p class="company"> with "U.S. Army" or "U.S. Navy" (not unit names), Location | Dates
+  * <ul> with 6-8 <li> bullets, each with: verb + task + scope/numbers + method + result/numbers
   * Translate ALL military jargon; expand acronyms on first use
-- Education: Civilian-friendly phrasing
-- Certifications: Only if present
+- Education: <p> with civilian-friendly phrasing
+- Certifications: <ul> with <li> items (only if present)
 
 C) resume_crosswalk.html (1-2 PAGES)
 - Section 1: Table mapping ALL acronyms/jargon from source documents
@@ -409,8 +402,11 @@ C) resume_crosswalk.html (1-2 PAGES)
 - Use .bullet-pair divs with .bullet-label and .bullet-text styling
 
 QUALITY CHECKLIST (verify before outputting):
-☐ ALL 3 artifacts are complete HTML documents with inline CSS
-☐ Skills use .skills-grid and .skill-box classes (NOT plain text)
+☐ ALL 3 artifacts are complete HTML documents with inline CSS matching legacy format
+☐ Resume uses <header>, <section>, <h1>, <h2>, <h3>, <p>, <ul>, <li> tags (NOT divs)
+☐ Skills use <ul class="skills-list"> with <li> items (will display in 2 columns)
+☐ Section headers <h2> have underline border-bottom
+☐ Header has border-bottom separator line
 ☐ EVERY bullet has action + scope/numbers + method + result/numbers
 ☐ NO generic phrases like "with experience in" or "skilled professional"
 ☐ Summary has SPECIFIC metrics (numbers, percentages, dollar amounts)
@@ -450,12 +446,14 @@ UPLOADED DOCUMENTS:
 ${documentContext}
 
 ⚠️ CRITICAL REQUIREMENTS ⚠️
-1. Extract REAL accomplishments with SPECIFIC numbers from the documents above
-2. EVERY bullet must have: verb + task + scope/numbers + method + result/numbers
-3. NO generic phrases - use ACTUAL metrics from documents
-4. Skills MUST use <div class="skills-grid"> with <div class="skill-box"> for EACH skill
-5. Generate 6-8 HIGH-IMPACT bullets per role (not weak statements)
-6. Summary must have SPECIFIC metrics from documents (not "4+ years of experience")
+1. Use EXACT HTML structure from legacy template: <header>, <section>, <h1>, <h2>, <h3>, <p>, <ul>, <li>
+2. Extract REAL accomplishments with SPECIFIC numbers from the documents above
+3. EVERY bullet must have: verb + task + scope/numbers + method + result/numbers
+4. NO generic phrases - use ACTUAL metrics from documents
+5. Skills MUST use <ul class="skills-list"> with <li> items (NOT divs, will auto-format to 2 columns)
+6. Generate 6-8 HIGH-IMPACT bullets per role (not weak statements)
+7. Summary must have SPECIFIC metrics from documents (not "4+ years of experience")
+8. Use Times New Roman font (already in CSS template)
 
 Generate the 3-PDF bundle JSON now. Return ONLY the JSON object (no markdown code fences).`;
 
