@@ -84,11 +84,11 @@ function renderSection(title: string, content: string): string {
 }
 
 /**
- * Render skills as bullet list
+ * Render skills as horizontal transparent boxes (4-5 per row)
  */
 function renderSkillsList(skills: string[]): string {
-  const items = skills.map((skill) => `  <li>${escapeHtml(skill)}</li>`).join('\n');
-  return `<ul class="skills-list">\n${items}\n</ul>`;
+  const items = skills.map((skill) => `  <span class="skill-box">${escapeHtml(skill)}</span>`).join('\n');
+  return `<div class="skills-grid">\n${items}\n</div>`;
 }
 
 /**
@@ -190,9 +190,20 @@ function wrapInHtmlDocument(content: string): string {
     li {
       margin-bottom: 0.05in;
     }
-    .skills-list {
-      column-count: 2;
-      column-gap: 0.5in;
+    .skills-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.1in;
+      margin-bottom: 0.1in;
+    }
+    .skill-box {
+      display: inline-block;
+      padding: 0.05in 0.15in;
+      background: #f5f5f5;
+      border: 1px solid #d0d0d0;
+      border-radius: 3px;
+      font-size: 10pt;
+      white-space: nowrap;
     }
     .experience-entry {
       margin-bottom: 0.2in;
