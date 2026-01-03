@@ -119,7 +119,30 @@ HTML REQUIREMENTS (for ALL 3 artifacts)
 ✅ NO SCRIPT TAGS (security requirement)
 ⚠️ NEVER output plain text - ALWAYS use proper HTML structure with CSS styling
 
-MILITARY & CIVILIAN RESUME HTML TEMPLATE (use this EXACT structure from working legacy PDF):
+⚠️⚠️⚠️ HEADER STRUCTURE ENFORCEMENT ⚠️⚠️⚠️
+
+YOU MUST USE SPLIT HEADER LAYOUT WITH FLEXBOX:
+
+✅ CORRECT (what you MUST generate):
+<div class="header-container">
+  <div class="header-left">
+    <h1>John Smith</h1>
+    <p class="contact-line">Phoenix, AZ Telephone: (480) 555-1234</p>
+  </div>
+  <div class="header-right">
+    <p class="contact-line">john.smith@email.com</p>
+    <p class="contact-line"><a href="https://www.linkedin.com/in/johnsmith/">https://www.linkedin.com/in/johnsmith/</a></p>
+  </div>
+</div>
+
+❌ WRONG (DO NOT generate this):
+<header>
+  <h1>John Smith</h1>
+  <p>john.smith@email.com</p>
+  <p>https://www.linkedin.com/in/johnsmith/</p>
+</header>
+
+MILITARY & CIVILIAN RESUME HTML TEMPLATE (use this EXACT structure):
 <!DOCTYPE html>
 <html lang="en">
 <head>
