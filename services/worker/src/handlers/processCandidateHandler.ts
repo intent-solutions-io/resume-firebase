@@ -235,10 +235,15 @@ export async function processCandidateHandler(
     // 9. Generate PDF exports (Phase 2.0 / Phase 2.5)
     let exportResult = { pdfPath: '', docxPath: '', errors: [] as string[] };
 
-    // Fallback: Generate single PDF and DOCX exports
+    // Use civilian HTML from 3-PDF bundle if available (ensures consistency)
+    const civilianHtml = threePdfBundle?.artifacts?.resume_civilian?.content_html;
+
     try {
-      exportResult = await exportResumeForCandidate(candidateId);
+      exportResult = await exportResumeForCandidate(candidateId, civilianHtml);
       console.log(`[processCandidate] Exports generated: PDF=${!!exportResult.pdfPath}, DOCX=${!!exportResult.docxPath}`);
+      if (civilianHtml) {
+        console.log('[processCandidate] Used civilian HTML from 3-PDF bundle for legacy exports');
+      }
     } catch (exportError) {
       console.error('[processCandidate] Export failed (non-fatal):', exportError);
       exportResult.errors.push(exportError instanceof Error ? exportError.message : 'Export failed');
