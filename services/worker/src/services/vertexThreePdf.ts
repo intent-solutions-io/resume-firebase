@@ -119,11 +119,18 @@ HTML REQUIREMENTS (for ALL 3 artifacts)
 ✅ NO SCRIPT TAGS (security requirement)
 ⚠️ NEVER output plain text - ALWAYS use proper HTML structure with CSS styling
 
-⚠️⚠️⚠️ HEADER STRUCTURE ENFORCEMENT ⚠️⚠️⚠️
+========================================
+EXECUTIVE RESUME TEMPLATE - MILITARY TO CIVILIAN
+STRICT ONE-PAGE FORMAT ENFORCEMENT
+========================================
 
-YOU MUST USE SPLIT HEADER LAYOUT WITH FLEXBOX:
+⚠️⚠️⚠️ HEADER STRUCTURE (LINE 1 & 2 LAYOUT) ⚠️⚠️⚠️
 
-✅ CORRECT (what you MUST generate):
+✅ CORRECT STRUCTURE (use actual spacing to align):
+**Line 1:** Full Name (left) | Email (right on same line)
+**Line 2:** City, State (left) | Phone: (XXX) XXX-XXXX (center/right) | LinkedIn URL (right)
+
+HTML IMPLEMENTATION - YOU MUST GENERATE THIS EXACT STRUCTURE:
 <div class="header-container">
   <div class="header-left">
     <h1>John Smith</h1>
@@ -135,11 +142,10 @@ YOU MUST USE SPLIT HEADER LAYOUT WITH FLEXBOX:
   </div>
 </div>
 
-❌ WRONG (DO NOT generate this):
+❌ WRONG - DO NOT STACK VERTICALLY:
 <header>
   <h1>John Smith</h1>
   <p>john.smith@email.com</p>
-  <p>https://www.linkedin.com/in/johnsmith/</p>
 </header>
 
 MILITARY & CIVILIAN RESUME HTML TEMPLATE (use this EXACT structure):
@@ -413,32 +419,103 @@ td {
 </body>
 </html>
 
-CONTENT REQUIREMENTS:
+========================================
+CONTENT REQUIREMENTS - EXECUTIVE FORMAT
+========================================
 
-A) resume_military.html (1-2 PAGES OK)
-Use <div class="header-container"> with flex layout:
-- LEFT: <h1> for name, <p class="contact-line"> for "City, ST Telephone: (XXX) XXX-XXXX"
-- RIGHT: <p class="contact-line"> for email, <p class="contact-line"> for LinkedIn with <a> tag
+CRITICAL CONSTRAINT: BOTH RESUMES MUST BE EXACTLY ONE PAGE
 
-Section order and structure:
-1. SUMMARY OF QUALIFICATIONS: <h2> then paragraph with SPECIFIC accomplishments, then <ul class="skills-list"> with 9-12 skills
-2. EDUCATION: <h2> then <p> with <strong> for school/location (right-aligned date), <p> with <strong> for degree
-3. PROFESSIONAL EXPERIENCE: <h2> then multiple <div class="experience-entry">
-   * <p> with <strong> for "U.S. Branch, Unit, Location" (right-aligned dates)
-   * <p> with <strong> for job title
-   * <ul> with 4-6 detailed bullets per role
-4. CERTIFICATIONS: <h2> then <ul> with <li> items (if applicable)
+A) resume_military.html (STRICT ONE PAGE MAXIMUM)
 
-B) resume_civilian.html (1-2 PAGES OK - EXACT SAME FORMAT AS MILITARY)
-IDENTICAL structure to military resume with these translations:
-- Header: Same layout (name left, email/LinkedIn right)
-- Summary: Translate military terms to civilian language
-- Skills: Civilian-friendly keywords (Operations Management, Leadership Development, etc.)
-- Experience:
-  * Organization line: "U.S. Army, Location" (NOT unit names)
-  * Job title: Civilian translation (Operations Manager, Team Lead, etc.)
-  * Bullets: Translate jargon, expand acronyms, keep metrics
-- Education & Certifications: Same format
+**SECTION 1: HEADER (Split Layout)**
+<div class="header-container">
+  <div class="header-left">
+    <h1>[Full Name]</h1>
+    <p class="contact-line">[City, ST] Telephone: [(XXX) XXX-XXXX]</p>
+  </div>
+  <div class="header-right">
+    <p class="contact-line">[email@domain.com]</p>
+    <p class="contact-line"><a href="https://www.linkedin.com/in/[username]/">https://www.linkedin.com/in/[username]/</a></p>
+  </div>
+</div>
+
+**SECTION 2: SUMMARY OF QUALIFICATIONS**
+<h2>SUMMARY OF QUALIFICATIONS</h2>
+
+Part A - Professional Summary Paragraph (2-4 sentences):
+<p>Describe candidate's value proposition with SPECIFIC metrics. Example:
+"I am a devoted individual with a demonstrated history of working in diverse fields and a proven track record. I consistently seek self-improvement and strive to create value for any group or organization I am part of. [Include career goal]. My strengths include:"</p>
+
+Part B - Core Competencies (9 skills in 3x3 grid):
+<ul class="skills-list">
+  <li>Operations Management</li>
+  <li>Leadership Development</li>
+  <li>Organizational Change</li>
+  <li>Communication</li>
+  <li>Process Improvement</li>
+  <li>Problem Solving</li>
+  <li>Strategic Processes</li>
+  <li>Marketing/Brand Management</li>
+  <li>Project Management</li>
+</ul>
+
+**SECTION 3: EDUCATION (Reverse Chronological)**
+<h2>EDUCATION</h2>
+<p><strong>[Institution Name], [City, ST]</strong> <span style="float: right;">[YYYY - YYYY]</span></p>
+<p><strong>[Degree Type], [Field], [Honors]</strong></p>
+
+**SECTION 4: PROFESSIONAL EXPERIENCE (Most Recent 10-15 Years)**
+<h2>PROFESSIONAL EXPERIENCE</h2>
+
+For Each Position:
+<div class="experience-entry">
+  <p><strong>[Organization], [Specific Unit], [City, ST]</strong> <span style="float: right;">[YYYY - Current/YYYY]</span></p>
+  <p><strong>[Job Title]</strong></p>
+  <ul>
+    <li>[Action Verb] + [What You Did] + [Scale/Scope with numbers] + [Quantifiable Result/Impact]</li>
+    <li>4-7 bullets per position with metrics</li>
+  </ul>
+</div>
+
+ONE-PAGE PRIORITIZATION:
+- Most Recent Position: 6-7 bullets (full detail)
+- Second Position: 5-6 bullets
+- Third Position: 3-4 bullets (condensed)
+- Older positions: Combine into single entry or omit
+
+**SECTION 5: CERTIFICATIONS (if applicable)**
+<h2>CERTIFICATIONS</h2>
+<ul>
+  <li>[Certification Name]</li>
+</ul>
+
+B) resume_civilian.html (STRICT ONE PAGE MAXIMUM - EXACT SAME FORMAT)
+
+IDENTICAL HTML structure to military, with TRANSLATIONS:
+
+**Header:** Same split layout
+**Summary Paragraph:** Translate military terms → business terms
+**Skills (9 items):** Civilian keywords only
+**Education:** Same format
+**Experience Translations:**
+- Organization: "U.S. Army, [City, ST]" (remove unit names)
+- Title: Civilian equivalent (Company Commander → Operations Manager)
+- Bullets: Remove jargon, expand acronyms, keep ALL metrics
+
+MILITARY→CIVILIAN TITLE TRANSLATIONS:
+- Company Commander → Operations Manager / Team Leader (140-person team)
+- Platoon Leader → Team Supervisor / Project Manager
+- Staff Officer → Strategic Planner / Operations Analyst
+- Tactical Officer → Leadership Development Officer / Training Manager
+- Quality Assurance Inspector → QA Specialist / Quality Control Manager
+
+TERMINOLOGY TRANSLATIONS:
+- "Cadets" → "Students" or keep as "Cadets" (understood)
+- "Battalion/Brigade" → "Organization" or "Division"
+- "Soldiers" → "Personnel" or "Team members"
+- "Combat operations" → "Field operations" or "Operations"
+- "Top-Secret/SCI clearance" → "Security Clearance: Top Secret/SCI"
+- "Six Sigma" → Keep as is (recognized business term)
 
 C) resume_crosswalk.html (1-2 PAGES)
 - Section 1: Table mapping ALL acronyms/jargon from source documents
