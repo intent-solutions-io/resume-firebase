@@ -135,32 +135,48 @@ MILITARY & CIVILIAN RESUME HTML TEMPLATE (use this EXACT structure from working 
 body {
   font-family: 'Times New Roman', Times, serif;
   font-size: 11pt;
-  line-height: 1.4;
+  line-height: 1.3;
   color: #000;
   max-width: 8.5in;
   margin: 0 auto;
-  padding: 0.5in;
+  padding: 0.5in 0.75in;
   background: #fff;
 }
-header {
-  text-align: center;
-  margin-bottom: 0.5in;
-  border-bottom: 1px solid #333;
-  padding-bottom: 0.25in;
+.header-container {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 2px solid #000;
+  padding-bottom: 0.1in;
+  margin-bottom: 0.15in;
+}
+.header-left {
+  text-align: left;
+}
+.header-right {
+  text-align: right;
 }
 h1 {
-  font-size: 18pt;
+  font-size: 13pt;
   font-weight: bold;
-  margin-bottom: 0.1in;
+  margin: 0;
+  padding: 0;
+}
+.contact-line {
+  font-size: 10pt;
+  margin: 0.03in 0;
+}
+.contact-line a {
+  color: #0000EE;
+  text-decoration: underline;
 }
 h2 {
-  font-size: 12pt;
+  font-size: 10pt;
   font-weight: bold;
   text-transform: uppercase;
-  border-bottom: 1px solid #666;
-  margin-top: 0.25in;
-  margin-bottom: 0.15in;
-  padding-bottom: 0.05in;
+  border-bottom: 1px solid #000;
+  margin-top: 0.15in;
+  margin-bottom: 0.1in;
+  padding-bottom: 0.03in;
 }
 h3 {
   font-size: 11pt;
@@ -191,20 +207,11 @@ ul {
 li {
   margin-bottom: 0.05in;
 }
-.skills-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.1in;
+.skills-list {
+  column-count: 3;
+  column-gap: 0.3in;
+  margin-left: 0.25in;
   margin-bottom: 0.1in;
-}
-.skill-box {
-  display: inline-block;
-  padding: 0.05in 0.15in;
-  background: #f5f5f5;
-  border: 1px solid #d0d0d0;
-  border-radius: 3px;
-  font-size: 10pt;
-  white-space: nowrap;
 }
 .experience-entry {
   margin-bottom: 0.2in;
@@ -218,58 +225,64 @@ li {
 </head>
 <body>
 
-<header>
-  <h1>CANDIDATE NAME</h1>
-  <p class="contact">candidate@email.com</p>
-  <p class="military-info">Branch | Rank | MOS: CODE</p>
-</header>
-
-<section>
-  <h2>Professional Summary</h2>
-  <p>2-4 sentences with SPECIFIC accomplishments and QUANTIFIABLE metrics. NO generic phrases.</p>
-</section>
-
-<section>
-  <h2>Skills</h2>
-  <div class="skills-grid">
-    <span class="skill-box">Skill 1</span>
-    <span class="skill-box">Skill 2</span>
-    <span class="skill-box">Skill 3</span>
-    <span class="skill-box">Skill 4</span>
-    <span class="skill-box">Skill 5</span>
-    <span class="skill-box">Skill 6</span>
-    <span class="skill-box">Skill 7</span>
-    <span class="skill-box">Skill 8</span>
-    <span class="skill-box">Skill 9</span>
-    <span class="skill-box">Skill 10</span>
+<div class="header-container">
+  <div class="header-left">
+    <h1>Candidate Full Name</h1>
+    <p class="contact-line">City, ST Telephone: (XXX) XXX-XXXX</p>
   </div>
+  <div class="header-right">
+    <p class="contact-line">candidate@email.com</p>
+    <p class="contact-line"><a href="https://www.linkedin.com/in/username/">https://www.linkedin.com/in/username/</a></p>
+  </div>
+</div>
+
+<section>
+  <h2>SUMMARY OF QUALIFICATIONS</h2>
+  <p>Detailed paragraph describing qualifications, experience, and strengths with SPECIFIC metrics and accomplishments from actual military service. Include specific roles, specialties, and measurable achievements. Do NOT use generic phrases.</p>
+  <ul class="skills-list">
+    <li>Operations Management</li>
+    <li>Leadership Development</li>
+    <li>Organizational Change</li>
+    <li>Communication</li>
+    <li>Process Improvement</li>
+    <li>Problem Solving</li>
+    <li>Strategic Processes</li>
+    <li>Marketing/Brand Management</li>
+    <li>Project Management</li>
+  </ul>
 </section>
 
 <section>
-  <h2>Professional Experience</h2>
+  <h2>EDUCATION</h2>
+  <p><strong>University Name, City, ST</strong> <span style="float: right;">YYYY - YYYY</span></p>
+  <p><strong>Degree Title</strong></p>
+</section>
+
+⚠️⚠️⚠️ CRITICAL: Skills MUST use 3-column bullet list format ⚠️⚠️⚠️
+CORRECT: <ul class="skills-list"><li>Team Leadership</li><li>Vehicle Maintenance</li></ul>
+WRONG: <div class="skills-grid"><span class="skill-box">Team Leadership</span></div>
+WRONG: <p>Team Leadership, Vehicle Maintenance</p>
+
+<section>
+  <h2>PROFESSIONAL EXPERIENCE</h2>
 
   <div class="experience-entry">
-    <h3>Job Title</h3>
-    <p class="company">Organization, Location | Mon YYYY – Mon YYYY</p>
+    <p><strong>U.S. Army, Organization Name, City, ST</strong> <span style="float: right;">Mon YYYY - Current</span></p>
+    <p><strong>Job Title / Role</strong></p>
     <ul>
-      <li>Verb + task + scope with numbers + method + measurable result with numbers</li>
-      <li>Verb + task + scope with numbers + method + measurable result with numbers</li>
-      <li>6-8 bullets per position, EACH with quantifiable metrics</li>
+      <li>Detailed bullet with specific accomplishment, metrics, scope, and measurable results</li>
+      <li>Planned and coordinated specific program across X locations with quantifiable impact</li>
+      <li>Developed strategies for specific initiative with budget of $XXX, resulting in XX% improvement</li>
+      <li>4-6 high-impact bullets per role, each with specific metrics and outcomes</li>
     </ul>
   </div>
 </section>
 
 <section>
-  <h2>Education</h2>
-  <p>Degree or High School Diploma</p>
-</section>
-
-<section>
-  <h2>Certifications</h2>
+  <h2>CERTIFICATIONS</h2>
   <ul>
-    <li>Cert 1</li>
-    <li>Cert 2</li>
-    <li>Cert 3</li>
+    <li>Certification Name</li>
+    <li>License Type</li>
   </ul>
 </section>
 
@@ -379,35 +392,30 @@ td {
 
 CONTENT REQUIREMENTS:
 
-A) resume_military.html (EXACTLY ONE PAGE)
-Use <header> tag with:
-- <h1> for name
-- <p class="contact"> for email
-- <p class="military-info"> for "Branch | Rank | MOS: CODE"
+A) resume_military.html (1-2 PAGES OK)
+Use <div class="header-container"> with flex layout:
+- LEFT: <h1> for name, <p class="contact-line"> for "City, ST Telephone: (XXX) XXX-XXXX"
+- RIGHT: <p class="contact-line"> for email, <p class="contact-line"> for LinkedIn with <a> tag
 
-Use <section> tags with <h2> for section titles:
-- Professional Summary: <p> with SPECIFIC metrics from documents
-- Skills: <div class="skills-grid"> with <span class="skill-box"> for each skill (10-12 skills, will wrap horizontally 4-5 per row)
-- Professional Experience: <div class="experience-entry"> with <h3> for job title, <p class="company"> for org/dates, <ul> for 4-6 bullets
-  * Keep military titles/rank/unit
-  * Each bullet: verb + task + scope/numbers + method + result/numbers
-  * LIMIT to 4-6 bullets per role to ensure ONE PAGE (not 6-8)
-- Education: <p> with degree or "High School Diploma"
-- Certifications: <ul> with <li> items (only if present in documents)
+Section order and structure:
+1. SUMMARY OF QUALIFICATIONS: <h2> then paragraph with SPECIFIC accomplishments, then <ul class="skills-list"> with 9-12 skills
+2. EDUCATION: <h2> then <p> with <strong> for school/location (right-aligned date), <p> with <strong> for degree
+3. PROFESSIONAL EXPERIENCE: <h2> then multiple <div class="experience-entry">
+   * <p> with <strong> for "U.S. Branch, Unit, Location" (right-aligned dates)
+   * <p> with <strong> for job title
+   * <ul> with 4-6 detailed bullets per role
+4. CERTIFICATIONS: <h2> then <ul> with <li> items (if applicable)
 
-B) resume_civilian.html (EXACTLY ONE PAGE)
-Use EXACT SAME HTML structure as military, but:
-- Header: "Branch | Rank | MOS: [ACTUAL MOS CODE like 11B, NOT civilian translation]"
-  * Include LinkedIn URL if found in documents: <p class="contact">email | linkedin.com/in/username</p>
-- Professional Summary: <p> with SPECIFIC metrics, translate military terms
-- Skills: <div class="skills-grid"> with <span class="skill-box"> for each skill (10-12 civilian-translated skills)
-- Professional Experience: <div class="experience-entry"> for each role
-  * <h3> with civilian job title translation
-  * <p class="company"> with "U.S. Army" or "U.S. Navy" (not unit names), Location | Dates
-  * <ul> with 4-6 <li> bullets (NOT 6-8, keep it to ONE PAGE)
-  * Translate ALL military jargon; expand acronyms on first use
-- Education: <p> with civilian-friendly phrasing
-- Certifications: <ul> with <li> items (only if present)
+B) resume_civilian.html (1-2 PAGES OK - EXACT SAME FORMAT AS MILITARY)
+IDENTICAL structure to military resume with these translations:
+- Header: Same layout (name left, email/LinkedIn right)
+- Summary: Translate military terms to civilian language
+- Skills: Civilian-friendly keywords (Operations Management, Leadership Development, etc.)
+- Experience:
+  * Organization line: "U.S. Army, Location" (NOT unit names)
+  * Job title: Civilian translation (Operations Manager, Team Lead, etc.)
+  * Bullets: Translate jargon, expand acronyms, keep metrics
+- Education & Certifications: Same format
 
 C) resume_crosswalk.html (1-2 PAGES)
 - Section 1: Table mapping ALL acronyms/jargon from source documents
@@ -459,16 +467,16 @@ UPLOADED DOCUMENTS:
 ${documentContext}
 
 ⚠️ CRITICAL REQUIREMENTS ⚠️
-1. Use EXACT HTML structure from legacy template: <header>, <section>, <h1>, <h2>, <h3>, <p>, <div class="skills-grid">, <span class="skill-box">
-2. Extract REAL accomplishments with SPECIFIC numbers from the documents above
-3. Extract LinkedIn URL from documents if present (look for linkedin.com URLs in text)
-4. EVERY bullet must have: verb + task + scope/numbers + method + result/numbers
-5. NO generic phrases - use ACTUAL metrics from documents
-6. Skills MUST use <div class="skills-grid"> with <span class="skill-box"> for each skill (NOT <ul>/<li>)
-7. Generate 4-6 HIGH-IMPACT bullets per role (NOT 6-8, must fit ONE PAGE)
-8. Summary must have SPECIFIC metrics from documents (not "4+ years of experience")
-9. Use Times New Roman font (already in CSS template)
-10. STRICT ONE-PAGE LIMIT: Reduce spacing/bullets/content as needed to fit exactly 1 page
+1. Use EXACT HTML structure from template: <div class="header-container">, <section>, <h1>, <h2>, <ul class="skills-list">
+2. Extract LinkedIn URL from documents (look for linkedin.com URLs in text) and include as blue hyperlink in header
+3. Header layout: Split container with name/phone LEFT, email/LinkedIn RIGHT
+4. Section order: Summary → Education → Professional Experience → Certifications
+5. Summary section: Detailed paragraph FIRST, then <ul class="skills-list"> with 9-12 skills as bullets
+6. Skills format: <ul class="skills-list"> with <li> items (3-column layout via CSS)
+7. Experience format: <p><strong>Organization, Location</strong> <span style="float:right;">Dates</span></p> then <p><strong>Title</strong></p> then bullets
+8. Generate 4-6 HIGH-IMPACT bullets per role with SPECIFIC metrics and accomplishments
+9. 1-2 PAGES OK (do not restrict to 1 page)
+10. NO generic phrases - extract ACTUAL accomplishments from documents
 
 Generate the 3-PDF bundle JSON now. Return ONLY the JSON object (no markdown code fences).`;
 
