@@ -11,9 +11,7 @@ import {
   generateProfileAndResume,
   getModelInfo,
 } from '../services/vertex.js';
-import {
-  exportResumeForCandidate,
-} from '../services/exportResume.js';
+// Removed legacy exportResumeForCandidate - using 3-PDF bundle only
 import {
   notifyNewCandidate,
   notifyResumeReady,
@@ -232,42 +230,27 @@ export async function processCandidateHandler(
       updatedAt: FieldValue.serverTimestamp(),
     });
 
-    // 9. Generate PDF exports (Phase 2.0 / Phase 2.5)
-    let exportResult = { pdfPath: '', docxPath: '', errors: [] as string[] };
-
-    // Use civilian HTML from 3-PDF bundle if available (ensures consistency)
-    const civilianHtml = threePdfBundle?.artifacts?.resume_civilian?.content_html;
-
-    try {
-      exportResult = await exportResumeForCandidate(candidateId, civilianHtml);
-      console.log(`[processCandidate] Exports generated: PDF=${!!exportResult.pdfPath}, DOCX=${!!exportResult.docxPath}`);
-      if (civilianHtml) {
-        console.log('[processCandidate] Used civilian HTML from 3-PDF bundle for legacy exports');
-      }
-    } catch (exportError) {
-      console.error('[processCandidate] Export failed (non-fatal):', exportError);
-      exportResult.errors.push(exportError instanceof Error ? exportError.message : 'Export failed');
+    // 9. Export 3-PDF Resume Bundle ONLY (removed legacy single PDF/DOCX)
+    if (!threePdfBundle) {
+      throw new Error('3-PDF bundle generation failed - cannot continue without resumes');
     }
 
-    // 9.5. Export 3-PDF Resume Bundle (Phase: Checkpoint 3)
-    // Bundle was already generated in step 4 in parallel - just export to PDFs
-    if (threePdfBundle) {
-      try {
-        console.log('[processCandidate] Exporting 3-PDF bundle to storage...');
-        const threePdfPaths = await exportThreePdfBundle(candidateId, threePdfBundle);
+    try {
+      console.log('[processCandidate] Exporting 3-PDF bundle to storage...');
+      const threePdfPaths = await exportThreePdfBundle(candidateId, threePdfBundle);
 
-        // Update resume document with 3-PDF paths
-        await resumesCollection.doc(candidateId).update({
-          threePdfPaths,
-        });
+      // Update resume document with 3-PDF paths
+      await resumesCollection.doc(candidateId).update({
+        threePdfPaths,
+      });
 
-        console.log(`[processCandidate] 3-PDF bundle exported successfully`);
-      } catch (threePdfError) {
-        console.error('[processCandidate] 3-PDF export failed (non-fatal):', threePdfError);
-        exportResult.errors.push(`3-PDF: ${threePdfError instanceof Error ? threePdfError.message : 'Unknown error'}`);
-      }
-    } else {
-      console.log('[processCandidate] Skipping 3-PDF export (fallback mode - no bundle generated)');
+      console.log(`[processCandidate] 3-PDF bundle exported successfully:`);
+      console.log(`  - Military: ${threePdfPaths.militaryPdfPath}`);
+      console.log(`  - Civilian: ${threePdfPaths.civilianPdfPath}`);
+      console.log(`  - Crosswalk: ${threePdfPaths.crosswalkPdfPath}`);
+    } catch (threePdfError) {
+      console.error('[processCandidate] 3-PDF export failed:', threePdfError);
+      throw threePdfError; // Fatal error - cannot proceed without PDFs
     }
 
     // 10. Send resume ready Slack notification (Phase 2.1)
@@ -276,6 +259,10 @@ export async function processCandidateHandler(
     const savedResumeData = savedResumeDoc.data() as { resumeSlackNotifiedAt?: unknown } | undefined;
     if (!savedResumeData?.resumeSlackNotifiedAt) {
       try {
+        // Get 3-PDF paths from Firestore
+        const resumeWithPaths = await resumesCollection.doc(candidateId).get();
+        const paths = resumeWithPaths.data()?.threePdfPaths;
+
         await notifyResumeReady({
           candidateId,
           name: candidate.name,
@@ -283,8 +270,8 @@ export async function processCandidateHandler(
           branch: candidate.branch,
           rank: candidate.rank,
           mos: candidate.mos,
-          pdfPath: exportResult.pdfPath,
-          docxPath: exportResult.docxPath,
+          pdfPath: paths?.civilianPdfPath || '',
+          docxPath: '', // No DOCX in 3-PDF system
         });
         // Mark as notified to prevent duplicates
         await resumesCollection.doc(candidateId).update({
@@ -298,20 +285,18 @@ export async function processCandidateHandler(
 
     console.log(`[processCandidate] Completed successfully for: ${candidateId}`);
 
-    // Build response with export paths
+    // Build response with 3-PDF paths
+    const resumeWithPaths = await resumesCollection.doc(candidateId).get();
+    const threePdfPaths = resumeWithPaths.data()?.threePdfPaths;
+
     const response: Record<string, unknown> = {
       status: 'ok',
       candidateId,
       newStatus: 'resume_ready',
       profileId: candidateId,
       resumeId: candidateId,
-      pdfPath: exportResult.pdfPath || undefined,
-      docxPath: exportResult.docxPath || undefined,
+      threePdfPaths: threePdfPaths || undefined,
     };
-
-    if (exportResult.errors.length > 0) {
-      response.exportErrors = exportResult.errors;
-    }
 
     res.status(200).json(response);
   } catch (error) {
