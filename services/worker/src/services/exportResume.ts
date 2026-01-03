@@ -39,35 +39,16 @@ export interface ExportResult {
 /**
  * Export resume for a candidate to PDF and DOCX
  * Stores files in Cloud Storage and updates Firestore
+ * @param candidateId - Candidate ID
+ * @param civilianHtml - Optional pre-generated HTML from 3-PDF bundle (if provided, uses this instead of rendering from Firestore data)
  */
 export async function exportResumeForCandidate(
-  candidateId: string
+  candidateId: string,
+  civilianHtml?: string
 ): Promise<ExportResult> {
   console.log(`[exportResume] Starting export for candidate: ${candidateId}`);
 
   const errors: string[] = [];
-
-  // 1. Fetch resume data
-  const resumeDoc = await resumesCollection.doc(candidateId).get();
-  if (!resumeDoc.exists) {
-    throw new Error(`Resume not found for candidate: ${candidateId}`);
-  }
-  const resume = resumeDoc.data() as GeneratedResume;
-
-  // 2. Fetch candidate data for header
-  const candidateDoc = await candidatesCollection.doc(candidateId).get();
-  if (!candidateDoc.exists) {
-    throw new Error(`Candidate not found: ${candidateId}`);
-  }
-  const candidate = candidateDoc.data() as Candidate;
-
-  const candidateHeader: CandidateHeader = {
-    name: candidate.name,
-    email: candidate.email,
-    branch: candidate.branch,
-    rank: candidate.rank,
-    mos: candidate.mos,
-  };
 
   // 3. Generate paths
   const { pdfPath, docxPath, timestamp } = getResumeExportPaths(candidateId);
@@ -75,8 +56,41 @@ export async function exportResumeForCandidate(
 
   console.log(`[exportResume] Generating exports with timestamp: ${timestamp}`);
 
-  // 4. Render HTML
-  const html = renderResumeToHtml(resume, candidateHeader);
+  // 4. Get HTML (either from 3-PDF bundle or render from Firestore data)
+  let html: string;
+
+  if (civilianHtml) {
+    // Use pre-generated HTML from 3-PDF bundle (ensures consistency)
+    html = civilianHtml;
+    console.log('[exportResume] Using civilian HTML from 3-PDF bundle');
+  } else {
+    // Fallback: Render from Firestore data (legacy approach)
+    console.log('[exportResume] Rendering HTML from Firestore data (fallback)');
+
+    // 1. Fetch resume data
+    const resumeDoc = await resumesCollection.doc(candidateId).get();
+    if (!resumeDoc.exists) {
+      throw new Error(`Resume not found for candidate: ${candidateId}`);
+    }
+    const resume = resumeDoc.data() as GeneratedResume;
+
+    // 2. Fetch candidate data for header
+    const candidateDoc = await candidatesCollection.doc(candidateId).get();
+    if (!candidateDoc.exists) {
+      throw new Error(`Candidate not found: ${candidateId}`);
+    }
+    const candidate = candidateDoc.data() as Candidate;
+
+    const candidateHeader: CandidateHeader = {
+      name: candidate.name,
+      email: candidate.email,
+      branch: candidate.branch,
+      rank: candidate.rank,
+      mos: candidate.mos,
+    };
+
+    html = renderResumeToHtml(resume, candidateHeader);
+  }
 
   // 5. Generate PDF
   let pdfGenerated = false;
@@ -97,23 +111,41 @@ export async function exportResumeForCandidate(
     errors.push(msg);
   }
 
-  // 6. Generate DOCX
+  // 6. Generate DOCX (only if using Firestore data, not HTML)
   let docxGenerated = false;
-  try {
-    const docxBuffer = await generateDocx(resume, candidateHeader);
-    await bucket.file(docxPath).save(docxBuffer, {
-      contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      metadata: {
-        candidateId,
-        exportTimestamp: timestamp,
-      },
-    });
-    console.log(`[exportResume] DOCX saved to: ${docxPath}`);
-    docxGenerated = true;
-  } catch (error) {
-    const msg = `DOCX generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`;
-    console.error(`[exportResume] ${msg}`);
-    errors.push(msg);
+  if (!civilianHtml) {
+    try {
+      // Fetch data for DOCX (already fetched above in fallback path)
+      const resumeDoc = await resumesCollection.doc(candidateId).get();
+      const resume = resumeDoc.data() as GeneratedResume;
+      const candidateDoc = await candidatesCollection.doc(candidateId).get();
+      const candidate = candidateDoc.data() as Candidate;
+
+      const candidateHeader: CandidateHeader = {
+        name: candidate.name,
+        email: candidate.email,
+        branch: candidate.branch,
+        rank: candidate.rank,
+        mos: candidate.mos,
+      };
+
+      const docxBuffer = await generateDocx(resume, candidateHeader);
+      await bucket.file(docxPath).save(docxBuffer, {
+        contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        metadata: {
+          candidateId,
+          exportTimestamp: timestamp,
+        },
+      });
+      console.log(`[exportResume] DOCX saved to: ${docxPath}`);
+      docxGenerated = true;
+    } catch (error) {
+      const msg = `DOCX generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`;
+      console.error(`[exportResume] ${msg}`);
+      errors.push(msg);
+    }
+  } else {
+    console.log('[exportResume] Skipping DOCX generation when using civilian HTML (3-PDF has DOCX export)');
   }
 
   // 7. Update Firestore with export paths
