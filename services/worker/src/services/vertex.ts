@@ -241,12 +241,19 @@ OUTPUT FORMAT (STRICT JSON — return ONLY JSON)
 CRITICAL FORMATTING RULES:
 1. Return ONLY the JSON object, no markdown code fences, no explanations
 2. Use exactly 2 experience entries maximum (one-page constraint)
-3. Use 4-8 bullets per experience entry (aim for 6-8 when rich content available)
-4. Use exactly 10-14 core skills
-5. Every bullet MUST include rich context: specific task + full scope/scale + method + quantifiable results
-6. Every bullet MUST include multiple quantifiable metrics - preserve ALL specific numbers from documents (exact dollar amounts, personnel counts, asset values, acreage, timeframes, percentages, locations)
-7. Summary must use SPECIFIC details from candidate's actual experience (not generic statements)
-8. Translate military job titles to civilian equivalents BUT preserve all credibility context (specific base/unit names, exact dollar amounts, personnel counts)`;
+3. Use 4-6 bullets per experience entry (strict 1-page limit)
+4. **MANDATORY:** Generate EXACTLY 10-12 coreSkills (civilian-friendly keywords)
+5. **MANDATORY:** coreSkills MUST be an array of individual skill strings, NOT a single comma-separated string
+6. Every bullet MUST include rich context: specific task + full scope/scale + method + quantifiable results
+7. Every bullet MUST include multiple quantifiable metrics - preserve ALL specific numbers from documents (exact dollar amounts, personnel counts, asset values, acreage, timeframes, percentages, locations)
+8. Summary must use SPECIFIC details from candidate's actual experience (not generic statements)
+9. Translate military job titles to civilian equivalents BUT preserve all credibility context (specific base/unit names, exact dollar amounts, personnel counts)
+
+SKILLS EXTRACTION REQUIREMENTS:
+- Extract 10-12 civilian-relevant skills from documents
+- Each skill should be 2-5 words max (e.g., "Team Leadership", "Vehicle Maintenance", "Risk Management")
+- Skills must be in an ARRAY format: ["Skill 1", "Skill 2", "Skill 3"]
+- NOT a single string: "Skill 1, Skill 2, Skill 3"`;
 
 /**
  * Generate profile and resume from candidate documents
