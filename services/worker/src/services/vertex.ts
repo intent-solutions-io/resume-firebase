@@ -7,8 +7,8 @@ import type { GenerationInput, GenerationOutput } from '../types/candidate.js';
 // Configuration from environment
 const PROJECT_ID = process.env.GCP_PROJECT_ID || 'resume-gen-intent-dev';
 const LOCATION = process.env.VERTEX_LOCATION || 'us-central1';
-// Gemini 2.0 Flash - GA release, 1M token context, multimodal
-const MODEL_NAME = process.env.GEMINI_MODEL_NAME || 'gemini-2.0-flash-001';
+// Gemini 2.5 Flash - supports 65,536 output tokens (vs 8,192 for 2.0)
+const MODEL_NAME = process.env.GEMINI_MODEL_NAME || 'gemini-2.5-flash-preview-04-17';
 
 // Initialize Vertex AI
 const vertexAI = new VertexAI({
@@ -321,7 +321,7 @@ Remember:
       ],
       generationConfig: {
         temperature: 0.3, // Balanced: consistent structure with natural phrasing
-        maxOutputTokens: 8192,
+        maxOutputTokens: 32768, // Increased for large HTML documents with CSS
       },
     });
 
