@@ -41,9 +41,6 @@ interface BundleExport {
   exportError?: string;
 }
 
-// Download format types
-type DownloadFormat = 'pdf' | 'docx' | 'military' | 'civilian' | 'crosswalk';
-
 // Step indicator component
 function StepIndicator({ currentStep }: { currentStep: number }) {
   const steps = [
@@ -91,78 +88,11 @@ function StatusBadge({ status }: { status: CandidateStatus }) {
   return <span className={`badge ${config.className}`}>{config.label}</span>;
 }
 
-// Download icon SVG component
-function DownloadIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-      <polyline points="7 10 12 15 17 10" />
-      <line x1="12" y1="15" x2="12" y2="3" />
-    </svg>
-  );
-}
-
-// Reusable download button component
-interface DownloadButtonProps {
-  format: DownloadFormat;
-  label: string;
-  description?: string;
-  color: string;
-  downloading: DownloadFormat | null;
-  onDownload: (format: DownloadFormat) => void;
-  fullWidth?: boolean;
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function DownloadButton({
-  format,
-  label,
-  description,
-  color,
-  downloading,
-  onDownload,
-  fullWidth = false,
-}: DownloadButtonProps) {
-  const isDownloading = downloading === format;
-  const isDisabled = downloading !== null;
-
-  return (
-    <button
-      onClick={() => onDownload(format)}
-      disabled={isDisabled}
-      style={{
-        backgroundColor: isDownloading ? 'var(--border-medium)' : color,
-        color: 'white',
-        padding: description ? '1rem 1.5rem' : '0.875rem 1.5rem',
-        fontSize: '1rem',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: description ? '0.75rem' : '0.5rem',
-        width: fullWidth ? '100%' : 'auto',
-      }}
-    >
-      <DownloadIcon />
-      {description ? (
-        <span>
-          {isDownloading ? 'Downloading...' : label}
-          <span style={{ fontSize: '0.75rem', display: 'block', opacity: 0.9 }}>
-            {description}
-          </span>
-        </span>
-      ) : (
-        isDownloading ? 'Downloading...' : label
-      )}
-    </button>
-  );
-}
-
 export function IntakeCompletePage() {
   const { candidateId } = useParams<{ candidateId: string }>();
   const [candidate, setCandidate] = useState<Candidate | null>(null);
   const [resumeExport, setResumeExport] = useState<ResumeExport | null>(null);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [bundleExport, setBundleExport] = useState<BundleExport | null>(null);
+  const [, setBundleExport] = useState<BundleExport | null>(null);
   const [documents, setDocuments] = useState<CandidateDocument[]>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
@@ -263,15 +193,6 @@ export function IntakeCompletePage() {
     setDownloading(format);
     setError(null);
 
-    // Determine filename based on format
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const filenames: Record<DownloadFormat, string> = {
-      pdf: 'resume.pdf',
-      docx: 'resume.docx',
-      military: 'resume-military.pdf',
-      civilian: 'resume-civilian.pdf',
-      crosswalk: 'resume-crosswalk.pdf',
-    };
 
     try {
       // Build the download URL
