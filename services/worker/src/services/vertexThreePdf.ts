@@ -91,7 +91,15 @@ RULES:
 - Add label line "CORE SKILLS:" (all caps, bold)
 - Wrap naturally into 2-4 lines maximum. Avoid orphan single-word lines
 - No blank lines inside the CORE SKILLS block
-- Capitalization: Title Case for multi-word phrases, keep product names as-is (Microsoft Office, Salesforce), keep acronyms uppercase (CRM, KPI, SOP)
+- Capitalization: STRICT TITLE CASE - First letter of each word capitalized
+  ❌ WRONG: "operations management" (lowercase)
+  ❌ WRONG: "OPERATIONS MANAGEMENT" (all caps)
+  ❌ WRONG: "Operations management" (inconsistent)
+  ✅ CORRECT: "Operations Management" (Title Case)
+  ✅ CORRECT: "Team Leadership" (Title Case)
+  ✅ CORRECT: "Process Improvement" (Title Case)
+  - Keep product names as-is: Microsoft Office, Salesforce, Google Workspace
+  - Keep acronyms uppercase: CRM, KPI, SOP, ATS, ERP
 
 HTML FORMAT:
 <p><strong>CORE SKILLS:</strong> Talent Acquisition | Pipeline Management | Stakeholder Engagement | Training Delivery | Process Improvement | Data Reporting | KPI Tracking | Compliance | Microsoft Office | CRM</p>
@@ -123,6 +131,67 @@ Training & Coaching | Stakeholder Communication | Compliance | CRM | KPI Trackin
 <p><strong>CORE SKILLS:</strong> Operations Management | Team Leadership | Strategic Planning | Process Improvement</p>
 
 ENFORCEMENT: If skills exceed 4 lines, remove only exact duplicates or combine identical terms. Keep all unique items.
+═══════════════════════════════════════════════════════════════════
+
+═══════════════════════════════════════════════════════════════════
+📋 PROFESSIONAL EXPERIENCE BLOCK STRUCTURE (REQUIRED - AUTO-REJECT IF WRONG)
+═══════════════════════════════════════════════════════════════════
+
+CRITICAL: Each experience entry MUST follow this EXACT order:
+1. FIRST LINE: Organization/Company + Location + Dates (float right)
+2. SECOND LINE: Job Title
+3. REMAINING: Bullet points (ul/li)
+
+The dates and job title MUST appear BEFORE the bullet points, NEVER after.
+
+HTML FORMAT (MUST USE):
+<div class="experience-entry">
+  <p><strong>U.S. Army, Fort Liberty, NC</strong> <span style="float: right;">Jan 2020 - Dec 2023</span></p>
+  <p><strong>Operations Manager</strong></p>
+  <ul>
+    <li>Led team of 45 personnel...</li>
+    <li>Managed $2.5M budget...</li>
+  </ul>
+</div>
+
+❌❌❌ WRONG - DATES/TITLE AT BOTTOM (AUTO-REJECT) ❌❌❌
+
+DO NOT generate this format - dates after bullets is WRONG:
+<div class="experience-entry">
+  <ul>
+    <li>Led team of 45 personnel...</li>
+    <li>Managed $2.5M budget...</li>
+  </ul>
+  <p><strong>Operations Manager</strong></p>
+  <p><strong>U.S. Army, Fort Liberty, NC</strong> <span style="float: right;">Jan 2020 - Dec 2023</span></p>
+</div>
+
+❌❌❌ ALSO WRONG - TITLE BEFORE ORG/DATES ❌❌❌
+
+<div class="experience-entry">
+  <p><strong>Operations Manager</strong></p>
+  <p><strong>U.S. Army, Fort Liberty, NC</strong> <span style="float: right;">Jan 2020 - Dec 2023</span></p>
+  <ul>
+    <li>Bullets here...</li>
+  </ul>
+</div>
+
+✅✅✅ CORRECT - ORG/DATES FIRST, TITLE SECOND, BULLETS LAST ✅✅✅
+
+<div class="experience-entry">
+  <p><strong>U.S. Army, Fort Liberty, NC</strong> <span style="float: right;">Jan 2020 - Dec 2023</span></p>
+  <p><strong>Operations Manager</strong></p>
+  <ul>
+    <li>Led team of 45 personnel achieving 100% mission readiness...</li>
+    <li>Managed $2.5M operational budget with zero audit findings...</li>
+  </ul>
+</div>
+
+VERIFICATION BEFORE OUTPUT: For EVERY experience entry, check:
+☐ Organization + Location + Dates appears FIRST (with dates float: right)
+☐ Job Title appears SECOND (on its own line)
+☐ Bullet points appear LAST (inside <ul><li></ul>)
+
 ═══════════════════════════════════════════════════════════════════
 
 ⚠️⚠️⚠️ CRITICAL QUALITY ENFORCEMENT ⚠️⚠️⚠️
@@ -688,13 +757,19 @@ ${documentContext}
 2. Extract LinkedIn URL from documents (look for linkedin.com URLs in text) and include as blue hyperlink in header
 3. Header layout: Split container with name/phone LEFT, email/LinkedIn RIGHT
 4. Section order: Summary → Education → Professional Experience → Certifications
-5. Summary section: Detailed paragraph FIRST, then CORE SKILLS as pipe-delimited line
-6. Skills format: <p><strong>CORE SKILLS:</strong> Skill 1 | Skill 2 | Skill 3</p> (pipe-delimited, 9-12 skills)
-7. Experience format: <p><strong>Organization, Location</strong> <span style="float:right;">Dates</span></p> then <p><strong>Title</strong></p> then bullets
+5. Summary section: Detailed paragraph FIRST, then CORE SKILLS as pipe-delimited line (Title Case)
+6. Skills format: <p><strong>CORE SKILLS:</strong> Skill One | Skill Two</p> - ALL Title Case, pipe-delimited
+7. 🚨 EXPERIENCE FORMAT (MANDATORY ORDER - DO NOT DEVIATE) 🚨:
+   LINE 1: <p><strong>Organization, Location</strong> <span style="float:right;">Dates</span></p>
+   LINE 2: <p><strong>Job Title</strong></p>
+   LINE 3+: <ul><li>Bullet points</li></ul>
+   ❌ NEVER put bullets before Organization/Dates/Title - this is WRONG
+   ❌ NEVER put Title before Organization/Dates - this is WRONG
 8. Generate 5-7 HIGH-IMPACT bullets for most recent role, 3-4 for older roles
 9. Stay within 600-850 words per resume
 10. NO generic phrases - extract ACTUAL accomplishments from documents
 11. NEVER use banned AI phrases (Spearheaded, Synergized, Instrumental, etc.)
+12. Education: Only include schools/degrees found in source documents - DO NOT invent education
 
 Generate the 3-PDF bundle JSON now. Return ONLY the JSON object (no markdown code fences).`;
 
