@@ -580,19 +580,60 @@ export async function generateThreePdfResume(
   // Build keyword injection section if keywords are provided
   const keywordSection = input.extractedKeywords
     ? `
-🎯 TARGET JOB KEYWORDS (MUST include where truthful):
+🚨🚨🚨 MANDATORY ATS KEYWORD OPTIMIZATION (HIGHEST PRIORITY) 🚨🚨🚨
+
 Target Role: ${input.extractedKeywords.jobTitle}
 Industry: ${input.extractedKeywords.industry}
 
-HARD SKILLS TO INCLUDE: ${input.extractedKeywords.hardSkills.join(', ')}
-SOFT SKILLS TO INCLUDE: ${input.extractedKeywords.softSkills.join(', ')}
-ATS KEYWORDS: ${input.extractedKeywords.atsKeywords.slice(0, 15).join(', ')}
+═══════════════════════════════════════════════════════════════
+REQUIRED HARD SKILLS - MUST appear in Skills section verbatim:
+═══════════════════════════════════════════════════════════════
+${input.extractedKeywords.hardSkills.map((s, i) => `${i + 1}. ${s}`).join('\n')}
 
-⚠️ Include these keywords naturally throughout the civilian resume:
-- In the Summary section
-- In the Skills section
-- In experience bullet points (where truthful)
-- Aim for 75%+ keyword coverage
+═══════════════════════════════════════════════════════════════
+REQUIRED SOFT SKILLS - MUST appear in Summary or Skills:
+═══════════════════════════════════════════════════════════════
+${input.extractedKeywords.softSkills.map((s, i) => `${i + 1}. ${s}`).join('\n')}
+
+═══════════════════════════════════════════════════════════════
+ATS KEYWORDS - Weave into bullets naturally:
+═══════════════════════════════════════════════════════════════
+${input.extractedKeywords.atsKeywords.slice(0, 20).join(', ')}
+
+⚠️⚠️⚠️ KEYWORD PLACEMENT RULES (STRICTLY ENFORCED) ⚠️⚠️⚠️
+
+1. SKILLS SECTION (civilian resume):
+   - MUST include ALL hard skills listed above as individual <li> items
+   - Add soft skills that relate to candidate's actual experience
+   - Use EXACT keyword phrasing (e.g., "Supply Chain Management" not just "supply")
+
+2. SUMMARY SECTION:
+   - Weave in 3-5 of the most important keywords naturally
+   - Include the target role title
+   - Reference key industry terms
+
+3. EXPERIENCE BULLETS:
+   - Each bullet should contain 1-2 ATS keywords where truthful
+   - Use keyword variations: "managed logistics" → "logistics management"
+   - Map military experience to civilian keywords:
+     * "Motor pool" → "fleet management", "vehicle maintenance", "logistics"
+     * "Supply sergeant" → "inventory management", "supply chain", "resource allocation"
+     * "Training NCO" → "training development", "team leadership", "compliance"
+     * "Operations" → "operations management", "process improvement"
+
+4. MINIMUM COVERAGE REQUIREMENT: 80%+
+   - Count: At least ${Math.ceil((input.extractedKeywords.hardSkills.length + input.extractedKeywords.softSkills.length) * 0.8)} of ${input.extractedKeywords.hardSkills.length + input.extractedKeywords.softSkills.length} keywords MUST appear
+   - Failure to meet 80% coverage = SYSTEM FAILURE
+
+KEYWORD INTEGRATION EXAMPLES:
+❌ WRONG: "Managed supplies for the unit"
+✅ RIGHT: "Directed supply chain operations and inventory management for 150-person organization, maintaining $2M in resources with 99% accountability"
+
+❌ WRONG: "Responsible for vehicle maintenance"
+✅ RIGHT: "Led logistics operations including fleet management of 12 tactical vehicles, implementing preventive maintenance protocols that achieved 98% operational readiness"
+
+❌ WRONG: "Trained soldiers on procedures"
+✅ RIGHT: "Developed and executed training programs for 45 personnel, ensuring 100% compliance with regulatory requirements and improving team performance by 25%"
 `
     : '';
 
