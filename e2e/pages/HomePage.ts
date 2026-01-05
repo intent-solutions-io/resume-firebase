@@ -16,7 +16,8 @@ export class HomePage {
     this.page = page;
     this.heroHeading = page.locator('h1').first();
     this.heroSubheading = page.locator('h1 + p, .hero p, .subtitle').first();
-    this.ctaButton = page.getByRole('link', { name: /get started|create|resume|start/i }).first();
+    // CTA is a button inside a Link - target the button directly
+    this.ctaButton = page.getByRole('button', { name: /get started/i }).first();
     this.navLinks = page.locator('nav a, header a');
     this.footer = page.locator('footer');
   }
@@ -36,8 +37,11 @@ export class HomePage {
   }
 
   async clickGetStarted() {
+    // Click the CTA button and wait for navigation
+    // Flow: click -> /create -> redirect -> /intake
     await this.ctaButton.click();
-    await this.page.waitForURL(/\/intake/);
+    // Wait for the final URL after redirect, with extended timeout
+    await this.page.waitForURL(/\/intake/, { timeout: 15000 });
   }
 
   async takeScreenshot(name: string) {

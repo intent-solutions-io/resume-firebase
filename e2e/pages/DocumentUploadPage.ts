@@ -39,8 +39,8 @@ export class DocumentUploadPage {
 
   async expectLoaded() {
     await expect(this.page).toHaveURL(new RegExp(`/intake/${this.candidateId}/documents`));
-    // Wait for upload area to be visible
-    await expect(this.fileInput.or(this.dropZone)).toBeVisible({ timeout: 10000 });
+    // Wait for upload area to be visible - use the visible drop zone div
+    await expect(this.dropZone).toBeVisible({ timeout: 10000 });
   }
 
   async createTestFile(filename: string, content: string): Promise<string> {
