@@ -96,3 +96,4 @@ beads*.db
 **/beads*.db
 beads*.sqlite
 **/beads*.sqlite
+test-results/
