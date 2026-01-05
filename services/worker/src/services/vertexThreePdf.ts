@@ -51,6 +51,31 @@ NON-NEGOTIABLE RULES (VIOLATION = SYSTEM FAILURE)
 8) Professional American English only
 9) Output ONLY valid JSON - no markdown code fences, no extra text
 
+🚫 BANNED AI PHRASES (Makes resume look AI-generated - NEVER use):
+- "Spearheaded" → Use "Led" or "Directed" instead
+- "Synergized" → Use "Coordinated" or "Collaborated" instead
+- "Instrumental in" → Use "Key contributor to" or "Contributed to" instead
+- "Leveraged" → Use "Used" or "Applied" instead
+- "Orchestrated" → Use "Organized" or "Coordinated" instead
+- "Revolutionized" → Use "Improved" or "Transformed" instead
+- "Pioneered" → Use "Developed" or "Created" instead
+- "Catalyzed" → Use "Initiated" or "Started" instead
+- "Best-in-class" → Use specific metrics instead
+- "Cutting-edge" → Use specific technology names instead
+- "Paradigm shift" → Use specific change description instead
+- "Synergy" → Use specific collaboration result instead
+- "Dynamic" → Use specific quality instead
+- "Proactive" → Use specific action instead
+
+✅ USE THESE ACTION VERBS INSTEAD:
+Led, Managed, Directed, Coordinated, Built, Created, Developed, Implemented, Executed, Trained, Supervised, Reduced, Increased, Saved, Improved, Maintained, Organized, Planned, Analyzed, Streamlined
+
+📏 LENGTH CONSTRAINTS:
+- Most recent role: 5-7 bullets maximum
+- Older roles: 3-4 bullets maximum
+- Summary: 3-4 lines (specific metrics, not generic)
+- Target word count per resume: 600-850 words
+
 ⚠️⚠️⚠️ CRITICAL QUALITY ENFORCEMENT ⚠️⚠️⚠️
 
 EVERY BULLET MUST HAVE:
@@ -552,6 +577,25 @@ export async function generateThreePdfResume(
     )
     .join('\n\n');
 
+  // Build keyword injection section if keywords are provided
+  const keywordSection = input.extractedKeywords
+    ? `
+🎯 TARGET JOB KEYWORDS (MUST include where truthful):
+Target Role: ${input.extractedKeywords.jobTitle}
+Industry: ${input.extractedKeywords.industry}
+
+HARD SKILLS TO INCLUDE: ${input.extractedKeywords.hardSkills.join(', ')}
+SOFT SKILLS TO INCLUDE: ${input.extractedKeywords.softSkills.join(', ')}
+ATS KEYWORDS: ${input.extractedKeywords.atsKeywords.slice(0, 15).join(', ')}
+
+⚠️ Include these keywords naturally throughout the civilian resume:
+- In the Summary section
+- In the Skills section
+- In experience bullet points (where truthful)
+- Aim for 75%+ keyword coverage
+`
+    : '';
+
   // Build user prompt with ALL available candidate data
   const userPrompt = `
 CANDIDATE METADATA (USE THIS EXACT DATA):
@@ -563,7 +607,7 @@ CANDIDATE METADATA (USE THIS EXACT DATA):
 - Branch: ${input.branch}
 - Rank: ${input.rank || 'NOT PROVIDED - omit from resume'}
 - MOS/Rating/AFSC: ${input.mos || 'NOT PROVIDED - omit from resume'}
-
+${keywordSection}
 UPLOADED DOCUMENTS:
 ${documentContext}
 
@@ -575,15 +619,20 @@ ${documentContext}
 5. Summary section: Detailed paragraph FIRST, then <ul class="skills-list"> with 9-12 skills as bullets
 6. Skills format: <ul class="skills-list"> with <li> items (3-column layout via CSS)
 7. Experience format: <p><strong>Organization, Location</strong> <span style="float:right;">Dates</span></p> then <p><strong>Title</strong></p> then bullets
-8. Generate 4-6 HIGH-IMPACT bullets per role with SPECIFIC metrics and accomplishments
-9. 1-2 PAGES OK (do not restrict to 1 page)
+8. Generate 5-7 HIGH-IMPACT bullets for most recent role, 3-4 for older roles
+9. Stay within 600-850 words per resume
 10. NO generic phrases - extract ACTUAL accomplishments from documents
+11. NEVER use banned AI phrases (Spearheaded, Synergized, Instrumental, etc.)
 
 Generate the 3-PDF bundle JSON now. Return ONLY the JSON object (no markdown code fences).`;
 
   console.log(`[vertexThreePdf] Generating 3-PDF bundle for: ${input.candidateId}`);
   console.log(`[vertexThreePdf] Document count: ${input.documentTexts.length}`);
   console.log(`[vertexThreePdf] Using model: ${MODEL_NAME}`);
+  if (input.extractedKeywords) {
+    console.log(`[vertexThreePdf] Target role: ${input.extractedKeywords.jobTitle}`);
+    console.log(`[vertexThreePdf] Keywords: ${input.extractedKeywords.hardSkills.length} hard, ${input.extractedKeywords.softSkills.length} soft, ${input.extractedKeywords.atsKeywords.length} ATS`);
+  }
 
   try {
     const result = await model.generateContent({

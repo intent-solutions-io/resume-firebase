@@ -53,7 +53,9 @@ export function IntakePage() {
     branch: 'Army' as MilitaryBranch,
     rank: '',
     mos: '',
+    targetJobDescription: '',
   });
+  const [showJobField, setShowJobField] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -204,6 +206,65 @@ export function IntakePage() {
                   placeholder="11B, IT, 3D1X1"
                 />
               </div>
+            </div>
+
+            {/* Target Job Description (Optional) */}
+            <div style={{ marginBottom: '1.5rem' }}>
+              <button
+                type="button"
+                onClick={() => setShowJobField(!showJobField)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#C59141',
+                  cursor: 'pointer',
+                  fontSize: '0.875rem',
+                  fontWeight: 500,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  padding: 0,
+                  marginBottom: showJobField ? '0.75rem' : 0,
+                }}
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  style={{
+                    transform: showJobField ? 'rotate(90deg)' : 'rotate(0deg)',
+                    transition: 'transform 0.2s',
+                  }}
+                >
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+                {showJobField ? 'Hide target job' : 'Have a specific job in mind? (Optional)'}
+              </button>
+
+              {showJobField && (
+                <div style={{ animation: 'fadeIn 0.2s ease-out' }}>
+                  <label>Target Job Description</label>
+                  <textarea
+                    value={formData.targetJobDescription || ''}
+                    onChange={(e) =>
+                      setFormData({ ...formData, targetJobDescription: e.target.value })
+                    }
+                    placeholder="Paste the job posting here to optimize your resume for this specific role. We'll extract keywords and tailor your resume to match..."
+                    style={{
+                      width: '100%',
+                      minHeight: '120px',
+                      resize: 'vertical',
+                      fontFamily: 'inherit',
+                    }}
+                  />
+                  <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                    This helps us optimize your resume for ATS systems and include relevant keywords.
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Error Message */}
