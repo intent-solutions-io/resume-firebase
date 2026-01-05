@@ -8,8 +8,8 @@ import type { KeywordExtractionResult } from '../types/threePdf.js';
 // Configuration
 const PROJECT_ID = process.env.GCP_PROJECT_ID || 'resume-gen-intent-dev';
 const LOCATION = process.env.VERTEX_LOCATION || 'us-central1';
-// Use fast model for keyword extraction (simpler task)
-const MODEL_NAME = 'gemini-2.0-flash-001';
+// Use Gemini 2.5 Flash for keyword extraction (consistent with resume generation)
+const MODEL_NAME = process.env.GEMINI_MODEL_NAME || 'gemini-2.5-flash';
 
 // Initialize Vertex AI
 const vertexAI = new VertexAI({
