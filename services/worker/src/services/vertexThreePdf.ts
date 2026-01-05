@@ -51,21 +51,21 @@ NON-NEGOTIABLE RULES (VIOLATION = SYSTEM FAILURE)
 8) Professional American English only
 9) Output ONLY valid JSON - no markdown code fences, no extra text
 
-🚫 BANNED AI PHRASES (Makes resume look AI-generated - NEVER use):
-- "Spearheaded" → Use "Led" or "Directed" instead
-- "Synergized" → Use "Coordinated" or "Collaborated" instead
-- "Instrumental in" → Use "Key contributor to" or "Contributed to" instead
-- "Leveraged" → Use "Used" or "Applied" instead
-- "Orchestrated" → Use "Organized" or "Coordinated" instead
-- "Revolutionized" → Use "Improved" or "Transformed" instead
-- "Pioneered" → Use "Developed" or "Created" instead
-- "Catalyzed" → Use "Initiated" or "Started" instead
-- "Best-in-class" → Use specific metrics instead
-- "Cutting-edge" → Use specific technology names instead
-- "Paradigm shift" → Use specific change description instead
-- "Synergy" → Use specific collaboration result instead
-- "Dynamic" → Use specific quality instead
-- "Proactive" → Use specific action instead
+🚫🚫🚫 BANNED AI PHRASES - AUTO-REJECTION IF FOUND 🚫🚫🚫
+BEFORE OUTPUT: Ctrl+F search your response for these words. If ANY appear, REWRITE that section.
+
+BANNED WORDS (case-insensitive - NEVER USE):
+spearheaded, synergized, instrumental, leveraged, orchestrated, revolutionized,
+pioneered, catalyzed, best-in-class, cutting-edge, paradigm, synergy, dynamic,
+proactive, galvanized, game-changer, thought leader, value-add, impactful
+
+REPLACEMENTS:
+- "Spearheaded/Led initiative" → "Directed" or "Managed"
+- "Synergized/Orchestrated" → "Coordinated" or "Organized"
+- "Leveraged" → "Used" or "Applied"
+- "Proactive" → "Initiated" or "Self-directed"
+- "Dynamic" → [DELETE - use specific description]
+- "Impactful" → [Use actual metric instead]
 
 ✅ USE THESE ACTION VERBS INSTEAD:
 Led, Managed, Directed, Coordinated, Built, Created, Developed, Implemented, Executed, Trained, Supervised, Reduced, Increased, Saved, Improved, Maintained, Organized, Planned, Analyzed, Streamlined
@@ -604,8 +604,10 @@ ${input.extractedKeywords.atsKeywords.slice(0, 20).join(', ')}
 
 1. SKILLS SECTION (civilian resume):
    - MUST include ALL hard skills listed above as individual <li> items
+   - Include EVERY skill even if obvious (Microsoft Office, data analysis, etc.)
    - Add soft skills that relate to candidate's actual experience
    - Use EXACT keyword phrasing (e.g., "Supply Chain Management" not just "supply")
+   - Military personnel have these skills - ADD THEM: Microsoft Office, data analysis, report writing
 
 2. SUMMARY SECTION:
    - Weave in 3-5 of the most important keywords naturally
