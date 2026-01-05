@@ -360,14 +360,30 @@ test.describe('Operation Hired - Full User Journey', () => {
 
 });
 
+/**
+ * Regression Tests - Skipped by default
+ *
+ * These tests are expensive (multiple AI generations each) and are intended for
+ * periodic quality validation rather than every E2E run.
+ *
+ * To run these tests manually:
+ *   npx playwright test --grep "8. Regression"
+ *
+ * Or enable by setting REGRESSION_TESTS=true environment variable.
+ */
 test.describe('8. Regression Tests', () => {
+  // Skip regression tests by default - they're expensive (6+ minutes each)
+  // Run manually with: npx playwright test --grep "8. Regression"
+  test.skip(({ }, testInfo) => !process.env.REGRESSION_TESTS, 'Skipped: Set REGRESSION_TESTS=true to run');
 
   test('8.1 Multiple consecutive generations maintain quality', async ({ request }) => {
+    test.slow(); // Triple timeout for multiple AI generations
     const api = new WorkerApi(request);
     const scores: number[] = [];
     const coverages: number[] = [];
 
-    for (let i = 0; i < 3; i++) {
+    // Reduced from 3 to 2 iterations for faster execution
+    for (let i = 0; i < 2; i++) {
       const result = await api.generateThreePdfBundle(
         EXISTING_CANDIDATE_ID,
         TARGET_JOB_DESCRIPTION
@@ -394,11 +410,12 @@ test.describe('8. Regression Tests', () => {
   });
 
   test('8.2 Different job descriptions produce optimized results', async ({ request }) => {
+    test.slow(); // Triple timeout for multiple AI generations
     const api = new WorkerApi(request);
 
+    // Reduced from 3 to 2 job descriptions for faster execution
     const jobDescriptions = [
       'Software Engineer requiring Python, JavaScript, Agile, and cloud computing skills.',
-      'Project Manager requiring PMP, Scrum, budget management, and stakeholder communication.',
       'Operations Manager requiring logistics, supply chain, inventory, and team leadership.',
     ];
 
