@@ -76,6 +76,55 @@ Led, Managed, Directed, Coordinated, Built, Created, Developed, Implemented, Exe
 - Summary: 3-4 lines (specific metrics, not generic)
 - Target word count per resume: 600-850 words
 
+═══════════════════════════════════════════════════════════════════
+📋 CORE SKILLS / KEYWORDS FORMATTING (REQUIRED)
+═══════════════════════════════════════════════════════════════════
+
+If the resume includes a skills/keywords list (especially under the Summary), it must NOT be formatted as a vertical one-item-per-line list. That format wastes space and looks unprofessional.
+
+Instead, format skills as a compact "CORE SKILLS" block with multiple items per line.
+
+RULES:
+- Preserve the exact skill items and exact order from source documents
+- Do NOT add new skills. Do NOT remove skills unless exact duplicates
+- Use consistent delimiter: space-pipe-space → " | "
+- Add label line "CORE SKILLS:" (all caps, bold)
+- Wrap naturally into 2-4 lines maximum. Avoid orphan single-word lines
+- No blank lines inside the CORE SKILLS block
+- Capitalization: Title Case for multi-word phrases, keep product names as-is (Microsoft Office, Salesforce), keep acronyms uppercase (CRM, KPI, SOP)
+
+HTML FORMAT:
+<p><strong>CORE SKILLS:</strong> Talent Acquisition | Pipeline Management | Stakeholder Engagement | Training Delivery | Process Improvement | Data Reporting | KPI Tracking | Compliance | Microsoft Office | CRM</p>
+
+EXAMPLES OF CORRECT FORMATTING:
+
+Example A (2 lines):
+CORE SKILLS: Talent Acquisition | Pipeline Management | Stakeholder Engagement | Training Delivery | Process Improvement
+Data Reporting | KPI Tracking | Compliance | Microsoft Office | Customer Relationship Management (CRM)
+
+Example B (3 lines):
+CORE SKILLS: Operations Management | Team Leadership | Strategic Planning | Recruiting Operations | Client Support
+Process Improvement | SOP Development | Data Analysis | Reporting | Microsoft Office | Scheduling
+Training & Coaching | Stakeholder Communication | Compliance | CRM | KPI Tracking
+
+❌ WRONG - Vertical list (wastes space):
+• Operations Management
+• Team Leadership
+• Strategic Planning
+• Process Improvement
+
+❌ WRONG - 3-column bullet format:
+<ul class="skills-list">
+  <li>Operations Management</li>
+  <li>Team Leadership</li>
+</ul>
+
+✅ CORRECT - Pipe-delimited inline:
+<p><strong>CORE SKILLS:</strong> Operations Management | Team Leadership | Strategic Planning | Process Improvement</p>
+
+ENFORCEMENT: If skills exceed 4 lines, remove only exact duplicates or combine identical terms. Keep all unique items.
+═══════════════════════════════════════════════════════════════════
+
 ⚠️⚠️⚠️ CRITICAL QUALITY ENFORCEMENT ⚠️⚠️⚠️
 
 EVERY BULLET MUST HAVE:
@@ -294,17 +343,7 @@ li {
 <section>
   <h2>SUMMARY OF QUALIFICATIONS</h2>
   <p>Detailed paragraph describing qualifications, experience, and strengths with SPECIFIC metrics and accomplishments from actual military service. Include specific roles, specialties, and measurable achievements. Do NOT use generic phrases.</p>
-  <ul class="skills-list">
-    <li>Operations Management</li>
-    <li>Leadership Development</li>
-    <li>Organizational Change</li>
-    <li>Communication</li>
-    <li>Process Improvement</li>
-    <li>Problem Solving</li>
-    <li>Strategic Processes</li>
-    <li>Marketing/Brand Management</li>
-    <li>Project Management</li>
-  </ul>
+  <p><strong>CORE SKILLS:</strong> Operations Management | Leadership Development | Organizational Change | Communication | Process Improvement | Problem Solving | Strategic Planning | Project Management | Team Leadership</p>
 </section>
 
 <section>
@@ -313,10 +352,10 @@ li {
   <p><strong>Degree Title</strong></p>
 </section>
 
-⚠️⚠️⚠️ CRITICAL: Skills MUST use 3-column bullet list format ⚠️⚠️⚠️
-CORRECT: <ul class="skills-list"><li>Team Leadership</li><li>Vehicle Maintenance</li></ul>
+⚠️⚠️⚠️ CRITICAL: Skills MUST use pipe-delimited CORE SKILLS format ⚠️⚠️⚠️
+CORRECT: <p><strong>CORE SKILLS:</strong> Team Leadership | Vehicle Maintenance | Operations Management</p>
+WRONG: <ul class="skills-list"><li>Team Leadership</li></ul>
 WRONG: <div class="skills-grid"><span class="skill-box">Team Leadership</span></div>
-WRONG: <p>Team Leadership, Vehicle Maintenance</p>
 
 <section>
   <h2>PROFESSIONAL EXPERIENCE</h2>
@@ -472,18 +511,8 @@ Part A - Professional Summary Paragraph (2-4 sentences):
 <p>Describe candidate's value proposition with SPECIFIC metrics. Example:
 "I am a devoted individual with a demonstrated history of working in diverse fields and a proven track record. I consistently seek self-improvement and strive to create value for any group or organization I am part of. [Include career goal]. My strengths include:"</p>
 
-Part B - Core Competencies (9 skills in 3x3 grid):
-<ul class="skills-list">
-  <li>Operations Management</li>
-  <li>Leadership Development</li>
-  <li>Organizational Change</li>
-  <li>Communication</li>
-  <li>Process Improvement</li>
-  <li>Problem Solving</li>
-  <li>Strategic Processes</li>
-  <li>Marketing/Brand Management</li>
-  <li>Project Management</li>
-</ul>
+Part B - Core Competencies (pipe-delimited, 9-12 skills on 2-4 lines):
+<p><strong>CORE SKILLS:</strong> Operations Management | Leadership Development | Organizational Change | Communication | Process Improvement | Problem Solving | Strategic Processes | Marketing/Brand Management | Project Management</p>
 
 **SECTION 3: EDUCATION (Reverse Chronological)**
 <h2>EDUCATION</h2>
@@ -655,12 +684,12 @@ UPLOADED DOCUMENTS:
 ${documentContext}
 
 ⚠️ CRITICAL REQUIREMENTS ⚠️
-1. Use EXACT HTML structure from template: <div class="header-container">, <section>, <h1>, <h2>, <ul class="skills-list">
+1. Use EXACT HTML structure from template: <div class="header-container">, <section>, <h1>, <h2>
 2. Extract LinkedIn URL from documents (look for linkedin.com URLs in text) and include as blue hyperlink in header
 3. Header layout: Split container with name/phone LEFT, email/LinkedIn RIGHT
 4. Section order: Summary → Education → Professional Experience → Certifications
-5. Summary section: Detailed paragraph FIRST, then <ul class="skills-list"> with 9-12 skills as bullets
-6. Skills format: <ul class="skills-list"> with <li> items (3-column layout via CSS)
+5. Summary section: Detailed paragraph FIRST, then CORE SKILLS as pipe-delimited line
+6. Skills format: <p><strong>CORE SKILLS:</strong> Skill 1 | Skill 2 | Skill 3</p> (pipe-delimited, 9-12 skills)
 7. Experience format: <p><strong>Organization, Location</strong> <span style="float:right;">Dates</span></p> then <p><strong>Title</strong></p> then bullets
 8. Generate 5-7 HIGH-IMPACT bullets for most recent role, 3-4 for older roles
 9. Stay within 600-850 words per resume
