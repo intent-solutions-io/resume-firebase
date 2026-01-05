@@ -1,5 +1,5 @@
 import { APIRequestContext, expect } from '@playwright/test';
-import { URLS, VALIDATION_THRESHOLDS } from '../fixtures/test-data';
+import { URLS, VALIDATION_THRESHOLDS, SOFT_THRESHOLDS } from '../fixtures/test-data';
 
 /**
  * API Helper: Worker Service Endpoints
@@ -63,13 +63,21 @@ export class WorkerApi {
     bannedPhrasesFound: string[];
     wordCount: { military: number; civilian: number };
   }) {
-    // ATS Score validation
+    // ATS Score validation (hard threshold for E2E, soft warning for production target)
     expect(validation.atsScore).toBeGreaterThanOrEqual(VALIDATION_THRESHOLDS.MIN_ATS_SCORE);
-    console.log(`   ✓ ATS Score: ${validation.atsScore} (min: ${VALIDATION_THRESHOLDS.MIN_ATS_SCORE})`);
+    if (validation.atsScore >= SOFT_THRESHOLDS.TARGET_ATS_SCORE) {
+      console.log(`   ✓ ATS Score: ${validation.atsScore} (min: ${VALIDATION_THRESHOLDS.MIN_ATS_SCORE})`);
+    } else {
+      console.log(`   ⚠ ATS Score: ${validation.atsScore} (E2E min: ${VALIDATION_THRESHOLDS.MIN_ATS_SCORE}, prod target: ${SOFT_THRESHOLDS.TARGET_ATS_SCORE})`);
+    }
 
-    // Keyword coverage validation
+    // Keyword coverage validation (hard threshold for E2E, soft warning for production target)
     expect(validation.keywordCoverage).toBeGreaterThanOrEqual(VALIDATION_THRESHOLDS.MIN_KEYWORD_COVERAGE);
-    console.log(`   ✓ Keyword Coverage: ${validation.keywordCoverage}% (min: ${VALIDATION_THRESHOLDS.MIN_KEYWORD_COVERAGE}%)`);
+    if (validation.keywordCoverage >= SOFT_THRESHOLDS.TARGET_KEYWORD_COVERAGE) {
+      console.log(`   ✓ Keyword Coverage: ${validation.keywordCoverage}% (min: ${VALIDATION_THRESHOLDS.MIN_KEYWORD_COVERAGE}%)`);
+    } else {
+      console.log(`   ⚠ Keyword Coverage: ${validation.keywordCoverage}% (E2E min: ${VALIDATION_THRESHOLDS.MIN_KEYWORD_COVERAGE}%, prod target: ${SOFT_THRESHOLDS.TARGET_KEYWORD_COVERAGE}%)`);
+    }
 
     // Banned phrases validation
     expect(validation.bannedPhrasesFound.length).toBeLessThanOrEqual(VALIDATION_THRESHOLDS.MAX_BANNED_PHRASES);
