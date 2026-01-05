@@ -12,7 +12,7 @@ import type {
 const PROJECT_ID = process.env.GCP_PROJECT_ID || 'resume-gen-intent-dev';
 const LOCATION = process.env.VERTEX_LOCATION || 'us-central1';
 // Gemini 2.5 Flash - supports 65,536 output tokens (vs 8,192 for 2.0)
-const MODEL_NAME = process.env.GEMINI_MODEL_NAME || 'gemini-2.5-flash-preview-04-17';
+const MODEL_NAME = process.env.GEMINI_MODEL_NAME || 'gemini-2.5-flash';
 
 // Initialize Vertex AI
 const vertexAI = new VertexAI({
