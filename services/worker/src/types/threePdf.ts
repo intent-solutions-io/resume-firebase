@@ -35,6 +35,27 @@ export interface RenderHints {
 }
 
 /**
+ * Extracted keywords from target job description
+ */
+export interface KeywordExtractionResult {
+  hardSkills: string[];      // Top 5-10 technical/hard skills
+  softSkills: string[];      // Top 5-10 soft skills
+  atsKeywords: string[];     // All ATS-relevant keywords
+  jobTitle: string;          // Extracted job title
+  industry: string;          // Detected industry
+}
+
+/**
+ * Keyword coverage validation result
+ */
+export interface KeywordValidationResult {
+  coveragePercent: number;           // Target: 75%+
+  foundKeywords: string[];
+  missingKeywords: string[];
+  suggestions: string[];
+}
+
+/**
  * Quality assurance metadata from resume generation
  */
 export interface QAMetadata {
@@ -43,6 +64,13 @@ export interface QAMetadata {
   terms_mapped_count: number;
   placeholders_used: boolean;
   no_fabrication_confirmed: boolean;
+  // New keyword-related fields
+  keywordCoverage?: KeywordValidationResult;
+  wordCount?: {
+    military: number;
+    civilian: number;
+    crosswalk: number;
+  };
 }
 
 /**
@@ -81,4 +109,7 @@ export interface ThreePDFGenerationInput {
     fileName: string;
     text: string;
   }>;
+  // New: Target job for keyword optimization
+  targetJobDescription?: string;
+  extractedKeywords?: KeywordExtractionResult;
 }
