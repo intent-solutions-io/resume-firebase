@@ -8,6 +8,36 @@ import type {
   ThreePDFGenerationOutput,
 } from '../types/threePdf.js';
 
+// Scoring constants for ATS optimization
+const KEYWORD_SCORE_MAX = 50;
+const WORD_COUNT_SCORE = 25;
+const BANNED_PHRASES_SCORE_MAX = 25;
+const BANNED_PHRASE_PENALTY = 5;
+
+// Banned AI phrases that make resumes look AI-generated
+const BANNED_PHRASES = [
+  'spearheaded',
+  'synergized',
+  'instrumental in',
+  'leveraged',
+  'orchestrated',
+  'revolutionized',
+  'pioneered',
+  'catalyzed',
+  'galvanized',
+  'drove significant',
+  'best-in-class',
+  'cutting-edge',
+  'state-of-the-art',
+  'paradigm shift',
+  'game-changer',
+  'thought leader',
+  'value-add',
+  'synergy',
+  'dynamic',
+  'proactive',
+];
+
 /**
  * Validate keyword coverage in generated resume content
  * Target: 75%+ coverage for optimal ATS matching
@@ -188,29 +218,6 @@ export function validateWordCount(
 export function checkBannedPhrases(
   output: ThreePDFGenerationOutput
 ): { found: string[]; clean: boolean } {
-  const BANNED_PHRASES = [
-    'spearheaded',
-    'synergized',
-    'instrumental in',
-    'leveraged',
-    'orchestrated',
-    'revolutionized',
-    'pioneered',
-    'catalyzed',
-    'galvanized',
-    'drove significant',
-    'best-in-class',
-    'cutting-edge',
-    'state-of-the-art',
-    'paradigm shift',
-    'game-changer',
-    'thought leader',
-    'value-add',
-    'synergy',
-    'dynamic',
-    'proactive',
-  ];
-
   const content = (
     output.artifacts.resume_military.content_html +
     output.artifacts.resume_civilian.content_html
@@ -249,19 +256,25 @@ export function runAllValidations(
   // Calculate overall score (0-100)
   let score = 0;
 
-  // Keyword coverage: up to 50 points
-  score += Math.min(keywordCoverage.coveragePercent * 0.5, 50);
+  // Keyword coverage: up to KEYWORD_SCORE_MAX points
+  score += Math.min(
+    keywordCoverage.coveragePercent * (KEYWORD_SCORE_MAX / 100),
+    KEYWORD_SCORE_MAX
+  );
 
-  // Word count: 25 points if within target
+  // Word count: WORD_COUNT_SCORE points if within target
   if (wordCount.withinTarget) {
-    score += 25;
+    score += WORD_COUNT_SCORE;
   }
 
-  // No banned phrases: 25 points
+  // No banned phrases: BANNED_PHRASES_SCORE_MAX points
   if (bannedPhrases.clean) {
-    score += 25;
+    score += BANNED_PHRASES_SCORE_MAX;
   } else {
-    score += Math.max(0, 25 - bannedPhrases.found.length * 5);
+    score += Math.max(
+      0,
+      BANNED_PHRASES_SCORE_MAX - bannedPhrases.found.length * BANNED_PHRASE_PENALTY
+    );
   }
 
   console.log(`[keywordValidator] Overall ATS optimization score: ${Math.round(score)}/100`);

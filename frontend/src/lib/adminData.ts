@@ -14,6 +14,10 @@ import {
   Timestamp,
   Unsubscribe,
   QueryConstraint,
+  FirestoreDataConverter,
+  DocumentData,
+  QueryDocumentSnapshot,
+  SnapshotOptions,
 } from 'firebase/firestore';
 import { getFirestoreDb } from './firebase';
 import { Candidate, CandidateStatus, CandidateDocument, DocumentType } from './firestore';
@@ -90,6 +94,130 @@ export interface CandidateWithDetails extends Candidate {
 }
 
 // ============================================================================
+// Firestore Converters (Type-safe data transformation)
+// ============================================================================
+
+/**
+ * Firestore converter for Candidate documents
+ */
+const candidateConverter: FirestoreDataConverter<Candidate> = {
+  toFirestore(candidate: Candidate): DocumentData {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { id, ...data } = candidate;
+    return data;
+  },
+  fromFirestore(
+    snapshot: QueryDocumentSnapshot,
+    options?: SnapshotOptions
+  ): Candidate {
+    const data = snapshot.data(options);
+    return {
+      id: snapshot.id,
+      name: data.name ?? '',
+      email: data.email ?? '',
+      branch: data.branch ?? 'Army',
+      rank: data.rank ?? '',
+      mos: data.mos ?? '',
+      phone: data.phone,
+      city: data.city,
+      state: data.state,
+      targetJobDescription: data.targetJobDescription,
+      status: data.status ?? 'created',
+      errorMessage: data.errorMessage,
+      createdAt: data.createdAt ?? Timestamp.now(),
+      updatedAt: data.updatedAt ?? Timestamp.now(),
+    };
+  },
+};
+
+/**
+ * Firestore converter for CandidateDocument documents
+ */
+const candidateDocumentConverter: FirestoreDataConverter<CandidateDocument> = {
+  toFirestore(doc: CandidateDocument): DocumentData {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { id, ...data } = doc;
+    return data;
+  },
+  fromFirestore(
+    snapshot: QueryDocumentSnapshot,
+    options?: SnapshotOptions
+  ): CandidateDocument {
+    const data = snapshot.data(options);
+    return {
+      id: snapshot.id,
+      candidateId: data.candidateId ?? '',
+      type: data.type ?? 'other',
+      fileName: data.fileName ?? '',
+      storagePath: data.storagePath ?? '',
+      uploadedAt: data.uploadedAt ?? Timestamp.now(),
+    };
+  },
+};
+
+/**
+ * Firestore converter for CandidateProfile documents
+ */
+const candidateProfileConverter: FirestoreDataConverter<CandidateProfile> = {
+  toFirestore(profile: CandidateProfile): DocumentData {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { id, ...data } = profile;
+    return data;
+  },
+  fromFirestore(
+    snapshot: QueryDocumentSnapshot,
+    options?: SnapshotOptions
+  ): CandidateProfile {
+    const data = snapshot.data(options);
+    return {
+      id: snapshot.id,
+      candidateId: data.candidateId ?? '',
+      branch: data.branch,
+      rank: data.rank,
+      mos: data.mos,
+      yearsOfService: data.yearsOfService,
+      skills: data.skills,
+      certifications: data.certifications,
+      experience: data.experience,
+      education: data.education,
+      awards: data.awards,
+      summary: data.summary,
+      createdAt: data.createdAt,
+    };
+  },
+};
+
+/**
+ * Firestore converter for GeneratedResume documents
+ */
+const generatedResumeConverter: FirestoreDataConverter<GeneratedResume> = {
+  toFirestore(resume: GeneratedResume): DocumentData {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { id, ...data } = resume;
+    return data;
+  },
+  fromFirestore(
+    snapshot: QueryDocumentSnapshot,
+    options?: SnapshotOptions
+  ): GeneratedResume {
+    const data = snapshot.data(options);
+    return {
+      id: snapshot.id,
+      candidateId: data.candidateId ?? '',
+      summary: data.summary,
+      skills: data.skills,
+      experience: data.experience,
+      education: data.education,
+      pdfPath: data.pdfPath,
+      docxPath: data.docxPath,
+      exportGeneratedAt: data.exportGeneratedAt,
+      exportError: data.exportError,
+      createdAt: data.createdAt,
+    };
+  },
+};
+
+// ============================================================================
 // Candidate List Operations
 // ============================================================================
 
@@ -100,7 +228,7 @@ export async function fetchAllCandidates(
   statusFilter?: CandidateStatus
 ): Promise<Candidate[]> {
   const db = getFirestoreDb();
-  const candidatesRef = collection(db, 'candidates');
+  const candidatesRef = collection(db, 'candidates').withConverter(candidateConverter);
 
   const constraints: QueryConstraint[] = [orderBy('createdAt', 'desc')];
 
@@ -111,10 +239,7 @@ export async function fetchAllCandidates(
   const q = query(candidatesRef, ...constraints);
   const snapshot = await getDocs(q);
 
-  return snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  })) as Candidate[];
+  return snapshot.docs.map((doc) => doc.data());
 }
 
 /**
@@ -125,7 +250,7 @@ export function subscribeToAllCandidates(
   statusFilter?: CandidateStatus
 ): Unsubscribe {
   const db = getFirestoreDb();
-  const candidatesRef = collection(db, 'candidates');
+  const candidatesRef = collection(db, 'candidates').withConverter(candidateConverter);
 
   const constraints: QueryConstraint[] = [orderBy('createdAt', 'desc')];
 
@@ -136,10 +261,7 @@ export function subscribeToAllCandidates(
   const q = query(candidatesRef, ...constraints);
 
   return onSnapshot(q, (snapshot) => {
-    const candidates = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    })) as Candidate[];
+    const candidates = snapshot.docs.map((doc) => doc.data());
     callback(candidates);
   });
 }
@@ -155,14 +277,11 @@ export async function fetchCandidateDocuments(
   candidateId: string
 ): Promise<CandidateDocument[]> {
   const db = getFirestoreDb();
-  const docsRef = collection(db, 'candidateDocuments');
+  const docsRef = collection(db, 'candidateDocuments').withConverter(candidateDocumentConverter);
   const q = query(docsRef, where('candidateId', '==', candidateId));
   const snapshot = await getDocs(q);
 
-  return snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  })) as CandidateDocument[];
+  return snapshot.docs.map((doc) => doc.data());
 }
 
 /**
@@ -172,17 +291,14 @@ export async function fetchCandidateProfile(
   candidateId: string
 ): Promise<CandidateProfile | null> {
   const db = getFirestoreDb();
-  const profileRef = doc(db, 'candidateProfiles', candidateId);
+  const profileRef = doc(db, 'candidateProfiles', candidateId).withConverter(candidateProfileConverter);
   const snapshot = await getDoc(profileRef);
 
   if (!snapshot.exists()) {
     return null;
   }
 
-  return {
-    id: snapshot.id,
-    ...snapshot.data(),
-  } as CandidateProfile;
+  return snapshot.data();
 }
 
 /**
@@ -192,17 +308,14 @@ export async function fetchGeneratedResume(
   candidateId: string
 ): Promise<GeneratedResume | null> {
   const db = getFirestoreDb();
-  const resumeRef = doc(db, 'resumes', candidateId);
+  const resumeRef = doc(db, 'resumes', candidateId).withConverter(generatedResumeConverter);
   const snapshot = await getDoc(resumeRef);
 
   if (!snapshot.exists()) {
     return null;
   }
 
-  return {
-    id: snapshot.id,
-    ...snapshot.data(),
-  } as GeneratedResume;
+  return snapshot.data();
 }
 
 /**
@@ -213,18 +326,15 @@ export async function fetchCandidateDetails(
 ): Promise<CandidateWithDetails | null> {
   const db = getFirestoreDb();
 
-  // Fetch candidate
-  const candidateRef = doc(db, 'candidates', candidateId);
+  // Fetch candidate with converter
+  const candidateRef = doc(db, 'candidates', candidateId).withConverter(candidateConverter);
   const candidateSnap = await getDoc(candidateRef);
 
   if (!candidateSnap.exists()) {
     return null;
   }
 
-  const candidate = {
-    id: candidateSnap.id,
-    ...candidateSnap.data(),
-  } as Candidate;
+  const candidate = candidateSnap.data();
 
   // Fetch related data in parallel
   const [documents, profile, resume] = await Promise.all([

@@ -16,17 +16,15 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase (singleton pattern)
-let app: FirebaseApp;
-let db: Firestore;
-let storage: FirebaseStorage;
+let app: FirebaseApp | null = null;
+let db: Firestore | null = null;
+let storage: FirebaseStorage | null = null;
 
 function initializeFirebase(): FirebaseApp {
-  if (getApps().length === 0) {
-    app = initializeApp(firebaseConfig);
-  } else {
-    app = getApps()[0];
+  if (getApps().length > 0) {
+    return getApps()[0];
   }
-  return app;
+  return initializeApp(firebaseConfig);
 }
 
 export function getFirebaseApp(): FirebaseApp {

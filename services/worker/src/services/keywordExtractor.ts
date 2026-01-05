@@ -189,19 +189,3 @@ function getDefaultKeywords(): KeywordExtractionResult {
   };
 }
 
-/**
- * Merge extracted keywords with defaults (for comprehensive coverage)
- */
-export function mergeWithDefaults(
-  extracted: KeywordExtractionResult
-): KeywordExtractionResult {
-  const defaults = getDefaultKeywords();
-
-  return {
-    hardSkills: [...new Set([...extracted.hardSkills, ...defaults.hardSkills])].slice(0, 12),
-    softSkills: [...new Set([...extracted.softSkills, ...defaults.softSkills])].slice(0, 10),
-    atsKeywords: [...new Set([...extracted.atsKeywords, ...defaults.atsKeywords])].slice(0, 40),
-    jobTitle: extracted.jobTitle || defaults.jobTitle,
-    industry: extracted.industry || defaults.industry,
-  };
-}

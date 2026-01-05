@@ -11,6 +11,10 @@ import {
   Timestamp,
   serverTimestamp,
   Unsubscribe,
+  FirestoreDataConverter,
+  DocumentData,
+  QueryDocumentSnapshot,
+  SnapshotOptions,
 } from 'firebase/firestore';
 import { getFirestoreDb } from './firebase';
 
@@ -70,6 +74,44 @@ export interface CandidateDocument extends CandidateDocumentInput {
 }
 
 // ============================================================================
+// Firestore Converters (Type-safe data transformation)
+// ============================================================================
+
+/**
+ * Firestore converter for Candidate documents
+ * Ensures type-safe serialization/deserialization
+ */
+const candidateConverter: FirestoreDataConverter<Candidate> = {
+  toFirestore(candidate: Candidate): DocumentData {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { id, ...data } = candidate;
+    return data;
+  },
+  fromFirestore(
+    snapshot: QueryDocumentSnapshot,
+    options?: SnapshotOptions
+  ): Candidate {
+    const data = snapshot.data(options);
+    return {
+      id: snapshot.id,
+      name: data.name ?? '',
+      email: data.email ?? '',
+      branch: data.branch ?? 'Army',
+      rank: data.rank ?? '',
+      mos: data.mos ?? '',
+      phone: data.phone,
+      city: data.city,
+      state: data.state,
+      targetJobDescription: data.targetJobDescription,
+      status: data.status ?? 'created',
+      errorMessage: data.errorMessage,
+      createdAt: data.createdAt ?? Timestamp.now(),
+      updatedAt: data.updatedAt ?? Timestamp.now(),
+    };
+  },
+};
+
+// ============================================================================
 // Candidate Operations
 // ============================================================================
 
@@ -95,17 +137,14 @@ export async function createCandidate(input: CandidateInput): Promise<string> {
  */
 export async function getCandidate(candidateId: string): Promise<Candidate | null> {
   const db = getFirestoreDb();
-  const candidateRef = doc(db, 'candidates', candidateId);
+  const candidateRef = doc(db, 'candidates', candidateId).withConverter(candidateConverter);
   const snapshot = await getDoc(candidateRef);
 
   if (!snapshot.exists()) {
     return null;
   }
 
-  return {
-    id: snapshot.id,
-    ...snapshot.data(),
-  } as Candidate;
+  return snapshot.data();
 }
 
 /**
@@ -180,7 +219,7 @@ export function subscribeToCandidateStatus(
   callback: (candidate: Candidate | null) => void
 ): Unsubscribe {
   const db = getFirestoreDb();
-  const candidateRef = doc(db, 'candidates', candidateId);
+  const candidateRef = doc(db, 'candidates', candidateId).withConverter(candidateConverter);
 
   return onSnapshot(candidateRef, (snapshot) => {
     if (!snapshot.exists()) {
@@ -188,10 +227,7 @@ export function subscribeToCandidateStatus(
       return;
     }
 
-    callback({
-      id: snapshot.id,
-      ...snapshot.data(),
-    } as Candidate);
+    callback(snapshot.data());
   });
 }
 
