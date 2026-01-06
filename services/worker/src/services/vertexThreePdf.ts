@@ -222,22 +222,30 @@ SUMMARY MUST HAVE SPECIFIC METRICS:
 ✅ REQUIRED: "Former U.S. Marine Corps Machine Gunner with 4 years leading 8-person teams through 50+ combat operations across Europe and Africa, maintaining $3.6M in tactical vehicles with 98% operational readiness and zero personnel casualties"
 
 OUTPUT FORMAT (STRICT JSON — return ONLY JSON)
+
+🚨🚨🚨 CRITICAL JSON ESCAPING REQUIREMENT 🚨🚨🚨
+When generating HTML inside JSON, you MUST properly escape ALL special characters:
+- Replace " with \" inside content_html strings
+- Replace \n (newlines) with \\n
+- Replace \ (backslash) with \\
+FAILURE TO ESCAPE will cause JSON parsing errors and resume generation will FAIL.
+
 {
   "artifacts": {
     "resume_military": {
       "format": "html",
       "filename": "resume_military.html",
-      "content_html": "complete HTML document with inline CSS"
+      "content_html": "<!DOCTYPE html>\\n<html>\\n<head>...</head>\\n<body>...</body>\\n</html>"
     },
     "resume_civilian": {
       "format": "html",
       "filename": "resume_civilian.html",
-      "content_html": "complete HTML document with inline CSS"
+      "content_html": "<!DOCTYPE html>\\n<html>\\n<head>...</head>\\n<body>...</body>\\n</html>"
     },
     "resume_crosswalk": {
       "format": "html",
       "filename": "resume_crosswalk.html",
-      "content_html": "complete HTML document with inline CSS"
+      "content_html": "<!DOCTYPE html>\\n<html>\\n<head>...</head>\\n<body>...</body>\\n</html>"
     }
   },
   "render_hints": {
