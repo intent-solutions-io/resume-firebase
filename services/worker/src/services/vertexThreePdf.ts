@@ -268,29 +268,29 @@ EXECUTIVE RESUME TEMPLATE - MILITARY TO CIVILIAN
 STRICT ONE-PAGE FORMAT ENFORCEMENT
 ========================================
 
-⚠️⚠️⚠️ HEADER STRUCTURE (LINE 1 & 2 LAYOUT) ⚠️⚠️⚠️
+⚠️⚠️⚠️ HEADER STRUCTURE (CENTERED LAYOUT) ⚠️⚠️⚠️
 
-✅ CORRECT STRUCTURE (use actual spacing to align):
-**Line 1:** Full Name (left) | Email (right on same line)
-**Line 2:** City, State (left) | Phone: (XXX) XXX-XXXX (center/right) | LinkedIn URL (right)
+✅ CORRECT STRUCTURE (centered with all contact info):
+**Line 1:** Full Name (centered, bold, larger font)
+**Line 2:** City, State | Phone: (XXX) XXX-XXXX | Email (centered, separated by pipes)
+**Line 3:** LinkedIn URL (centered, blue hyperlink)
 
 HTML IMPLEMENTATION - YOU MUST GENERATE THIS EXACT STRUCTURE:
 <div class="header-container">
-  <div class="header-left">
-    <h1>John Smith</h1>
-    <p class="contact-line">Phoenix, AZ Telephone: (480) 555-1234</p>
-  </div>
-  <div class="header-right">
-    <p class="contact-line">john.smith@email.com</p>
-    <p class="contact-line"><a href="https://www.linkedin.com/in/johnsmith/">https://www.linkedin.com/in/johnsmith/</a></p>
-  </div>
+  <h1>John Smith</h1>
+  <p class="contact-line">Phoenix, AZ | Phone: (480) 555-1234 | john.smith@email.com</p>
+  <p class="contact-line"><a href="https://www.linkedin.com/in/johnsmith/">https://www.linkedin.com/in/johnsmith/</a></p>
 </div>
 
-❌ WRONG - DO NOT STACK VERTICALLY:
-<header>
-  <h1>John Smith</h1>
-  <p>john.smith@email.com</p>
-</header>
+❌ WRONG - DO NOT USE SPLIT LAYOUT:
+<div class="header-container">
+  <div class="header-left">
+    <h1>John Smith</h1>
+  </div>
+  <div class="header-right">
+    <p>john.smith@email.com</p>
+  </div>
+</div>
 
 MILITARY & CIVILIAN RESUME HTML TEMPLATE (use this EXACT structure):
 <!DOCTYPE html>
@@ -316,17 +316,10 @@ body {
   background: #fff;
 }
 .header-container {
-  display: flex;
-  justify-content: space-between;
+  text-align: center;
   border-bottom: 2px solid #000;
   padding-bottom: 0.1in;
   margin-bottom: 0.15in;
-}
-.header-left {
-  text-align: left;
-}
-.header-right {
-  text-align: right;
 }
 h1 {
   font-size: 13pt;
@@ -389,6 +382,9 @@ li {
 .experience-entry {
   margin-bottom: 0.2in;
 }
+.experience-entry p {
+  margin-bottom: 0.02in;
+}
 @media print {
   body {
     padding: 0;
@@ -399,14 +395,9 @@ li {
 <body>
 
 <div class="header-container">
-  <div class="header-left">
-    <h1>Candidate Full Name</h1>
-    <p class="contact-line">City, ST Telephone: (XXX) XXX-XXXX</p>
-  </div>
-  <div class="header-right">
-    <p class="contact-line">candidate@email.com</p>
-    <p class="contact-line"><a href="https://www.linkedin.com/in/username/">https://www.linkedin.com/in/username/</a></p>
-  </div>
+  <h1>Candidate Full Name</h1>
+  <p class="contact-line">City, ST | Phone: (XXX) XXX-XXXX | candidate@email.com</p>
+  <p class="contact-line"><a href="https://www.linkedin.com/in/username/">https://www.linkedin.com/in/username/</a></p>
 </div>
 
 <section>
@@ -561,16 +552,11 @@ CRITICAL CONSTRAINT: BOTH RESUMES MUST BE EXACTLY ONE PAGE
 
 A) resume_military.html (STRICT ONE PAGE MAXIMUM)
 
-**SECTION 1: HEADER (Split Layout)**
+**SECTION 1: HEADER (Centered Layout)**
 <div class="header-container">
-  <div class="header-left">
-    <h1>[Full Name]</h1>
-    <p class="contact-line">[City, ST] Telephone: [(XXX) XXX-XXXX]</p>
-  </div>
-  <div class="header-right">
-    <p class="contact-line">[email@domain.com]</p>
-    <p class="contact-line"><a href="https://www.linkedin.com/in/[username]/">https://www.linkedin.com/in/[username]/</a></p>
-  </div>
+  <h1>[Full Name]</h1>
+  <p class="contact-line">[City, ST] | Phone: [(XXX) XXX-XXXX] | [email@domain.com]</p>
+  <p class="contact-line"><a href="https://www.linkedin.com/in/[username]/">https://www.linkedin.com/in/[username]/</a></p>
 </div>
 
 **SECTION 2: SUMMARY OF QUALIFICATIONS**
@@ -755,7 +741,7 @@ ${documentContext}
 ⚠️ CRITICAL REQUIREMENTS ⚠️
 1. Use EXACT HTML structure from template: <div class="header-container">, <section>, <h1>, <h2>
 2. Extract LinkedIn URL from documents (look for linkedin.com URLs in text) and include as blue hyperlink in header
-3. Header layout: Split container with name/phone LEFT, email/LinkedIn RIGHT
+3. Header layout: CENTERED with all contact info (City, State, Phone, Email on Line 2 separated by pipes, LinkedIn on Line 3)
 4. Section order: Summary → Education → Professional Experience → Certifications
 5. Summary section: Detailed paragraph FIRST, then CORE SKILLS as pipe-delimited line (Title Case)
 6. Skills format: <p><strong>CORE SKILLS:</strong> Skill One | Skill Two</p> - ALL Title Case, pipe-delimited
