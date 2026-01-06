@@ -17,11 +17,17 @@ import {
   notifyResumeReady,
 } from '../services/slackNotifier.js';
 import {
+  sendResumeEmail,
+} from '../services/emailService.js';
+import {
   generateThreePdfResume,
 } from '../services/vertexThreePdf.js';
 import {
   exportThreePdfBundle,
 } from '../services/exportThreePdf.js';
+import {
+  getSignedDownloadUrl,
+} from '../services/exportResume.js';
 import type {
   Candidate,
   CandidateProfile,
@@ -281,6 +287,55 @@ export async function processCandidateHandler(
         // Non-fatal: log and continue
         console.error('[processCandidate] Slack resume ready notification failed:', slackError);
       }
+    }
+
+    // 11. Send email notification to candidate (Phase 2.5)
+    // Only send if candidate has email and emailSentAt is not set (de-duplication)
+    const resumeForEmail = await resumesCollection.doc(candidateId).get();
+    const resumeEmailData = resumeForEmail.data() as { emailSentAt?: unknown; threePdfPaths?: any } | undefined;
+
+    if (candidate.email && !resumeEmailData?.emailSentAt) {
+      try {
+        console.log(`[processCandidate] Sending email to: ${candidate.email}`);
+
+        // Get 3-PDF paths from Firestore
+        const paths = resumeEmailData?.threePdfPaths;
+
+        if (paths) {
+          // Generate signed URLs for downloads (valid for 7 days)
+          const [militaryUrl, civilianUrl, crosswalkUrl] = await Promise.all([
+            paths.militaryPdfPath ? getSignedDownloadUrl(paths.militaryPdfPath) : Promise.resolve(undefined),
+            paths.civilianPdfPath ? getSignedDownloadUrl(paths.civilianPdfPath) : Promise.resolve(undefined),
+            paths.crosswalkPdfPath ? getSignedDownloadUrl(paths.crosswalkPdfPath) : Promise.resolve(undefined),
+          ]);
+
+          await sendResumeEmail({
+            candidateId,
+            candidateEmail: candidate.email,
+            candidateName: candidate.name,
+            militaryPdfUrl: militaryUrl,
+            civilianPdfUrl: civilianUrl,
+            crosswalkPdfUrl: crosswalkUrl,
+            zipUrl: undefined, // ZIP generation can be added later
+          });
+
+          // Mark as emailed to prevent duplicates
+          await resumesCollection.doc(candidateId).update({
+            emailSentAt: FieldValue.serverTimestamp(),
+          });
+
+          console.log(`[processCandidate] Email sent successfully to: ${candidate.email}`);
+        } else {
+          console.warn('[processCandidate] No 3-PDF paths available for email');
+        }
+      } catch (emailError) {
+        // Non-fatal: log and continue
+        console.error('[processCandidate] Email notification failed:', emailError);
+      }
+    } else if (!candidate.email) {
+      console.log('[processCandidate] No email address provided, skipping email notification');
+    } else {
+      console.log('[processCandidate] Email already sent, skipping duplicate');
     }
 
     console.log(`[processCandidate] Completed successfully for: ${candidateId}`);

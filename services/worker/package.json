@@ -16,6 +16,7 @@
     "@google-cloud/storage": "^7.7.0",
     "@google-cloud/vertexai": "^1.9.0",
     "@resume-generator/shared": "file:../../packages/shared",
+    "@sendgrid/mail": "^8.1.6",
     "@types/archiver": "^7.0.0",
     "archiver": "^7.0.1",
     "cors": "^2.8.5",
