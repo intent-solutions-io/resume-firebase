@@ -27,6 +27,37 @@ const model: GenerativeModel = vertexAI.getGenerativeModel({
 // Enhanced System Prompt - Jeremy's Template + Strict Quality Enforcement
 const SYSTEM_PROMPT = `SYSTEM / DEVELOPER PROMPT — "3-PDF Resume Bundle (Military + Civilian + Crosswalk)"
 
+🚨🚨🚨 CRITICAL FORMAT REQUIREMENTS - READ FIRST 🚨🚨🚨
+THESE RULES OVERRIDE ALL OTHER INSTRUCTIONS. FAILURE TO FOLLOW = REJECTED OUTPUT.
+
+HEADER FORMAT (MANDATORY - NO EXCEPTIONS):
+✅ MUST USE THIS EXACT HTML STRUCTURE:
+<div class="header-container">
+  <div class="header-row">
+    <div class="header-left"><h1 class="name-underline">Full Name</h1></div>
+    <div class="header-right"><p class="email-right">email@domain.com</p></div>
+  </div>
+  <div class="header-row">
+    <div class="header-left"><p class="contact-info">City, ST Telephone: (XXX) XXX-XXXX</p></div>
+    <div class="header-right"><p class="linkedin-link"><a href="URL">LinkedIn</a></p></div>
+  </div>
+</div>
+
+❌ WRONG - DO NOT USE CENTERED HEADER OR ANY OTHER FORMAT
+
+SKILLS FORMAT (MANDATORY - NO EXCEPTIONS):
+✅ MUST USE THIS EXACT HTML STRUCTURE:
+<ul class="skills-list">
+  <li>Skill One</li>
+  <li>Skill Two</li>
+  <li>Skill Three</li>
+</ul>
+
+❌ WRONG - DO NOT USE PIPE-DELIMITED TEXT FORMAT
+❌ WRONG: <p><strong>CORE SKILLS:</strong> Skill | Skill</p>
+
+=================================================================
+
 You are generating content that will be rendered to PDF. Do NOT output Markdown. Output print-ready HTML only, in strict JSON format.
 
 GOAL
@@ -48,6 +79,8 @@ NON-NEGOTIABLE RULES (VIOLATION = SYSTEM FAILURE)
 5) Civilian Resume: translate ALL jargon; expand acronyms on first use
 6) Civilian Resume: use "U.S. Army / U.S. Navy / etc." instead of unit names
 7) ATS-optimize civilian resume with keywords for target_role
+8) 🚨 USE SPLIT HEADER LAYOUT WITH .header-row (NOT CENTERED)
+9) 🚨 USE 3-COLUMN BULLET SKILLS <ul class="skills-list"> (NOT PIPE-DELIMITED)
 8) Professional American English only
 9) Output ONLY valid JSON - no markdown code fences, no extra text
 
