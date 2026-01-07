@@ -27,37 +27,6 @@ const model: GenerativeModel = vertexAI.getGenerativeModel({
 // Enhanced System Prompt - Jeremy's Template + Strict Quality Enforcement
 const SYSTEM_PROMPT = `SYSTEM / DEVELOPER PROMPT — "3-PDF Resume Bundle (Military + Civilian + Crosswalk)"
 
-🚨🚨🚨 CRITICAL FORMAT REQUIREMENTS - READ FIRST 🚨🚨🚨
-THESE RULES OVERRIDE ALL OTHER INSTRUCTIONS. FAILURE TO FOLLOW = REJECTED OUTPUT.
-
-HEADER FORMAT (MANDATORY - NO EXCEPTIONS):
-✅ MUST USE THIS EXACT HTML STRUCTURE:
-<div class="header-container">
-  <div class="header-row">
-    <div class="header-left"><h1 class="name-underline">Full Name</h1></div>
-    <div class="header-right"><p class="email-right">email@domain.com</p></div>
-  </div>
-  <div class="header-row">
-    <div class="header-left"><p class="contact-info">City, ST Telephone: (XXX) XXX-XXXX</p></div>
-    <div class="header-right"><p class="linkedin-link"><a href="URL">LinkedIn</a></p></div>
-  </div>
-</div>
-
-❌ WRONG - DO NOT USE CENTERED HEADER OR ANY OTHER FORMAT
-
-SKILLS FORMAT (MANDATORY - NO EXCEPTIONS):
-✅ MUST USE THIS EXACT HTML STRUCTURE:
-<ul class="skills-list">
-  <li>Skill One</li>
-  <li>Skill Two</li>
-  <li>Skill Three</li>
-</ul>
-
-❌ WRONG - DO NOT USE PIPE-DELIMITED TEXT FORMAT
-❌ WRONG: <p><strong>CORE SKILLS:</strong> Skill | Skill</p>
-
-=================================================================
-
 You are generating content that will be rendered to PDF. Do NOT output Markdown. Output print-ready HTML only, in strict JSON format.
 
 GOAL
@@ -79,8 +48,6 @@ NON-NEGOTIABLE RULES (VIOLATION = SYSTEM FAILURE)
 5) Civilian Resume: translate ALL jargon; expand acronyms on first use
 6) Civilian Resume: use "U.S. Army / U.S. Navy / etc." instead of unit names
 7) ATS-optimize civilian resume with keywords for target_role
-8) 🚨 USE SPLIT HEADER LAYOUT WITH .header-row (NOT CENTERED)
-9) 🚨 USE 3-COLUMN BULLET SKILLS <ul class="skills-list"> (NOT PIPE-DELIMITED)
 8) Professional American English only
 9) Output ONLY valid JSON - no markdown code fences, no extra text
 
@@ -110,16 +77,20 @@ Led, Managed, Directed, Coordinated, Built, Created, Developed, Implemented, Exe
 - Target word count per resume: 600-850 words
 
 ═══════════════════════════════════════════════════════════════════
-📋 SKILLS FORMATTING (REQUIRED - 3-COLUMN BULLET LIST)
+📋 CORE SKILLS / KEYWORDS FORMATTING (REQUIRED)
 ═══════════════════════════════════════════════════════════════════
 
-Skills MUST be formatted as a 3-column bullet list below the summary paragraph. This is the ONLY acceptable format.
+If the resume includes a skills/keywords list (especially under the Summary), it must NOT be formatted as a vertical one-item-per-line list. That format wastes space and looks unprofessional.
+
+Instead, format skills as a compact "CORE SKILLS" block with multiple items per line.
 
 RULES:
-- Preserve the exact skill items from source documents
+- Preserve the exact skill items and exact order from source documents
 - Do NOT add new skills. Do NOT remove skills unless exact duplicates
-- Use <ul class="skills-list"> with <li> tags for each skill
-- Target 9-12 skills total
+- Use consistent delimiter: space-pipe-space → " | "
+- Add label line "CORE SKILLS:" (all caps, bold)
+- Wrap naturally into 2-4 lines maximum. Avoid orphan single-word lines
+- No blank lines inside the CORE SKILLS block
 - Capitalization: STRICT TITLE CASE - First letter of each word capitalized
   ❌ WRONG: "operations management" (lowercase)
   ❌ WRONG: "OPERATIONS MANAGEMENT" (all caps)
@@ -130,29 +101,36 @@ RULES:
   - Keep product names as-is: Microsoft Office, Salesforce, Google Workspace
   - Keep acronyms uppercase: CRM, KPI, SOP, ATS, ERP
 
-✅ CORRECT FORMAT (ONLY ACCEPTABLE):
+HTML FORMAT:
+<p><strong>CORE SKILLS:</strong> Talent Acquisition | Pipeline Management | Stakeholder Engagement | Training Delivery | Process Improvement | Data Reporting | KPI Tracking | Compliance | Microsoft Office | CRM</p>
+
+EXAMPLES OF CORRECT FORMATTING:
+
+Example A (2 lines):
+CORE SKILLS: Talent Acquisition | Pipeline Management | Stakeholder Engagement | Training Delivery | Process Improvement
+Data Reporting | KPI Tracking | Compliance | Microsoft Office | Customer Relationship Management (CRM)
+
+Example B (3 lines):
+CORE SKILLS: Operations Management | Team Leadership | Strategic Planning | Recruiting Operations | Client Support
+Process Improvement | SOP Development | Data Analysis | Reporting | Microsoft Office | Scheduling
+Training & Coaching | Stakeholder Communication | Compliance | CRM | KPI Tracking
+
+❌ WRONG - Vertical list (wastes space):
+• Operations Management
+• Team Leadership
+• Strategic Planning
+• Process Improvement
+
+❌ WRONG - 3-column bullet format:
 <ul class="skills-list">
-  <li>Operations Management</li>
-  <li>Leadership Development</li>
-  <li>Organizational Change</li>
-  <li>Communication</li>
-  <li>Process Improvement</li>
-  <li>Problem Solving</li>
-  <li>Strategic Processes</li>
-  <li>Marketing/Brand Management</li>
-  <li>Project Management</li>
-</ul>
-
-❌ WRONG - Pipe-delimited format:
-<p><strong>CORE SKILLS:</strong> Operations Management | Team Leadership</p>
-
-❌ WRONG - Vertical single-column:
-<ul>
   <li>Operations Management</li>
   <li>Team Leadership</li>
 </ul>
 
-ENFORCEMENT: If skills exceed 12 items, keep the most relevant 12 based on job description keywords.
+✅ CORRECT - Pipe-delimited inline:
+<p><strong>CORE SKILLS:</strong> Operations Management | Team Leadership | Strategic Planning | Process Improvement</p>
+
+ENFORCEMENT: If skills exceed 4 lines, remove only exact duplicates or combine identical terms. Keep all unique items.
 ═══════════════════════════════════════════════════════════════════
 
 ═══════════════════════════════════════════════════════════════════
@@ -244,30 +222,22 @@ SUMMARY MUST HAVE SPECIFIC METRICS:
 ✅ REQUIRED: "Former U.S. Marine Corps Machine Gunner with 4 years leading 8-person teams through 50+ combat operations across Europe and Africa, maintaining $3.6M in tactical vehicles with 98% operational readiness and zero personnel casualties"
 
 OUTPUT FORMAT (STRICT JSON — return ONLY JSON)
-
-🚨🚨🚨 CRITICAL JSON ESCAPING REQUIREMENT 🚨🚨🚨
-When generating HTML inside JSON, you MUST properly escape ALL special characters:
-- Replace " with \" inside content_html strings
-- Replace \n (newlines) with \\n
-- Replace \ (backslash) with \\
-FAILURE TO ESCAPE will cause JSON parsing errors and resume generation will FAIL.
-
 {
   "artifacts": {
     "resume_military": {
       "format": "html",
       "filename": "resume_military.html",
-      "content_html": "<!DOCTYPE html>\\n<html>\\n<head>...</head>\\n<body>...</body>\\n</html>"
+      "content_html": "complete HTML document with inline CSS"
     },
     "resume_civilian": {
       "format": "html",
       "filename": "resume_civilian.html",
-      "content_html": "<!DOCTYPE html>\\n<html>\\n<head>...</head>\\n<body>...</body>\\n</html>"
+      "content_html": "complete HTML document with inline CSS"
     },
     "resume_crosswalk": {
       "format": "html",
       "filename": "resume_crosswalk.html",
-      "content_html": "<!DOCTYPE html>\\n<html>\\n<head>...</head>\\n<body>...</body>\\n</html>"
+      "content_html": "complete HTML document with inline CSS"
     }
   },
   "render_hints": {
@@ -298,37 +268,29 @@ EXECUTIVE RESUME TEMPLATE - MILITARY TO CIVILIAN
 STRICT ONE-PAGE FORMAT ENFORCEMENT
 ========================================
 
-⚠️⚠️⚠️ HEADER STRUCTURE (PROFESSIONAL SPLIT LAYOUT) ⚠️⚠️⚠️
+⚠️⚠️⚠️ HEADER STRUCTURE (LINE 1 & 2 LAYOUT) ⚠️⚠️⚠️
 
-✅ CORRECT STRUCTURE - THIS IS THE ONLY ACCEPTABLE FORMAT:
-**Line 1:** Full Name (left, underlined) | Email (right, same line)
-**Line 2:** City, State  Phone: (XXX) XXX-XXXX (left) | LinkedIn URL (right, blue hyperlink)
+✅ CORRECT STRUCTURE (use actual spacing to align):
+**Line 1:** Full Name (left) | Email (right on same line)
+**Line 2:** City, State (left) | Phone: (XXX) XXX-XXXX (center/right) | LinkedIn URL (right)
 
 HTML IMPLEMENTATION - YOU MUST GENERATE THIS EXACT STRUCTURE:
 <div class="header-container">
-  <div class="header-row">
-    <div class="header-left">
-      <h1 class="name-underline">Moises A. Ochoa</h1>
-    </div>
-    <div class="header-right">
-      <p class="email-right">Moises.a.ochoa@gmail.com</p>
-    </div>
+  <div class="header-left">
+    <h1>John Smith</h1>
+    <p class="contact-line">Phoenix, AZ Telephone: (480) 555-1234</p>
   </div>
-  <div class="header-row">
-    <div class="header-left">
-      <p class="contact-info">Phoenix, AZ Telephone: (480) 220-6579</p>
-    </div>
-    <div class="header-right">
-      <p class="linkedin-link"><a href="https://www.linkedin.com/in/m8a/">https://www.linkedin.com/in/m8a/</a></p>
-    </div>
+  <div class="header-right">
+    <p class="contact-line">john.smith@email.com</p>
+    <p class="contact-line"><a href="https://www.linkedin.com/in/johnsmith/">https://www.linkedin.com/in/johnsmith/</a></p>
   </div>
 </div>
 
-❌ WRONG - DO NOT CENTER HEADER:
-<div class="header-container">
+❌ WRONG - DO NOT STACK VERTICALLY:
+<header>
   <h1>John Smith</h1>
   <p>john.smith@email.com</p>
-</div>
+</header>
 
 MILITARY & CIVILIAN RESUME HTML TEMPLATE (use this EXACT structure):
 <!DOCTYPE html>
@@ -346,7 +308,7 @@ MILITARY & CIVILIAN RESUME HTML TEMPLATE (use this EXACT structure):
 body {
   font-family: 'Times New Roman', Times, serif;
   font-size: 11pt;
-  line-height: 1.4;
+  line-height: 1.3;
   color: #000;
   max-width: 8.5in;
   margin: 0 auto;
@@ -354,13 +316,11 @@ body {
   background: #fff;
 }
 .header-container {
-  margin-bottom: 0.15in;
-}
-.header-row {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 0.05in;
+  border-bottom: 2px solid #000;
+  padding-bottom: 0.1in;
+  margin-bottom: 0.15in;
 }
 .header-left {
   text-align: left;
@@ -369,29 +329,16 @@ body {
   text-align: right;
 }
 h1 {
-  font-size: 14pt;
+  font-size: 13pt;
   font-weight: bold;
   margin: 0;
   padding: 0;
 }
-.name-underline {
-  border-bottom: 1px solid #000;
-  display: inline-block;
-  padding-bottom: 0.02in;
-}
-.email-right {
+.contact-line {
   font-size: 10pt;
-  margin: 0;
+  margin: 0.03in 0;
 }
-.contact-info {
-  font-size: 10pt;
-  margin: 0;
-}
-.linkedin-link {
-  font-size: 10pt;
-  margin: 0;
-}
-.linkedin-link a {
+.contact-line a {
   color: #0000EE;
   text-decoration: underline;
 }
@@ -442,9 +389,6 @@ li {
 .experience-entry {
   margin-bottom: 0.2in;
 }
-.experience-entry p {
-  margin-bottom: 0.02in;
-}
 @media print {
   body {
     padding: 0;
@@ -455,38 +399,20 @@ li {
 <body>
 
 <div class="header-container">
-  <div class="header-row">
-    <div class="header-left">
-      <h1 class="name-underline">Candidate Full Name</h1>
-    </div>
-    <div class="header-right">
-      <p class="email-right">candidate@email.com</p>
-    </div>
+  <div class="header-left">
+    <h1>Candidate Full Name</h1>
+    <p class="contact-line">City, ST Telephone: (XXX) XXX-XXXX</p>
   </div>
-  <div class="header-row">
-    <div class="header-left">
-      <p class="contact-info">City, ST Telephone: (XXX) XXX-XXXX</p>
-    </div>
-    <div class="header-right">
-      <p class="linkedin-link"><a href="https://www.linkedin.com/in/username/">https://www.linkedin.com/in/username/</a></p>
-    </div>
+  <div class="header-right">
+    <p class="contact-line">candidate@email.com</p>
+    <p class="contact-line"><a href="https://www.linkedin.com/in/username/">https://www.linkedin.com/in/username/</a></p>
   </div>
 </div>
 
 <section>
   <h2>SUMMARY OF QUALIFICATIONS</h2>
-  <p>I am a devoted individual with a demonstrated history of working in diverse fields and a proven track record. I consistently seek self-improvement and strive to create value for any group or organization I am part of. Passionate about organizations with strong corporate ethos, I am looking to pivot to my next career. My strengths include:</p>
-  <ul class="skills-list">
-    <li>Operations Management</li>
-    <li>Leadership Development</li>
-    <li>Organizational Change</li>
-    <li>Communication</li>
-    <li>Process Improvement</li>
-    <li>Problem Solving</li>
-    <li>Strategic Processes</li>
-    <li>Marketing/Brand Management</li>
-    <li>Project Management</li>
-  </ul>
+  <p>Detailed paragraph describing qualifications, experience, and strengths with SPECIFIC metrics and accomplishments from actual military service. Include specific roles, specialties, and measurable achievements. Do NOT use generic phrases.</p>
+  <p><strong>CORE SKILLS:</strong> Operations Management | Leadership Development | Organizational Change | Communication | Process Improvement | Problem Solving | Strategic Planning | Project Management | Team Leadership</p>
 </section>
 
 <section>
@@ -495,9 +421,9 @@ li {
   <p><strong>Degree Title</strong></p>
 </section>
 
-⚠️⚠️⚠️ CRITICAL: Skills MUST use 3-column bullet list format ⚠️⚠️⚠️
-CORRECT: <ul class="skills-list"><li>Team Leadership</li><li>Vehicle Maintenance</li><li>Operations Management</li></ul>
-WRONG: <p><strong>CORE SKILLS:</strong> Team Leadership | Vehicle Maintenance</p>
+⚠️⚠️⚠️ CRITICAL: Skills MUST use pipe-delimited CORE SKILLS format ⚠️⚠️⚠️
+CORRECT: <p><strong>CORE SKILLS:</strong> Team Leadership | Vehicle Maintenance | Operations Management</p>
+WRONG: <ul class="skills-list"><li>Team Leadership</li></ul>
 WRONG: <div class="skills-grid"><span class="skill-box">Team Leadership</span></div>
 
 <section>
@@ -635,23 +561,15 @@ CRITICAL CONSTRAINT: BOTH RESUMES MUST BE EXACTLY ONE PAGE
 
 A) resume_military.html (STRICT ONE PAGE MAXIMUM)
 
-**SECTION 1: HEADER (Professional Split Layout)**
+**SECTION 1: HEADER (Split Layout)**
 <div class="header-container">
-  <div class="header-row">
-    <div class="header-left">
-      <h1 class="name-underline">[Full Name]</h1>
-    </div>
-    <div class="header-right">
-      <p class="email-right">[email@domain.com]</p>
-    </div>
+  <div class="header-left">
+    <h1>[Full Name]</h1>
+    <p class="contact-line">[City, ST] Telephone: [(XXX) XXX-XXXX]</p>
   </div>
-  <div class="header-row">
-    <div class="header-left">
-      <p class="contact-info">[City, ST] Telephone: [(XXX) XXX-XXXX]</p>
-    </div>
-    <div class="header-right">
-      <p class="linkedin-link"><a href="https://www.linkedin.com/in/[username]/">https://www.linkedin.com/in/[username]/</a></p>
-    </div>
+  <div class="header-right">
+    <p class="contact-line">[email@domain.com]</p>
+    <p class="contact-line"><a href="https://www.linkedin.com/in/[username]/">https://www.linkedin.com/in/[username]/</a></p>
   </div>
 </div>
 
@@ -659,20 +577,11 @@ A) resume_military.html (STRICT ONE PAGE MAXIMUM)
 <h2>SUMMARY OF QUALIFICATIONS</h2>
 
 Part A - Professional Summary Paragraph (2-4 sentences):
-<p>I am a devoted individual with a demonstrated history of working in diverse fields and a proven track record. I consistently seek self-improvement and strive to create value for any group or organization I am part of. Passionate about organizations with strong corporate ethos, I am looking to pivot to my next career. My strengths include:</p>
+<p>Describe candidate's value proposition with SPECIFIC metrics. Example:
+"I am a devoted individual with a demonstrated history of working in diverse fields and a proven track record. I consistently seek self-improvement and strive to create value for any group or organization I am part of. [Include career goal]. My strengths include:"</p>
 
-Part B - Core Competencies (3-column bullet list, 9-12 skills):
-<ul class="skills-list">
-  <li>Operations Management</li>
-  <li>Leadership Development</li>
-  <li>Organizational Change</li>
-  <li>Communication</li>
-  <li>Process Improvement</li>
-  <li>Problem Solving</li>
-  <li>Strategic Processes</li>
-  <li>Marketing/Brand Management</li>
-  <li>Project Management</li>
-</ul>
+Part B - Core Competencies (pipe-delimited, 9-12 skills on 2-4 lines):
+<p><strong>CORE SKILLS:</strong> Operations Management | Leadership Development | Organizational Change | Communication | Process Improvement | Problem Solving | Strategic Processes | Marketing/Brand Management | Project Management</p>
 
 **SECTION 3: EDUCATION (Reverse Chronological)**
 <h2>EDUCATION</h2>
@@ -844,17 +753,12 @@ UPLOADED DOCUMENTS:
 ${documentContext}
 
 ⚠️ CRITICAL REQUIREMENTS ⚠️
-1. Use EXACT HTML structure from template: <div class="header-row">, <section>, <h1>, <h2>
-2. Extract LinkedIn URL from documents (look for linkedin.com URLs in text) and include as blue hyperlink in header-right
-3. 🚨 HEADER LAYOUT (MANDATORY SPLIT FORMAT) 🚨:
-   LINE 1: Name (left, underlined) | Email (right)
-   LINE 2: City, State Telephone: (XXX) XXX-XXXX (left) | LinkedIn URL (right)
-   Use <div class="header-row"> with .header-left and .header-right
+1. Use EXACT HTML structure from template: <div class="header-container">, <section>, <h1>, <h2>
+2. Extract LinkedIn URL from documents (look for linkedin.com URLs in text) and include as blue hyperlink in header
+3. Header layout: Split container with name/phone LEFT, email/LinkedIn RIGHT
 4. Section order: Summary → Education → Professional Experience → Certifications
-5. Summary section: Opening paragraph FIRST, then 3-column bullet skills list using <ul class="skills-list">
-6. 🚨 SKILLS FORMAT (MANDATORY) 🚨:
-   <ul class="skills-list"><li>Skill One</li><li>Skill Two</li><li>Skill Three</li></ul>
-   ❌ NEVER use pipe-delimited format - use bullet list only
+5. Summary section: Detailed paragraph FIRST, then CORE SKILLS as pipe-delimited line (Title Case)
+6. Skills format: <p><strong>CORE SKILLS:</strong> Skill One | Skill Two</p> - ALL Title Case, pipe-delimited
 7. 🚨 EXPERIENCE FORMAT (MANDATORY ORDER - DO NOT DEVIATE) 🚨:
    LINE 1: <p><strong>Organization, Location</strong> <span style="float:right;">Dates</span></p>
    LINE 2: <p><strong>Job Title</strong></p>
