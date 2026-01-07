@@ -57,35 +57,25 @@ Benefits:
 `;
 
 /**
- * Validation Thresholds for E2E Tests
+ * Validation Thresholds - PRODUCTION STANDARDS
  *
- * NOTE: These are E2E test thresholds, which are more lenient than production targets.
- * AI-generated content has inherent variance, so E2E tests use lower thresholds to
- * avoid flaky failures while still verifying the system functions correctly.
- *
- * Production targets (in vertexThreePdf.ts):
- * - ATS Score: 85+
- * - Keyword Coverage: 80%+
- *
- * E2E test thresholds (more lenient for AI variance):
- * - ATS Score: 75+ (allows 10-point variance)
- * - Keyword Coverage: 65%+ (allows 15% variance)
+ * These are production-grade thresholds. No compromises.
+ * If AI can't hit these, fix the prompt - don't lower the bar.
  */
 export const VALIDATION_THRESHOLDS = {
-  MIN_ATS_SCORE: 75,           // Production: 85, E2E allows variance
-  MIN_KEYWORD_COVERAGE: 65,    // Production: 80, E2E allows AI variance
+  MIN_ATS_SCORE: 85,           // Production standard - no exceptions
+  MIN_KEYWORD_COVERAGE: 80,    // Production standard - no exceptions
   MAX_BANNED_PHRASES: 0,
   MIN_WORD_COUNT: 500,
   MAX_WORD_COUNT: 1000,
 };
 
 /**
- * Soft thresholds - used for warnings rather than hard failures
- * Tests will log warnings if below these but won't fail
+ * Soft thresholds - for logging only, same as production
  */
 export const SOFT_THRESHOLDS = {
-  TARGET_ATS_SCORE: 85,        // Log warning if below
-  TARGET_KEYWORD_COVERAGE: 80, // Log warning if below
+  TARGET_ATS_SCORE: 85,
+  TARGET_KEYWORD_COVERAGE: 80,
 };
 
 // Sample DD-214 text for testing document upload
