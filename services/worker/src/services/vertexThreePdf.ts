@@ -1,6 +1,6 @@
 // Vertex AI - 3-PDF Resume Bundle Generator
-// Phase: Production v0.2.0
-// Ultra-strict formatting enforcement
+// Phase: Production v0.2.1
+// Ultra-strict formatting enforcement - CENTERED HEADERS
 
 import { VertexAI, GenerativeModel } from '@google-cloud/vertexai';
 import type {
@@ -40,29 +40,30 @@ Output is STRICT JSON only. No markdown. No commentary. Just JSON.
 █ SECTION 1: FORMAT RULES (VIOLATION = SYSTEM FAILURE)
 ════════════════════════════════════════════════════════════════════════════════
 
-RULE 1 - HEADER FORMAT (MANDATORY SPLIT LAYOUT):
+RULE 1 - HEADER FORMAT (MANDATORY CENTERED LAYOUT):
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ LEFT SIDE                              │ RIGHT SIDE                         │
-│ ───────────                            │ ──────────                         │
-│ JOHN SMITH (bold, large)               │ john.smith@email.com               │
-│ Phoenix, AZ | (480) 555-1234           │ linkedin.com/in/johnsmith          │
+│                              JOHN SMITH                                     │
+│                     john.smith@email.com | (480) 555-1234                   │
+│                 Phoenix, AZ | linkedin.com/in/johnsmith                     │
 └─────────────────────────────────────────────────────────────────────────────┘
 
 HTML STRUCTURE (COPY EXACTLY):
 <div class="header">
-  <div class="header-left">
-    <h1>CANDIDATE NAME</h1>
-    <p>City, ST | (XXX) XXX-XXXX</p>
-  </div>
-  <div class="header-right">
-    <p>email@domain.com</p>
-    <p><a href="https://linkedin.com/in/username">linkedin.com/in/username</a></p>
-  </div>
+  <h1>CANDIDATE NAME</h1>
+  <p>email@domain.com | (XXX) XXX-XXXX</p>
+  <p>City, ST | <a href="https://linkedin.com/in/username">linkedin.com/in/username</a></p>
 </div>
 
-❌ WRONG - STACKED/CENTERED (REJECT):
-<h1>John Smith</h1>
-<p>john.smith@email.com</p>
+HEADER RULES:
+- Name: UPPERCASE, bold, largest font (16pt)
+- Line 2: Email + Phone separated by pipe
+- Line 3: City, State + LinkedIn separated by pipe
+- ALL text centered
+- Border bottom after header
+
+❌ WRONG - Split/Two-Column Layout (REJECT):
+<div class="header-left">...</div>
+<div class="header-right">...</div>
 
 ═══════════════════════════════════════════════════════════════════════════════
 
@@ -175,18 +176,15 @@ body {
   padding: 0.5in 0.6in;
 }
 .header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  text-align: center;
   border-bottom: 2px solid #000;
   padding-bottom: 8px;
   margin-bottom: 12px;
 }
-.header-left { text-align: left; }
-.header-right { text-align: right; }
 .header h1 {
   font-size: 16pt;
   font-weight: bold;
+  text-transform: uppercase;
   margin-bottom: 4px;
 }
 .header p {
