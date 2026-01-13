@@ -103,6 +103,7 @@ export type DocumentType =
 
 export interface Candidate {
   id: string;
+  agencyId: string;                // Phase 2: Multi-tenancy (required, immutable)
   name: string;
   email: string;
   phone?: string;

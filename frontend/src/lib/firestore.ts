@@ -51,6 +51,7 @@ export interface CandidateInput {
   city?: string;
   state?: string;
   targetJobDescription?: string; // Optional job posting for keyword optimization
+  agencyId?: string; // Phase 2: Multi-tenancy (optional for backwards compatibility)
 }
 
 export interface Candidate extends CandidateInput {

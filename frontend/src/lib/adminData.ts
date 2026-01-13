@@ -113,6 +113,7 @@ const candidateConverter: FirestoreDataConverter<Candidate> = {
     const data = snapshot.data(options);
     return {
       id: snapshot.id,
+      agencyId: data.agencyId,  // Phase 2: Multi-tenancy
       name: data.name ?? '',
       email: data.email ?? '',
       branch: data.branch ?? 'Army',
@@ -223,6 +224,7 @@ const generatedResumeConverter: FirestoreDataConverter<GeneratedResume> = {
 
 /**
  * Fetch all candidates, optionally filtered by status
+ * @deprecated Use fetchAgencyCandidates for multi-tenant queries
  */
 export async function fetchAllCandidates(
   statusFilter?: CandidateStatus
@@ -243,7 +245,33 @@ export async function fetchAllCandidates(
 }
 
 /**
+ * Fetch candidates for a specific agency (Phase 2: Multi-tenancy)
+ */
+export async function fetchAgencyCandidates(
+  agencyId: string,
+  statusFilter?: CandidateStatus
+): Promise<Candidate[]> {
+  const db = getFirestoreDb();
+  const candidatesRef = collection(db, 'candidates').withConverter(candidateConverter);
+
+  const constraints: QueryConstraint[] = [
+    where('agencyId', '==', agencyId),
+    orderBy('createdAt', 'desc'),
+  ];
+
+  if (statusFilter) {
+    constraints.splice(1, 0, where('status', '==', statusFilter));
+  }
+
+  const q = query(candidatesRef, ...constraints);
+  const snapshot = await getDocs(q);
+
+  return snapshot.docs.map((doc) => doc.data());
+}
+
+/**
  * Subscribe to all candidates (real-time updates)
+ * @deprecated Use subscribeToAgencyCandidates for multi-tenant queries
  */
 export function subscribeToAllCandidates(
   callback: (candidates: Candidate[]) => void,
@@ -256,6 +284,34 @@ export function subscribeToAllCandidates(
 
   if (statusFilter) {
     constraints.unshift(where('status', '==', statusFilter));
+  }
+
+  const q = query(candidatesRef, ...constraints);
+
+  return onSnapshot(q, (snapshot) => {
+    const candidates = snapshot.docs.map((doc) => doc.data());
+    callback(candidates);
+  });
+}
+
+/**
+ * Subscribe to agency candidates (real-time updates) - Phase 2: Multi-tenancy
+ */
+export function subscribeToAgencyCandidates(
+  agencyId: string,
+  callback: (candidates: Candidate[]) => void,
+  statusFilter?: CandidateStatus
+): Unsubscribe {
+  const db = getFirestoreDb();
+  const candidatesRef = collection(db, 'candidates').withConverter(candidateConverter);
+
+  const constraints: QueryConstraint[] = [
+    where('agencyId', '==', agencyId),
+    orderBy('createdAt', 'desc'),
+  ];
+
+  if (statusFilter) {
+    constraints.splice(1, 0, where('status', '==', statusFilter));
   }
 
   const q = query(candidatesRef, ...constraints);
