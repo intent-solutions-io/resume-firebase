@@ -155,6 +155,69 @@ body {
   font-size: 11pt !important;
   line-height: 1.4 !important;
 }
+
+/* ===== CROSSWALK DOCUMENT ===== */
+.crosswalk-section {
+  border: 2px solid #333 !important;
+  margin-bottom: 16px !important;
+  padding: 12px !important;
+  page-break-inside: avoid !important;
+}
+
+.crosswalk-section h3 {
+  font-size: 12pt !important;
+  border-bottom: 1px solid #333 !important;
+  padding-bottom: 4px !important;
+  margin-bottom: 12px !important;
+  text-transform: uppercase !important;
+}
+
+.role-translation {
+  margin-bottom: 16px !important;
+  padding: 8px !important;
+  background: #fafafa !important;
+}
+
+.translation-row {
+  display: flex !important;
+  align-items: center !important;
+  margin: 6px 0 !important;
+  padding: 4px 0 !important;
+  border-bottom: 1px dotted #ddd !important;
+}
+
+.military-term {
+  flex: 1 !important;
+  color: #666 !important;
+  font-style: italic !important;
+}
+
+.arrow {
+  margin: 0 16px !important;
+  color: #C59141 !important;
+  font-weight: bold !important;
+}
+
+.civilian-term {
+  flex: 1 !important;
+  font-weight: bold !important;
+  color: #000 !important;
+}
+
+.metrics-preserved {
+  background: #e8f5e9 !important;
+  padding: 8px 12px !important;
+  margin-top: 12px !important;
+  border-left: 4px solid #38a169 !important;
+}
+
+.metrics-preserved ul {
+  margin-left: 16px !important;
+}
+
+.metrics-preserved li {
+  color: #2d6a4f !important;
+}
 `;
 
 /**
