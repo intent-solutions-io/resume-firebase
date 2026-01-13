@@ -216,6 +216,22 @@ ul { margin-left: 18px; margin-top: 4px; }
 li { margin-bottom: 3px; }
 .education-entry { margin-bottom: 8px; }
 .education-entry p:first-child { display: flex; justify-content: space-between; }
+/* Crosswalk Document Styles */
+.crosswalk-section { border: 2px solid #333; margin-bottom: 16px; padding: 12px; page-break-inside: avoid; }
+.crosswalk-section h3 { font-size: 12pt; border-bottom: 1px solid #333; padding-bottom: 4px; margin-bottom: 12px; text-transform: uppercase; }
+.role-translation { margin-bottom: 16px; padding: 8px; background: #fafafa; }
+.role-translation h4 { font-size: 11pt; margin-bottom: 8px; color: #333; }
+.translation-row { display: flex; align-items: center; margin: 6px 0; padding: 4px 0; border-bottom: 1px dotted #ddd; }
+.military-term { flex: 1; color: #666; font-style: italic; }
+.arrow { margin: 0 16px; color: #C59141; font-weight: bold; }
+.civilian-term { flex: 1; font-weight: bold; color: #000; }
+.metrics-preserved { background: #e8f5e9; padding: 8px 12px; margin-top: 12px; border-left: 4px solid #38a169; }
+.metrics-preserved strong { display: block; margin-bottom: 4px; }
+.metrics-preserved ul { margin-left: 16px; }
+.metrics-preserved li { color: #2d6a4f; margin-bottom: 2px; }
+.acronym-glossary { margin-top: 16px; }
+.acronym-glossary dt { font-weight: bold; float: left; width: 100px; }
+.acronym-glossary dd { margin-left: 110px; margin-bottom: 4px; }
 
 ════════════════════════════════════════════════════════════════════════════════
 █ SECTION 4: OUTPUT FORMAT (STRICT JSON)
@@ -275,9 +291,67 @@ RETURN THIS EXACT STRUCTURE:
    - Civilian titles (Operations Manager, Team Leader)
 
 3. CROSSWALK DOCUMENT (1-2 pages):
-   - Table mapping military terms → civilian translations
-   - Side-by-side bullet comparisons
-   - Translation notes explaining changes
+   This is a TRANSLATION GUIDE showing how military terms were converted.
+   Format as SECTION-BY-SECTION translations, NOT a side-by-side table.
+
+   HTML STRUCTURE FOR CROSSWALK:
+   <div class="crosswalk-section">
+     <h3>EXPERIENCE TRANSLATIONS</h3>
+
+     <div class="role-translation">
+       <h4>Role 1: [Original Military Title]</h4>
+
+       <div class="translation-row">
+         <span class="military-term">SSgt, USAF</span>
+         <span class="arrow">→</span>
+         <span class="civilian-term">Senior Supervisor</span>
+       </div>
+       <div class="translation-row">
+         <span class="military-term">423d SFS, RAF Alconbury</span>
+         <span class="arrow">→</span>
+         <span class="civilian-term">Security Operations, UK Region</span>
+       </div>
+       <div class="translation-row">
+         <span class="military-term">Led 45-person flight</span>
+         <span class="arrow">→</span>
+         <span class="civilian-term">Managed 45-person team</span>
+       </div>
+       <div class="translation-row">
+         <span class="military-term">AT/FP program</span>
+         <span class="arrow">→</span>
+         <span class="civilian-term">Security Risk Program</span>
+       </div>
+
+       <div class="metrics-preserved">
+         <strong>Metrics Preserved:</strong>
+         <ul>
+           <li>4,200 personnel protected</li>
+           <li>$1.3B in assets secured</li>
+           <li>100% inspection compliance</li>
+         </ul>
+       </div>
+     </div>
+   </div>
+
+   CROSSWALK CSS (add to style):
+   .crosswalk-section { border: 2px solid #333; margin-bottom: 16px; padding: 12px; }
+   .crosswalk-section h3 { font-size: 12pt; border-bottom: 1px solid #333; padding-bottom: 4px; margin-bottom: 12px; text-transform: uppercase; }
+   .role-translation { margin-bottom: 16px; padding: 8px; background: #fafafa; }
+   .role-translation h4 { font-size: 11pt; margin-bottom: 8px; color: #333; }
+   .translation-row { display: flex; align-items: center; margin: 6px 0; padding: 4px 0; border-bottom: 1px dotted #ddd; }
+   .military-term { flex: 1; color: #666; font-style: italic; }
+   .arrow { margin: 0 16px; color: #C59141; font-weight: bold; font-size: 14pt; }
+   .civilian-term { flex: 1; font-weight: bold; color: #000; }
+   .metrics-preserved { background: #e8f5e9; padding: 8px 12px; margin-top: 12px; border-left: 4px solid #38a169; }
+   .metrics-preserved strong { display: block; margin-bottom: 4px; }
+   .metrics-preserved ul { margin-left: 16px; }
+   .metrics-preserved li { color: #2d6a4f; }
+
+   CROSSWALK SECTIONS TO INCLUDE:
+   1. EXPERIENCE TRANSLATIONS - Each role with term-by-term mappings
+   2. EDUCATION TRANSLATIONS - Any degree/cert terminology changes
+   3. SKILLS TRANSLATIONS - Military skills → civilian equivalents
+   4. ACRONYM GLOSSARY - List all acronyms with expansions
 
 ════════════════════════════════════════════════════════════════════════════════
 █ FINAL CHECKLIST (VERIFY BEFORE OUTPUT)
