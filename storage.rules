@@ -1,32 +1,79 @@
 rules_version = '2';
 
 // Cloud Storage Security Rules for Resume Generator
-// All access via signed URLs from API - no direct client access
+// Phase 2: Agency-Based Multi-Tenancy
 
 service firebase.storage {
   match /b/{bucket}/o {
-    // Raw uploads - write via signed URL only
-    match /cases/{caseId}/raw/{allPaths=**} {
-      // No direct access - all uploads via signed URLs
-      allow read, write: if false;
-    }
 
-    // Artifacts - read via signed URL only
-    match /cases/{caseId}/artifacts/{allPaths=**} {
-      // No direct access - all downloads via signed URLs
-      allow read, write: if false;
-    }
+    // =============================================
+    // Agency-Scoped Storage (Phase 2)
+    // =============================================
 
-    // Operation Hired - Candidate document uploads
-    match /candidates/{candidateId}/uploads/{fileName} {
-      // Allow direct uploads from client (public intake flow)
+    // Agency candidate uploads (new multi-tenant structure)
+    // Path: agencies/{agencyId}/candidates/{candidateId}/uploads/{fileName}
+    match /agencies/{agencyId}/candidates/{candidateId}/uploads/{fileName} {
+      // Allow uploads with file type and size validation
+      // Auth validation handled at API level (signed URLs)
       allow write: if request.resource.size < 10 * 1024 * 1024  // 10MB max
-                   && request.resource.contentType.matches('(application/pdf|image/.*)|(application/msword|application/vnd.openxmlformats-officedocument.wordprocessingml.document)');
-      // Allow read for download
+                   && request.resource.contentType.matches('(application/pdf|image/.*)|(application/msword|application/vnd.openxmlformats-officedocument.wordprocessingml.document)|(text/plain)');
       allow read: if true;
     }
 
-    // Deny all other access
+    // Agency candidate exports (PDFs, DOCX)
+    // Path: agencies/{agencyId}/candidates/{candidateId}/exports/{fileName}
+    match /agencies/{agencyId}/candidates/{candidateId}/exports/{fileName} {
+      // Server writes via service account
+      allow write: if false;  // Server-only via signed URLs
+      allow read: if true;    // Downloads via signed URLs
+    }
+
+    // Agency documents (logos, branding)
+    // Path: agencies/{agencyId}/assets/{fileName}
+    match /agencies/{agencyId}/assets/{fileName} {
+      allow write: if request.resource.size < 5 * 1024 * 1024  // 5MB max
+                   && request.resource.contentType.matches('image/.*');
+      allow read: if true;
+    }
+
+    // =============================================
+    // Legacy Paths (Backwards Compatibility)
+    // TODO: Migrate existing files to agency-scoped paths
+    // =============================================
+
+    // Legacy candidate uploads (pre-multi-tenancy)
+    match /candidates/{candidateId}/uploads/{fileName} {
+      allow write: if request.resource.size < 10 * 1024 * 1024
+                   && request.resource.contentType.matches('(application/pdf|image/.*)|(application/msword|application/vnd.openxmlformats-officedocument.wordprocessingml.document)|(text/plain)');
+      allow read: if true;
+    }
+
+    // Legacy candidate documents
+    match /candidates/{candidateId}/documents/{fileName} {
+      allow write: if request.resource.size < 10 * 1024 * 1024
+                   && request.resource.contentType.matches('(application/pdf|image/.*)|(application/msword|application/vnd.openxmlformats-officedocument.wordprocessingml.document)|(text/plain)');
+      allow read: if true;
+    }
+
+    // Legacy exports (server-written PDFs)
+    match /candidates/{candidateId}/exports/{fileName} {
+      allow write: if false;  // Server-only
+      allow read: if true;
+    }
+
+    // Legacy case paths
+    match /cases/{caseId}/raw/{allPaths=**} {
+      allow read, write: if false;
+    }
+
+    match /cases/{caseId}/artifacts/{allPaths=**} {
+      allow read, write: if false;
+    }
+
+    // =============================================
+    // Default Deny
+    // =============================================
+
     match /{allPaths=**} {
       allow read, write: if false;
     }

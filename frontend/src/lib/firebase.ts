@@ -1,9 +1,11 @@
 // Firebase Client SDK Initialization
-// Used for direct Firestore and Storage access from the frontend
+// Used for direct Firestore, Storage, and Auth access from the frontend
+// Phase 2: Added Auth for multi-tenancy
 
 import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
 import { getFirestore, Firestore } from 'firebase/firestore';
 import { getStorage, FirebaseStorage } from 'firebase/storage';
+import { getAuth, Auth } from 'firebase/auth';
 
 // Firebase configuration from environment variables
 const firebaseConfig = {
@@ -19,6 +21,7 @@ const firebaseConfig = {
 let app: FirebaseApp | null = null;
 let db: Firestore | null = null;
 let storage: FirebaseStorage | null = null;
+let auth: Auth | null = null;
 
 function initializeFirebase(): FirebaseApp {
   if (getApps().length > 0) {
@@ -46,6 +49,13 @@ export function getFirebaseStorage(): FirebaseStorage {
     storage = getStorage(getFirebaseApp());
   }
   return storage;
+}
+
+export function getFirebaseAuth(): Auth {
+  if (!auth) {
+    auth = getAuth(getFirebaseApp());
+  }
+  return auth;
 }
 
 // Check if Firebase is configured

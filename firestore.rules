@@ -1,85 +1,177 @@
 rules_version = '2';
 
 // Firestore Security Rules for Resume Generator
-// Public (no-login) access with App Check enforcement
+// Phase 2: Agency-Based Multi-Tenancy
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper function to verify App Check token
-    function isAppCheckVerified() {
-      return request.auth == null || request.auth.token.firebase.sign_in_provider == 'anonymous';
+    // =============================================
+    // Helper Functions
+    // =============================================
+
+    // Check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
     }
 
-    // Cases collection - users can read their own case by ID
-    match /cases/{caseId} {
-      // Anyone can create a case (rate limited at API level)
-      allow create: if true;
+    // Get the current user's agency membership
+    function getAgencyUser() {
+      return get(/databases/$(database)/documents/agencyUsers/$(request.auth.uid)).data;
+    }
 
-      // Read allowed with case ID (acts as access token)
-      allow read: if true;
+    // Check if user belongs to a specific agency
+    function isAgencyMember(agencyId) {
+      return isAuthenticated()
+        && exists(/databases/$(database)/documents/agencyUsers/$(request.auth.uid))
+        && getAgencyUser().agencyId == agencyId;
+    }
 
-      // No updates or deletes from client
+    // Check if user is admin or owner of agency
+    function isAgencyAdmin(agencyId) {
+      return isAgencyMember(agencyId)
+        && getAgencyUser().role in ['admin', 'owner'];
+    }
+
+    // Check if user is owner of agency
+    function isAgencyOwner(agencyId) {
+      return isAgencyMember(agencyId)
+        && getAgencyUser().role == 'owner';
+    }
+
+    // =============================================
+    // Agency Collections (Phase 2: Multi-Tenancy)
+    // =============================================
+
+    // Agencies collection
+    match /agencies/{agencyId} {
+      // Members can read their agency
+      allow read: if isAgencyMember(agencyId);
+
+      // Only admins/owners can update agency settings
+      allow update: if isAgencyAdmin(agencyId);
+
+      // Agency creation handled by backend (Cloud Functions)
+      allow create: if false;
+
+      // Only owner can delete (soft delete via status change preferred)
+      allow delete: if isAgencyOwner(agencyId);
+    }
+
+    // Agency users collection
+    match /agencyUsers/{userId} {
+      // Users can read their own record
+      allow read: if isAuthenticated() && request.auth.uid == userId;
+
+      // Admins can read all users in their agency
+      allow read: if isAuthenticated()
+        && exists(/databases/$(database)/documents/agencyUsers/$(request.auth.uid))
+        && getAgencyUser().agencyId == resource.data.agencyId
+        && getAgencyUser().role in ['admin', 'owner'];
+
+      // User creation handled by backend
+      allow create: if false;
+
+      // Admins can update roles (except owner role)
+      allow update: if isAgencyAdmin(resource.data.agencyId)
+        && (resource.data.role != 'owner' || request.auth.uid == userId);
+
+      // Only owners can delete users
+      allow delete: if isAgencyOwner(resource.data.agencyId)
+        && request.auth.uid != userId;  // Can't delete self
+    }
+
+    // Agency invitations
+    match /agencyInvitations/{inviteId} {
+      // Admins can manage invitations
+      allow read, write: if isAgencyAdmin(resource.data.agencyId);
+
+      // Allow reading pending invite by email (for signup flow)
+      allow read: if resource.data.email == request.auth.token.email
+        && resource.data.status == 'pending';
+    }
+
+    // =============================================
+    // Operation Hired - Candidates (Agency-Scoped)
+    // =============================================
+
+    match /candidates/{candidateId} {
+      // Agency members can create candidates for their agency
+      allow create: if isAuthenticated()
+        && isAgencyMember(request.resource.data.agencyId)
+        && request.resource.data.agencyId == getAgencyUser().agencyId;
+
+      // Agency members can read their agency's candidates
+      allow read: if isAgencyMember(resource.data.agencyId);
+
+      // Agency members can update (but not change agencyId)
+      allow update: if isAgencyMember(resource.data.agencyId)
+        && request.resource.data.agencyId == resource.data.agencyId;
+
+      // No deletes from client (soft delete via status)
+      allow delete: if false;
+    }
+
+    // Candidate Documents collection
+    match /candidateDocuments/{docId} {
+      // Check parent candidate's agencyId
+      allow create: if isAuthenticated()
+        && exists(/databases/$(database)/documents/candidates/$(request.resource.data.candidateId))
+        && isAgencyMember(get(/databases/$(database)/documents/candidates/$(request.resource.data.candidateId)).data.agencyId);
+
+      allow read: if exists(/databases/$(database)/documents/candidates/$(resource.data.candidateId))
+        && isAgencyMember(get(/databases/$(database)/documents/candidates/$(resource.data.candidateId)).data.agencyId);
+
       allow update, delete: if false;
     }
 
-    // Case documents - read-only from client
+    // Candidate Profiles (AI-generated) - read-only for agency members
+    match /candidateProfiles/{candidateId} {
+      allow read: if exists(/databases/$(database)/documents/candidates/$(candidateId))
+        && isAgencyMember(get(/databases/$(database)/documents/candidates/$(candidateId)).data.agencyId);
+
+      // Write only from server (service account)
+      allow write: if false;
+    }
+
+    // Generated Resumes - read-only for agency members
+    match /resumes/{candidateId} {
+      allow read: if exists(/databases/$(database)/documents/candidates/$(candidateId))
+        && isAgencyMember(get(/databases/$(database)/documents/candidates/$(candidateId)).data.agencyId);
+
+      // Write only from server
+      allow write: if false;
+    }
+
+    // =============================================
+    // Legacy Collections (Deprecated - Read Only)
+    // =============================================
+
+    // Cases collection - legacy
+    match /cases/{caseId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
     match /case_documents/{docId} {
       allow read: if true;
       allow write: if false;
     }
 
-    // Case artifacts - read-only from client
     match /case_artifacts/{artifactId} {
       allow read: if true;
       allow write: if false;
     }
 
-    // Case events - read-only from client (for status tracking)
     match /case_events/{eventId} {
       allow read: if true;
       allow write: if false;
     }
 
-    // Operation Hired - Candidates collection
-    match /candidates/{candidateId} {
-      // Anyone can create a candidate
-      allow create: if true;
-      // Read allowed with candidate ID
-      allow read: if true;
-      // Allow status updates from client
-      allow update: if true;
-      // No deletes from client
-      allow delete: if false;
-    }
+    // =============================================
+    // Default Deny
+    // =============================================
 
-    // Operation Hired - Candidate Documents collection
-    match /candidateDocuments/{docId} {
-      // Anyone can create document records
-      allow create: if true;
-      // Read allowed
-      allow read: if true;
-      // No updates or deletes from client
-      allow update, delete: if false;
-    }
-
-    // Operation Hired - Candidate Profiles (AI-generated)
-    match /candidateProfiles/{candidateId} {
-      // Read allowed with candidate ID
-      allow read: if true;
-      // Write only from server
-      allow write: if false;
-    }
-
-    // Operation Hired - Generated Resumes
-    match /resumes/{candidateId} {
-      // Read allowed with candidate ID
-      allow read: if true;
-      // Write only from server
-      allow write: if false;
-    }
-
-    // Deny all other access
     match /{document=**} {
       allow read, write: if false;
     }
