@@ -1,14 +1,17 @@
 // Operation Hired - Admin Candidates List Page
 // Phase 2.4: Read-only admin dashboard for viewing candidates
+// Phase 3: Updated for agency-scoped multi-tenancy
 
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   subscribeToAllCandidates,
+  subscribeToAgencyCandidates,
   formatTimestamp,
   getStatusColor,
 } from '../lib/adminData';
 import { Candidate, CandidateStatus, STATUS_LABELS } from '../lib/firestore';
+import { useAuth } from '../contexts/AuthContext';
 
 // Status options for filter dropdown
 const STATUS_OPTIONS: Array<{ value: CandidateStatus | ''; label: string }> = [
@@ -44,21 +47,34 @@ export function AdminCandidatesPage() {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<CandidateStatus | ''>('');
 
-  // Real-time subscription to candidates
+  // Get auth context for agency-scoped queries
+  const { agency, agencyUser, signOut } = useAuth();
+
+  // Real-time subscription to candidates (agency-scoped)
   useEffect(() => {
     setLoading(true);
 
-    const unsubscribe = subscribeToAllCandidates((data) => {
-      // Filter locally if needed
-      const filtered = statusFilter
-        ? data.filter(c => c.status === statusFilter)
-        : data;
-      setCandidates(filtered);
-      setLoading(false);
-    });
+    // Use agency-scoped subscription if available, else fall back to global (for backwards compat)
+    const agencyId = agencyUser?.agencyId;
+
+    const unsubscribe = agencyId
+      ? subscribeToAgencyCandidates(agencyId, (data) => {
+          const filtered = statusFilter
+            ? data.filter((c) => c.status === statusFilter)
+            : data;
+          setCandidates(filtered);
+          setLoading(false);
+        })
+      : subscribeToAllCandidates((data) => {
+          const filtered = statusFilter
+            ? data.filter((c) => c.status === statusFilter)
+            : data;
+          setCandidates(filtered);
+          setLoading(false);
+        });
 
     return () => unsubscribe();
-  }, [statusFilter]);
+  }, [statusFilter, agencyUser?.agencyId]);
 
   // Count candidates by status
   const statusCounts = candidates.reduce(
@@ -79,12 +95,55 @@ export function AdminCandidatesPage() {
         }}
       >
         <div className="container">
-          <h1 style={{ color: '#ffffff', marginBottom: '0.5rem' }}>
-            Admin Dashboard
-          </h1>
-          <p style={{ color: 'rgba(255,255,255,0.8)' }}>
-            View and monitor candidate applications
-          </p>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
+              flexWrap: 'wrap',
+              gap: '1rem',
+            }}
+          >
+            <div>
+              <h1 style={{ color: '#ffffff', marginBottom: '0.5rem' }}>
+                {agency ? `${agency.name} Dashboard` : 'Admin Dashboard'}
+              </h1>
+              <p style={{ color: 'rgba(255,255,255,0.8)' }}>
+                {agencyUser
+                  ? `Logged in as ${agencyUser.email} (${agencyUser.role})`
+                  : 'View and monitor candidate applications'}
+              </p>
+            </div>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <Link
+                to="/admin/settings"
+                style={{
+                  padding: '0.5rem 1rem',
+                  backgroundColor: 'rgba(255,255,255,0.1)',
+                  color: '#fff',
+                  borderRadius: '6px',
+                  textDecoration: 'none',
+                  fontSize: '0.875rem',
+                }}
+              >
+                Settings
+              </Link>
+              <button
+                onClick={() => signOut()}
+                style={{
+                  padding: '0.5rem 1rem',
+                  backgroundColor: 'rgba(255,255,255,0.1)',
+                  color: '#fff',
+                  borderRadius: '6px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '0.875rem',
+                }}
+              >
+                Sign Out
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 

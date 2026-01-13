@@ -33,6 +33,13 @@ export interface AgencyUser {
   updatedAt: Timestamp;
 }
 
+export interface AgencySettings {
+  retentionDays: number;
+  maxCandidatesPerMonth?: number;
+  brandColor?: string;
+  customDomain?: string;
+}
+
 export interface Agency {
   id: string;
   name: string;
@@ -40,6 +47,7 @@ export interface Agency {
   contactEmail: string;
   logoUrl?: string;
   status: 'active' | 'suspended' | 'trial';
+  settings?: AgencySettings;
 }
 
 export interface AuthState {
