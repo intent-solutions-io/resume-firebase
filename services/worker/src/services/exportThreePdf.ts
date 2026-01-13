@@ -4,6 +4,7 @@
 
 import { Storage } from '@google-cloud/storage';
 import { convertHtmlToPdf } from './htmlToPdf.js';
+import { postProcessResumeHtml } from './postProcessor/index.js';
 import type {
   ThreePDFGenerationOutput,
   ThreePDFPaths,
@@ -34,31 +35,43 @@ export async function exportThreePdfBundle(
   );
 
   try {
-    // Step 1: Convert all 3 HTML documents to PDFs in parallel (efficient)
-    console.log('[exportThreePdf] Converting HTML to PDF...');
+    // Step 1: Post-process and convert all 3 HTML documents to PDFs in parallel
+    console.log('[exportThreePdf] Post-processing and converting HTML to PDF...');
 
     const [militaryPdf, civilianPdf, crosswalkPdf] = await Promise.all([
-      convertHtmlToPdf(
-        generationOutput.artifacts.resume_military.content_html,
-        {
+      (async () => {
+        const processed = await postProcessResumeHtml(
+          generationOutput.artifacts.resume_military.content_html,
+          { resumeType: 'military' }
+        );
+        console.log(`[exportThreePdf] Military: ${processed.fixesApplied.length} fixes applied`);
+        return convertHtmlToPdf(processed.html, {
           margins_in: generationOutput.render_hints.margins_in,
           page_size: generationOutput.render_hints.page_size,
-        }
-      ),
-      convertHtmlToPdf(
-        generationOutput.artifacts.resume_civilian.content_html,
-        {
+        });
+      })(),
+      (async () => {
+        const processed = await postProcessResumeHtml(
+          generationOutput.artifacts.resume_civilian.content_html,
+          { resumeType: 'civilian' }
+        );
+        console.log(`[exportThreePdf] Civilian: ${processed.fixesApplied.length} fixes applied`);
+        return convertHtmlToPdf(processed.html, {
           margins_in: generationOutput.render_hints.margins_in,
           page_size: generationOutput.render_hints.page_size,
-        }
-      ),
-      convertHtmlToPdf(
-        generationOutput.artifacts.resume_crosswalk.content_html,
-        {
+        });
+      })(),
+      (async () => {
+        const processed = await postProcessResumeHtml(
+          generationOutput.artifacts.resume_crosswalk.content_html,
+          { resumeType: 'crosswalk' }
+        );
+        console.log(`[exportThreePdf] Crosswalk: ${processed.fixesApplied.length} fixes applied`);
+        return convertHtmlToPdf(processed.html, {
           margins_in: generationOutput.render_hints.margins_in,
           page_size: generationOutput.render_hints.page_size,
-        }
-      ),
+        });
+      })(),
     ]);
 
     console.log('[exportThreePdf] All PDFs generated successfully');
