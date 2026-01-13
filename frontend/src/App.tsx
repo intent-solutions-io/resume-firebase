@@ -1,5 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Layout } from './components/Layout';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import { AuthProvider } from './contexts/AuthContext';
 import { HomePage } from './pages/HomePage';
 import { UploadPage } from './pages/UploadPage';
 import { StatusPage } from './pages/StatusPage';
@@ -10,33 +12,73 @@ import { IntakePage } from './pages/IntakePage';
 import { IntakeDocumentsPage } from './pages/IntakeDocumentsPage';
 import { IntakeCompletePage } from './pages/IntakeCompletePage';
 import { CandidatePage } from './pages/CandidatePage';
-// Admin Dashboard (Phase 2.4)
+// Auth Pages (Phase 3: Multi-tenancy)
+import { LoginPage } from './pages/LoginPage';
+// Admin Dashboard (Phase 2.4 + Phase 3 Multi-tenancy)
 import { AdminCandidatesPage } from './pages/AdminCandidatesPage';
 import { AdminCandidateDetailPage } from './pages/AdminCandidateDetailPage';
+import { AgencySettingsPage } from './pages/AgencySettingsPage';
 
 function App() {
   return (
-    <Layout>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        {/* Legacy /create redirects to Operation Hired intake */}
-        <Route path="/create" element={<Navigate to="/intake" replace />} />
-        <Route path="/case/:caseId/upload" element={<UploadPage />} />
-        <Route path="/case/:caseId/status" element={<StatusPage />} />
-        <Route path="/case/:caseId/download" element={<DownloadPage />} />
-        <Route path="/review" element={<ReviewPage />} />
-        {/* Operation Hired - Military Resume Intake */}
-        <Route path="/intake" element={<IntakePage />} />
-        <Route path="/intake/:candidateId/documents" element={<IntakeDocumentsPage />} />
-        <Route path="/intake/:candidateId/complete" element={<IntakeCompletePage />} />
-        {/* Canonical candidate resume URL (shareable) */}
-        <Route path="/candidate/:candidateId" element={<CandidatePage />} />
-        {/* Admin Dashboard (Phase 2.4) */}
-        <Route path="/admin" element={<AdminCandidatesPage />} />
-        <Route path="/admin/candidates" element={<AdminCandidatesPage />} />
-        <Route path="/admin/candidates/:candidateId" element={<AdminCandidateDetailPage />} />
-      </Routes>
-    </Layout>
+    <AuthProvider>
+      <Layout>
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/" element={<HomePage />} />
+          <Route path="/login" element={<LoginPage />} />
+
+          {/* Legacy /create redirects to Operation Hired intake */}
+          <Route path="/create" element={<Navigate to="/intake" replace />} />
+          <Route path="/case/:caseId/upload" element={<UploadPage />} />
+          <Route path="/case/:caseId/status" element={<StatusPage />} />
+          <Route path="/case/:caseId/download" element={<DownloadPage />} />
+          <Route path="/review" element={<ReviewPage />} />
+
+          {/* Operation Hired - Military Resume Intake (Public) */}
+          <Route path="/intake" element={<IntakePage />} />
+          <Route path="/intake/:candidateId/documents" element={<IntakeDocumentsPage />} />
+          <Route path="/intake/:candidateId/complete" element={<IntakeCompletePage />} />
+
+          {/* Canonical candidate resume URL (shareable) */}
+          <Route path="/candidate/:candidateId" element={<CandidatePage />} />
+
+          {/* Protected Admin Routes (Phase 3: Multi-tenancy) */}
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute>
+                <AdminCandidatesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/candidates"
+            element={
+              <ProtectedRoute>
+                <AdminCandidatesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/candidates/:candidateId"
+            element={
+              <ProtectedRoute>
+                <AdminCandidateDetailPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/settings"
+            element={
+              <ProtectedRoute>
+                <AgencySettingsPage />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </Layout>
+    </AuthProvider>
   );
 }
 
