@@ -1,3 +1,10 @@
+// Initialize Firebase Admin first (before other imports)
+import { initializeApp, applicationDefault } from 'firebase-admin/app';
+
+initializeApp({
+  credential: applicationDefault(),
+});
+
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
