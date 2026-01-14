@@ -12,8 +12,11 @@ import { IntakePage } from './pages/IntakePage';
 import { IntakeDocumentsPage } from './pages/IntakeDocumentsPage';
 import { IntakeCompletePage } from './pages/IntakeCompletePage';
 import { CandidatePage } from './pages/CandidatePage';
-// Auth Pages (Phase 3: Multi-tenancy)
+// Auth Pages (Phase 3 + Phase 4: Multi-tenancy)
 import { LoginPage } from './pages/LoginPage';
+import { SignupPage } from './pages/SignupPage';
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
+import { AcceptInvitePage } from './pages/AcceptInvitePage';
 // Admin Dashboard (Phase 2.4 + Phase 3 Multi-tenancy)
 import { AdminCandidatesPage } from './pages/AdminCandidatesPage';
 import { AdminCandidateDetailPage } from './pages/AdminCandidateDetailPage';
@@ -27,6 +30,9 @@ function App() {
           {/* Public Routes */}
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/invite/accept" element={<AcceptInvitePage />} />
 
           {/* Legacy /create redirects to Operation Hired intake */}
           <Route path="/create" element={<Navigate to="/intake" replace />} />

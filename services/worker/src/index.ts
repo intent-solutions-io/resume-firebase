@@ -13,6 +13,8 @@ import {
 } from './handlers/processCandidateHandler.js';
 // PROTOTYPE: 3-PDF Resume Bundle (Checkpoint 1)
 import { prototypeThreePdfHandler } from './handlers/prototypeThreePdfHandler.js';
+// Phase 4: Agency Onboarding API
+import { agencyRouter } from './handlers/agencyHandler.js';
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -49,6 +51,10 @@ app.get('/internal/resumeDownload/:candidateId/:format', resumeDownloadHandler);
 
 // PROTOTYPE: 3-PDF Resume Bundle Testing (Checkpoint 1)
 app.post('/internal/prototype/threePdf', prototypeThreePdfHandler);
+
+// Phase 4: Agency Onboarding API
+app.use('/api/agencies', agencyRouter);
+app.use('/api', agencyRouter);  // For /api/invitations routes
 
 // Error handling
 app.use(
