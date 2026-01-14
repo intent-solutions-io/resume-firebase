@@ -205,16 +205,16 @@ export function LoginPage() {
             paddingTop: '1rem',
             borderTop: '1px solid var(--border-light)',
             textAlign: 'center',
-            fontSize: '0.75rem',
+            fontSize: '0.875rem',
             color: 'var(--text-muted)',
           }}
         >
           Need an agency account?{' '}
           <a
-            href="mailto:support@operationhired.com"
+            href="/signup"
             style={{ color: 'var(--primary-gold)', textDecoration: 'none' }}
           >
-            Contact us
+            Create one
           </a>
         </div>
       </div>
