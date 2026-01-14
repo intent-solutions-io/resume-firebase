@@ -1,7 +1,7 @@
 // Agency Service for Operation Hired
 // Phase 2: Agency-Based Multi-Tenancy
 
-import { getFirestore, Timestamp, FieldValue } from 'firebase-admin/firestore';
+import { getFirestore, Timestamp, FieldValue, QueryDocumentSnapshot, Firestore } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
 import {
   Agency,
@@ -13,7 +13,14 @@ import {
   InviteUserRequest,
 } from '../types/agency.js';
 
-const db = getFirestore();
+// Lazy initialization to ensure Firebase is initialized first
+let _db: Firestore | null = null;
+function db(): Firestore {
+  if (!_db) {
+    _db = getFirestore();
+  }
+  return _db;
+}
 
 // ============================================================================
 // Agency Operations
@@ -28,7 +35,7 @@ export async function createAgency(
   console.log(`[agencyService] Creating agency: ${request.name}`);
 
   // Validate slug is unique
-  const existingAgency = await db
+  const existingAgency = await db()
     .collection('agencies')
     .where('slug', '==', request.slug)
     .limit(1)
@@ -39,7 +46,7 @@ export async function createAgency(
   }
 
   // Create agency document
-  const agencyRef = db.collection('agencies').doc();
+  const agencyRef = db().collection('agencies').doc();
   const now = Timestamp.now();
 
   const defaultSettings: AgencySettings = {
@@ -94,9 +101,9 @@ export async function createAgency(
   };
 
   // Batch write agency and owner
-  const batch = db.batch();
+  const batch = db().batch();
   batch.set(agencyRef, agencyData);
-  batch.set(db.collection('agencyUsers').doc(ownerUid), ownerData);
+  batch.set(db().collection('agencyUsers').doc(ownerUid), ownerData);
   await batch.commit();
 
   console.log(`[agencyService] Agency created: ${agencyRef.id}`);
@@ -111,7 +118,7 @@ export async function createAgency(
  * Get agency by ID
  */
 export async function getAgencyById(agencyId: string): Promise<Agency | null> {
-  const doc = await db.collection('agencies').doc(agencyId).get();
+  const doc = await db().collection('agencies').doc(agencyId).get();
   if (!doc.exists) return null;
   return { id: doc.id, ...doc.data() } as Agency;
 }
@@ -120,7 +127,7 @@ export async function getAgencyById(agencyId: string): Promise<Agency | null> {
  * Get agency by slug
  */
 export async function getAgencyBySlug(slug: string): Promise<Agency | null> {
-  const snapshot = await db
+  const snapshot = await db()
     .collection('agencies')
     .where('slug', '==', slug)
     .limit(1)
@@ -138,7 +145,7 @@ export async function updateAgencySettings(
   agencyId: string,
   settings: Partial<AgencySettings>
 ): Promise<void> {
-  await db.collection('agencies').doc(agencyId).update({
+  await db().collection('agencies').doc(agencyId).update({
     settings: settings,
     updatedAt: FieldValue.serverTimestamp(),
   });
@@ -158,7 +165,7 @@ export async function inviteUser(
   console.log(`[agencyService] Inviting ${request.email} to agency ${request.agencyId}`);
 
   // Check if user already exists in this agency
-  const existingUsers = await db
+  const existingUsers = await db()
     .collection('agencyUsers')
     .where('agencyId', '==', request.agencyId)
     .where('email', '==', request.email)
@@ -170,7 +177,7 @@ export async function inviteUser(
   }
 
   // Check for existing pending invitation
-  const existingInvites = await db
+  const existingInvites = await db()
     .collection('agencyInvitations')
     .where('agencyId', '==', request.agencyId)
     .where('email', '==', request.email)
@@ -183,7 +190,7 @@ export async function inviteUser(
   }
 
   // Create invitation
-  const inviteRef = db.collection('agencyInvitations').doc();
+  const inviteRef = db().collection('agencyInvitations').doc();
   const now = Timestamp.now();
   const expiresAt = Timestamp.fromMillis(now.toMillis() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
@@ -214,7 +221,7 @@ export async function acceptInvitation(
   invitationId: string,
   userId: string
 ): Promise<AgencyUser> {
-  const inviteRef = db.collection('agencyInvitations').doc(invitationId);
+  const inviteRef = db().collection('agencyInvitations').doc(invitationId);
   const inviteDoc = await inviteRef.get();
 
   if (!inviteDoc.exists) {
@@ -251,8 +258,8 @@ export async function acceptInvitation(
     updatedAt: now,
   };
 
-  const batch = db.batch();
-  batch.set(db.collection('agencyUsers').doc(userId), userData);
+  const batch = db().batch();
+  batch.set(db().collection('agencyUsers').doc(userId), userData);
   batch.update(inviteRef, { status: 'accepted', acceptedAt: now });
   await batch.commit();
 
@@ -265,13 +272,13 @@ export async function acceptInvitation(
  * Get users for an agency
  */
 export async function getAgencyUsers(agencyId: string): Promise<AgencyUser[]> {
-  const snapshot = await db
+  const snapshot = await db()
     .collection('agencyUsers')
     .where('agencyId', '==', agencyId)
     .orderBy('createdAt', 'desc')
     .get();
 
-  return snapshot.docs.map((doc) => ({
+  return snapshot.docs.map((doc: QueryDocumentSnapshot) => ({
     id: doc.id,
     ...doc.data(),
   })) as AgencyUser[];
@@ -288,7 +295,7 @@ export async function updateUserRole(
     throw new Error('Cannot change role to owner - use transferOwnership instead');
   }
 
-  await db.collection('agencyUsers').doc(userId).update({
+  await db().collection('agencyUsers').doc(userId).update({
     role: newRole,
     updatedAt: FieldValue.serverTimestamp(),
   });
@@ -298,7 +305,7 @@ export async function updateUserRole(
  * Remove user from agency
  */
 export async function removeUser(userId: string): Promise<void> {
-  const userDoc = await db.collection('agencyUsers').doc(userId).get();
+  const userDoc = await db().collection('agencyUsers').doc(userId).get();
 
   if (!userDoc.exists) {
     throw new Error('User not found');
@@ -309,7 +316,7 @@ export async function removeUser(userId: string): Promise<void> {
     throw new Error('Cannot remove the agency owner');
   }
 
-  await db.collection('agencyUsers').doc(userId).delete();
+  await db().collection('agencyUsers').doc(userId).delete();
 }
 
 // ============================================================================

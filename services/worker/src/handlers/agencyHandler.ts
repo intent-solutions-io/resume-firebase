@@ -2,10 +2,9 @@
 // Phase 4: Agency Onboarding
 
 import { Router, Request, Response } from 'express';
-import { getFirestore, Timestamp } from 'firebase-admin/firestore';
+import { getFirestore, Timestamp, Firestore } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
 import {
-  createAgency,
   inviteUser,
   acceptInvitation,
   getAgencyUsers,
@@ -18,7 +17,15 @@ import {
 } from '../middleware/authMiddleware.js';
 
 const router = Router();
-const db = getFirestore();
+
+// Lazy initialization to ensure Firebase is initialized first
+let _db: Firestore | null = null;
+function db(): Firestore {
+  if (!_db) {
+    _db = getFirestore();
+  }
+  return _db;
+}
 
 /**
  * POST /api/agencies
@@ -47,7 +54,7 @@ router.post('/', async (req: Request, res: Response) => {
     }
 
     // Check if slug is already taken
-    const existingAgency = await db
+    const existingAgency = await db()
       .collection('agencies')
       .where('slug', '==', slug)
       .limit(1)
@@ -77,7 +84,7 @@ router.post('/', async (req: Request, res: Response) => {
 
     // Create agency and owner records
     const now = Timestamp.now();
-    const agencyRef = db.collection('agencies').doc();
+    const agencyRef = db().collection('agencies').doc();
 
     const agencyData = {
       name,
@@ -105,9 +112,9 @@ router.post('/', async (req: Request, res: Response) => {
     };
 
     // Batch write
-    const batch = db.batch();
+    const batch = db().batch();
     batch.set(agencyRef, agencyData);
-    batch.set(db.collection('agencyUsers').doc(userRecord.uid), ownerData);
+    batch.set(db().collection('agencyUsers').doc(userRecord.uid), ownerData);
     await batch.commit();
 
     console.log(`[agencyHandler] Created agency: ${agencyRef.id} with owner: ${userRecord.uid}`);
@@ -234,7 +241,7 @@ router.get('/invitations/:invitationId', async (req: Request, res: Response) => 
       return;
     }
 
-    const inviteDoc = await db.collection('agencyInvitations').doc(invitationId).get();
+    const inviteDoc = await db().collection('agencyInvitations').doc(invitationId).get();
 
     if (!inviteDoc.exists) {
       res.status(404).json({ error: 'Invitation not found' });
@@ -261,7 +268,7 @@ router.get('/invitations/:invitationId', async (req: Request, res: Response) => 
     }
 
     // Get agency name
-    const agencyDoc = await db.collection('agencies').doc(invitation.agencyId).get();
+    const agencyDoc = await db().collection('agencies').doc(invitation.agencyId).get();
     const agencyName = agencyDoc.exists ? agencyDoc.data()?.name : 'Unknown Agency';
 
     res.json({
@@ -298,7 +305,7 @@ router.post(
         return;
       }
 
-      const inviteDoc = await db.collection('agencyInvitations').doc(invitationId).get();
+      const inviteDoc = await db().collection('agencyInvitations').doc(invitationId).get();
 
       if (!inviteDoc.exists) {
         res.status(404).json({ error: 'Invitation not found' });
