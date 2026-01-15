@@ -572,12 +572,26 @@ export function IntakeCompletePage() {
             </div>
           )}
 
-          {/* Error Message */}
+          {/* Error Message with Reference ID */}
           {(error || candidate?.errorMessage) && (
             <div className="alert alert-error" style={{ marginBottom: '1.5rem' }}>
               <strong>Error:</strong> {error || candidate?.errorMessage}
-              <br />
-              <span style={{ fontSize: '0.875rem' }}>Please contact support if this persists.</span>
+              {candidate?.errorCorrelationId && (
+                <p style={{ marginTop: '0.5rem', fontSize: '0.875rem' }}>
+                  <strong>Reference ID:</strong>{' '}
+                  <code style={{
+                    backgroundColor: 'rgba(255,255,255,0.3)',
+                    padding: '2px 6px',
+                    borderRadius: '4px',
+                    fontFamily: 'monospace',
+                  }}>
+                    {candidate.errorCorrelationId}
+                  </code>
+                </p>
+              )}
+              <p style={{ marginTop: '0.5rem', fontSize: '0.875rem' }}>
+                Please contact support with the Reference ID if this persists.
+              </p>
             </div>
           )}
 

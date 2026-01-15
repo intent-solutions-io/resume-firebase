@@ -13,6 +13,7 @@ import {
   fixEducationSpacing,
   fixExperienceLayout,
   fixSkillsFormat,
+  fixCrosswalkStructure,
 } from './formatFixers.js';
 import { injectHardenedCss } from './cssHardener.js';
 import type {
@@ -28,6 +29,7 @@ const FIXERS: FixerConfig[] = [
   { name: 'educationSpacing', fn: fixEducationSpacing, enabled: true },
   { name: 'experienceLayout', fn: fixExperienceLayout, enabled: true },
   { name: 'skillsFormat', fn: fixSkillsFormat, enabled: true },
+  { name: 'crosswalkStructure', fn: fixCrosswalkStructure, enabled: true, resumeTypes: ['crosswalk'] },
 ];
 
 /**
@@ -73,6 +75,11 @@ export async function postProcessResumeHtml(
   // Step 2: Apply fixers (each wrapped in try-catch for resilience)
   for (const fixer of FIXERS) {
     if (!fixer.enabled) continue;
+
+    // Check if this fixer should run for this resume type
+    if (fixer.resumeTypes && !fixer.resumeTypes.includes(options.resumeType)) {
+      continue;
+    }
 
     try {
       fixer.fn(doc);
