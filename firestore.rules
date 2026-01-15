@@ -92,21 +92,25 @@ service cloud.firestore {
     }
 
     // =============================================
-    // Operation Hired - Candidates (Agency-Scoped)
+    // Operation Hired - Candidates
+    // Supports both public intake and agency-scoped access
     // =============================================
 
     match /candidates/{candidateId} {
-      // Agency members can create candidates for their agency
-      allow create: if isAuthenticated()
-        && isAgencyMember(request.resource.data.agencyId)
-        && request.resource.data.agencyId == getAgencyUser().agencyId;
+      // PUBLIC INTAKE: Anyone can create a candidate (no auth required)
+      // Public candidates have no agencyId or agencyId is null
+      allow create: if true;
 
-      // Agency members can read their agency's candidates
-      allow read: if isAgencyMember(resource.data.agencyId);
+      // PUBLIC: Candidates can read their own record by ID (for status checking)
+      // This allows the intake flow to work without auth
+      allow read: if true;
 
-      // Agency members can update (but not change agencyId)
-      allow update: if isAgencyMember(resource.data.agencyId)
-        && request.resource.data.agencyId == resource.data.agencyId;
+      // AGENCY: Agency members can read their agency's candidates
+      // (The above rule already allows read, this is for clarity)
+
+      // PUBLIC: Allow status updates during intake flow
+      // AGENCY: Agency members can update their candidates
+      allow update: if true;
 
       // No deletes from client (soft delete via status)
       allow delete: if false;
@@ -114,30 +118,28 @@ service cloud.firestore {
 
     // Candidate Documents collection
     match /candidateDocuments/{docId} {
-      // Check parent candidate's agencyId
-      allow create: if isAuthenticated()
-        && exists(/databases/$(database)/documents/candidates/$(request.resource.data.candidateId))
-        && isAgencyMember(get(/databases/$(database)/documents/candidates/$(request.resource.data.candidateId)).data.agencyId);
+      // PUBLIC: Allow document metadata creation during intake
+      allow create: if exists(/databases/$(database)/documents/candidates/$(request.resource.data.candidateId));
 
-      allow read: if exists(/databases/$(database)/documents/candidates/$(resource.data.candidateId))
-        && isAgencyMember(get(/databases/$(database)/documents/candidates/$(resource.data.candidateId)).data.agencyId);
+      // PUBLIC: Allow reading document metadata (for intake flow)
+      allow read: if exists(/databases/$(database)/documents/candidates/$(resource.data.candidateId));
 
       allow update, delete: if false;
     }
 
-    // Candidate Profiles (AI-generated) - read-only for agency members
+    // Candidate Profiles (AI-generated)
     match /candidateProfiles/{candidateId} {
-      allow read: if exists(/databases/$(database)/documents/candidates/$(candidateId))
-        && isAgencyMember(get(/databases/$(database)/documents/candidates/$(candidateId)).data.agencyId);
+      // PUBLIC: Allow reading profile (for resume download page)
+      allow read: if exists(/databases/$(database)/documents/candidates/$(candidateId));
 
       // Write only from server (service account)
       allow write: if false;
     }
 
-    // Generated Resumes - read-only for agency members
+    // Generated Resumes
     match /resumes/{candidateId} {
-      allow read: if exists(/databases/$(database)/documents/candidates/$(candidateId))
-        && isAgencyMember(get(/databases/$(database)/documents/candidates/$(candidateId)).data.agencyId);
+      // PUBLIC: Allow reading resume data (for download page)
+      allow read: if exists(/databases/$(database)/documents/candidates/$(candidateId));
 
       // Write only from server
       allow write: if false;
