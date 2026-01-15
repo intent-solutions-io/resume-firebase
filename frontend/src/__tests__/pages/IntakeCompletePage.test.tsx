@@ -87,7 +87,7 @@ describe('IntakeCompletePage - Issue #6 Regression Tests', () => {
     vi.clearAllMocks();
 
     // Default: subscribeToCandidateStatus calls callback immediately with candidate
-    mockSubscribeToCandidateStatus.mockImplementation((id, callback) => {
+    mockSubscribeToCandidateStatus.mockImplementation((_id, callback) => {
       callback(mockCandidate);
       return () => {}; // unsubscribe function
     });
@@ -198,7 +198,7 @@ describe('IntakeCompletePage - Issue #6 Regression Tests', () => {
       status: 'processing' as const,
     };
 
-    mockSubscribeToCandidateStatus.mockImplementation((id, callback) => {
+    mockSubscribeToCandidateStatus.mockImplementation((_id, callback) => {
       callback(processingCandidate);
       return () => {};
     });
