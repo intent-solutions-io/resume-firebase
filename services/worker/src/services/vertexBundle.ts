@@ -222,7 +222,7 @@ Remember: NO FABRICATION. Use placeholders for missing data. All three HTML docu
       ],
       generationConfig: {
         temperature: 0.2, // Lower temperature for consistent JSON
-        maxOutputTokens: 16384, // Larger output for 3 HTML documents
+        maxOutputTokens: 8192, // Max for gemini-2.x-flash models
       },
     });
 
