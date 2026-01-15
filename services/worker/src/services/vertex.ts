@@ -321,7 +321,7 @@ Remember:
       ],
       generationConfig: {
         temperature: 0.3, // Balanced: consistent structure with natural phrasing
-        maxOutputTokens: 32768, // Increased for large HTML documents with CSS
+        maxOutputTokens: 8192, // Max for gemini-2.x-flash models
       },
     });
 
