@@ -34,4 +34,5 @@ export interface FixerConfig {
   name: string;
   fn: FixerFunction;
   enabled: boolean;
+  resumeTypes?: ResumeType[]; // If specified, only run for these resume types
 }

@@ -40,17 +40,21 @@ export async function convertHtmlToPdf(
   const DOMPurify = createDOMPurify(window);
 
   // Configure DOMPurify to allow safe HTML for PDF rendering
+  // IMPORTANT: WHOLE_DOCUMENT and FORCE_BODY preserve the full HTML structure
   const cleanHtml = DOMPurify.sanitize(html, {
+    WHOLE_DOCUMENT: true, // Preserve html/head/body structure
+    FORCE_BODY: false, // Don't force body wrapper (we have full document)
     ALLOWED_TAGS: [
       'html', 'head', 'body', 'style', 'title', 'meta',
       'div', 'span', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-      'ul', 'ol', 'li', 'br', 'hr', 'strong', 'em', 'b', 'i', 'u',
+      'ul', 'ol', 'li', 'dl', 'dt', 'dd', 'br', 'hr', 'strong', 'em', 'b', 'i', 'u',
       'table', 'thead', 'tbody', 'tr', 'th', 'td',
-      'a', 'img', 'code', 'pre', 'blockquote',
+      'a', 'img', 'code', 'pre', 'blockquote', 'header', 'footer', 'section',
     ],
     ALLOWED_ATTR: [
       'class', 'id', 'style', 'href', 'src', 'alt', 'title',
       'width', 'height', 'colspan', 'rowspan', 'align', 'valign',
+      'type', 'charset', 'name', 'content', // meta tag attrs
     ],
     ALLOW_DATA_ATTR: false, // Block data-* attributes
     FORBID_TAGS: ['script', 'iframe', 'object', 'embed', 'form', 'input'],

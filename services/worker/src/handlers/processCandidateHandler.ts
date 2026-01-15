@@ -3,9 +3,11 @@
 // Phase 2.0: Resume Export (PDF/DOCX)
 // Phase 2.1: Internal Slack Notifications
 // Phase 2.5: 3-PDF Resume Bundle (Military + Civilian + Crosswalk)
+// Phase 3.0: Correlation ID for error tracing
 
 import { Request, Response } from 'express';
 import { Firestore, FieldValue } from '@google-cloud/firestore';
+import { randomUUID } from 'crypto';
 import { extractDocumentTexts } from '../services/textExtraction.js';
 import {
   generateProfileAndResume,
@@ -50,14 +52,19 @@ export async function processCandidateHandler(
   req: Request,
   res: Response
 ): Promise<void> {
+  // Generate correlation ID for tracing (use header if provided, else generate)
+  const correlationId = (req.headers['x-correlation-id'] as string) || randomUUID();
   const { candidateId } = req.body;
 
   if (!candidateId || typeof candidateId !== 'string') {
-    res.status(400).json({ error: 'candidateId is required' });
+    res.status(400).json({
+      error: 'candidateId is required',
+      correlationId,
+    });
     return;
   }
 
-  console.log(`[processCandidate] Starting processing for: ${candidateId}`);
+  console.log(`[processCandidate] correlationId=${correlationId} Starting processing for: ${candidateId}`);
 
   try {
     // 1. Get candidate metadata
@@ -286,7 +293,7 @@ export async function processCandidateHandler(
       }
     }
 
-    console.log(`[processCandidate] Completed successfully for: ${candidateId}`);
+    console.log(`[processCandidate] correlationId=${correlationId} Completed successfully for: ${candidateId}`);
 
     // Build response with 3-PDF paths
     const resumeWithPaths = await resumesCollection.doc(candidateId).get();
@@ -295,6 +302,7 @@ export async function processCandidateHandler(
     const response: Record<string, unknown> = {
       status: 'ok',
       candidateId,
+      correlationId,
       newStatus: 'resume_ready',
       profileId: candidateId,
       resumeId: candidateId,
@@ -303,22 +311,24 @@ export async function processCandidateHandler(
 
     res.status(200).json(response);
   } catch (error) {
-    console.error(`[processCandidate] Error processing ${candidateId}:`, error);
+    console.error(`[processCandidate] correlationId=${correlationId} Error processing ${candidateId}:`, error);
 
-    // Update status to error
+    // Update status to error with correlation ID for support
     try {
       await candidatesCollection.doc(candidateId).update({
         status: 'error',
         errorMessage: error instanceof Error ? error.message : 'Unknown error',
+        errorCorrelationId: correlationId,
         updatedAt: FieldValue.serverTimestamp(),
       });
     } catch (updateError) {
-      console.error('[processCandidate] Failed to update error status:', updateError);
+      console.error(`[processCandidate] correlationId=${correlationId} Failed to update error status:`, updateError);
     }
 
     res.status(500).json({
       error: 'Processing failed',
       message: error instanceof Error ? error.message : 'Unknown error',
+      correlationId,
     });
   }
 }
