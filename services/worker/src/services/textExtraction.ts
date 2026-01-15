@@ -1,9 +1,11 @@
 // Text Extraction Service for Candidate Documents
 // Phase 1.9: AI Profile & Resume Pipeline
+// Phase 3.0: Proper DOCX extraction with mammoth
 
 import { Storage } from '@google-cloud/storage';
 import { Firestore } from '@google-cloud/firestore';
 import pdfParse from 'pdf-parse';
+import mammoth from 'mammoth';
 import type {
   CandidateDocument,
   ExtractedDocument,
@@ -110,10 +112,12 @@ async function extractTextFromBuffer(
     case 'txt':
       return buffer.toString('utf-8');
 
-    case 'doc':
     case 'docx':
-      // For now, attempt to extract any readable text
-      // Full DOCX parsing would require additional library
+      return extractTextFromDOCX(buffer, fileName);
+
+    case 'doc':
+      // Legacy .doc format - try plain text extraction as fallback
+      console.warn(`[textExtraction] Legacy .doc format has limited support: ${fileName}`);
       return extractPlainTextFromBinary(buffer);
 
     case 'jpg':
@@ -142,6 +146,30 @@ async function extractTextFromPDF(buffer: Buffer): Promise<string> {
     console.error('[textExtraction] PDF parse error:', error);
     // Return empty string on parse failure
     return '';
+  }
+}
+
+/**
+ * Extract text from DOCX using mammoth
+ * DOCX files are ZIP archives containing XML - mammoth handles this properly
+ */
+async function extractTextFromDOCX(buffer: Buffer, fileName: string): Promise<string> {
+  try {
+    console.log(`[textExtraction] Extracting DOCX with mammoth: ${fileName}`);
+    const result = await mammoth.extractRawText({ buffer });
+
+    if (result.messages.length > 0) {
+      console.warn(`[textExtraction] Mammoth warnings for ${fileName}:`, result.messages);
+    }
+
+    const text = result.value || '';
+    console.log(`[textExtraction] DOCX extraction successful: ${text.length} chars from ${fileName}`);
+    return text;
+  } catch (error) {
+    console.error(`[textExtraction] DOCX parse error for ${fileName}:`, error);
+    // Try fallback to plain text extraction
+    console.log(`[textExtraction] Trying fallback extraction for ${fileName}`);
+    return extractPlainTextFromBinary(buffer);
   }
 }
 

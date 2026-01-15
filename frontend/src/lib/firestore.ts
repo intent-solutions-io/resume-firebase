@@ -58,6 +58,7 @@ export interface Candidate extends CandidateInput {
   id: string;
   status: CandidateStatus;
   errorMessage?: string;
+  errorCorrelationId?: string; // Reference ID for support/debugging
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
@@ -106,6 +107,7 @@ const candidateConverter: FirestoreDataConverter<Candidate> = {
       targetJobDescription: data.targetJobDescription,
       status: data.status ?? 'created',
       errorMessage: data.errorMessage,
+      errorCorrelationId: data.errorCorrelationId,
       createdAt: data.createdAt ?? Timestamp.now(),
       updatedAt: data.updatedAt ?? Timestamp.now(),
     };

@@ -292,142 +292,110 @@ RETURN THIS EXACT STRUCTURE:
 
 3. CROSSWALK DOCUMENT (1-2 pages):
    ════════════════════════════════════════════════════════════════════════════
-   █ CROSSWALK PURPOSE: Help recruiters understand the military-to-civilian
-   █ translation. Show WHAT changed and WHY, while highlighting preserved metrics.
+   █ CROSSWALK = TRANSLATION REFERENCE GUIDE
+   █ Shows every military term translated to civilian language
    ════════════════════════════════════════════════════════════════════════════
 
-   ❌ WRONG FORMAT (REJECT - Old side-by-side table):
-   ┌─────────────────────┬─────────────────────┐
-   │ MILITARY            │ CIVILIAN            │
-   ├─────────────────────┼─────────────────────┤
-   │ SSgt, USAF          │ Senior Supervisor   │
-   └─────────────────────┴─────────────────────┘
+   ⚠️⚠️⚠️ CRITICAL: CROSSWALK MUST CONTAIN ACTUAL TRANSLATION CONTENT ⚠️⚠️⚠️
 
-   ✅ CORRECT FORMAT: Section-by-section with visual hierarchy
+   The crosswalk COMPARES the military resume with the civilian resume.
+   For EVERY term you changed, list it as: MILITARY TERM → CIVILIAN TERM
 
-   HTML STRUCTURE FOR CROSSWALK (COPY EXACTLY):
-   <div class="crosswalk-section">
-     <h3>EXPERIENCE TRANSLATIONS</h3>
+   FORMAT: Use simple paragraphs with arrow (→) separator. Our post-processor
+   will handle CSS styling. Focus on CONTENT, not formatting.
 
-     <div class="role-translation">
-       <h4>Role 1: [Original Military Title from source docs]</h4>
+   CROSSWALK HTML STRUCTURE:
+   <!DOCTYPE html><html><head><style>
+   body { font-family: Arial, sans-serif; font-size: 11pt; padding: 0.5in; }
+   h2 { border-bottom: 2px solid #333; margin-top: 20px; }
+   h3 { color: #333; margin-top: 16px; }
+   p { margin: 6px 0; }
+   </style></head><body>
 
-       <div class="translation-row">
-         <span class="military-term">SSgt, USAF</span>
-         <span class="arrow">→</span>
-         <span class="civilian-term">Senior Supervisor</span>
-       </div>
-       <div class="translation-row">
-         <span class="military-term">423d SFS, RAF Alconbury</span>
-         <span class="arrow">→</span>
-         <span class="civilian-term">Security Operations, UK Region</span>
-       </div>
-       <div class="translation-row">
-         <span class="military-term">Led 45-person flight</span>
-         <span class="arrow">→</span>
-         <span class="civilian-term">Managed 45-person team</span>
-       </div>
-       <div class="translation-row">
-         <span class="military-term">AT/FP program</span>
-         <span class="arrow">→</span>
-         <span class="civilian-term">Security Risk Program</span>
-       </div>
-       <div class="translation-row">
-         <span class="military-term">CONUS/OCONUS operations</span>
-         <span class="arrow">→</span>
-         <span class="civilian-term">Domestic/International operations</span>
-       </div>
+   <h2>EXPERIENCE TRANSLATIONS</h2>
 
-       <div class="metrics-preserved">
-         <strong>✓ Key Metrics Preserved (Unchanged):</strong>
-         <ul>
-           <li>4,200 personnel protected</li>
-           <li>$1.3B in assets secured</li>
-           <li>100% inspection compliance</li>
-         </ul>
-       </div>
-     </div>
+   <h3>Role: [Job Title from Resume] at [Location]</h3>
+   <p>U.S. Air Force, Lackland AFB → U.S. Air Force, San Antonio, TX</p>
+   <p>TSgt → Technical Sergeant (E-6 Supervisor)</p>
+   <p>Led flight of 35 → Led team of 35</p>
+   <p>AT/FP program manager → Antiterrorism Program Manager</p>
+   <p>Conducted ORE/ORI inspections → Conducted Readiness Inspections</p>
 
-     <div class="role-translation">
-       <h4>Role 2: [Next Military Title]</h4>
-       <!-- Repeat translation-row pattern for each role -->
-     </div>
-   </div>
+   <p><strong>Key Metrics Preserved (numbers unchanged):</strong></p>
+   <p>• 35 personnel managed</p>
+   <p>• $2.1M equipment inventory</p>
+   <p>• 98% inspection pass rate</p>
 
-   <div class="crosswalk-section">
-     <h3>SKILLS TRANSLATIONS</h3>
-     <div class="translation-row">
-       <span class="military-term">S-2/G-2 Intelligence</span>
-       <span class="arrow">→</span>
-       <span class="civilian-term">Business Intelligence</span>
-     </div>
-     <div class="translation-row">
-       <span class="military-term">NCO Leadership</span>
-       <span class="arrow">→</span>
-       <span class="civilian-term">Supervisory Experience</span>
-     </div>
-     <!-- Add more skill translations -->
-   </div>
+   <h3>Role: [Next Job Title] at [Location]</h3>
+   [Repeat pattern for each job in resume]
 
-   <div class="crosswalk-section">
-     <h3>ACRONYM GLOSSARY</h3>
-     <dl class="acronym-glossary">
-       <dt>AT/FP</dt>
-       <dd>Antiterrorism / Force Protection</dd>
-       <dt>MOS</dt>
-       <dd>Military Occupational Specialty</dd>
-       <dt>NCO</dt>
-       <dd>Non-Commissioned Officer</dd>
-       <!-- List ALL acronyms from military resume with expansions -->
-     </dl>
-   </div>
+   <h2>SKILLS TRANSLATIONS</h2>
+   <p>AFSC 3P0X1 → Security Management</p>
+   <p>NCO Leadership → Supervisory Experience</p>
+   <p>Mission Planning → Strategic Planning</p>
+   <p>Force Protection → Physical Security</p>
+   <p>Personnel Security → Background Investigations</p>
+   <p>Information Security → Data Protection</p>
+   <p>Combat Arms Training → Weapons Qualification</p>
+   <p>Anti-terrorism → Threat Assessment</p>
 
-   CROSSWALK CSS (already in main CSS, but ensure these are used):
-   .crosswalk-section { border: 2px solid #333; margin-bottom: 16px; padding: 12px; page-break-inside: avoid; }
-   .crosswalk-section h3 { font-size: 12pt; border-bottom: 1px solid #333; padding-bottom: 4px; margin-bottom: 12px; text-transform: uppercase; background: #f0f0f0; padding: 6px; margin: -12px -12px 12px -12px; }
-   .role-translation { margin-bottom: 16px; padding: 8px; background: #fafafa; border-radius: 4px; }
-   .role-translation h4 { font-size: 11pt; margin-bottom: 8px; color: #333; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
-   .translation-row { display: flex; align-items: center; margin: 6px 0; padding: 6px 0; border-bottom: 1px dotted #ddd; }
-   .military-term { flex: 1; color: #555; font-style: italic; padding-right: 8px; }
-   .arrow { width: 30px; text-align: center; color: #C59141; font-weight: bold; font-size: 16pt; }
-   .civilian-term { flex: 1; font-weight: bold; color: #000; padding-left: 8px; }
-   .metrics-preserved { background: #e8f5e9; padding: 10px 14px; margin-top: 14px; border-left: 4px solid #38a169; border-radius: 0 4px 4px 0; }
-   .metrics-preserved strong { display: block; margin-bottom: 6px; color: #2d6a4f; }
-   .metrics-preserved ul { margin-left: 20px; margin-bottom: 0; }
-   .metrics-preserved li { color: #2d6a4f; margin-bottom: 3px; }
-   .acronym-glossary { margin-top: 8px; }
-   .acronym-glossary dt { font-weight: bold; float: left; width: 100px; clear: left; color: #333; }
-   .acronym-glossary dd { margin-left: 110px; margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px dotted #eee; }
+   <h2>ACRONYM GLOSSARY</h2>
+   <p>AFB - Air Force Base</p>
+   <p>AFSC - Air Force Specialty Code</p>
+   <p>AT/FP - Antiterrorism/Force Protection</p>
+   <p>NCO - Non-Commissioned Officer</p>
+   <p>ORE - Operational Readiness Exercise</p>
+   <p>ORI - Operational Readiness Inspection</p>
+   <p>TSgt - Technical Sergeant</p>
 
-   CROSSWALK MANDATORY SECTIONS (in this order):
-   1. EXPERIENCE TRANSLATIONS - Each role from the resume with:
-      - Original military title as h4 header
-      - 3-8 translation rows showing key term changes
-      - Metrics preserved callout showing numbers that stayed the same
-   2. SKILLS TRANSLATIONS - Military skills → civilian equivalents (5-10 items)
-   3. ACRONYM GLOSSARY - ALL acronyms from military resume with full expansions
+   </body></html>
 
-   CROSSWALK RULES:
-   - Include EVERY military term that was translated
-   - Show the exact before/after for each translation
-   - Metrics (numbers, percentages, dollar amounts) go in "Metrics Preserved"
-   - Every acronym used in military resume MUST appear in glossary
-   - Use arrow character (→) not text "to" or dashes
+   ═══════════════════════════════════════════════════════════════════════════
+   █ MANDATORY CROSSWALK CONTENT REQUIREMENTS
+   ═══════════════════════════════════════════════════════════════════════════
+
+   1. EXPERIENCE TRANSLATIONS (MANDATORY - for EACH job):
+      - Section header with role title and location
+      - 5-10 translation pairs showing: MILITARY → CIVILIAN
+      - Include: unit name changes, rank translations, terminology changes
+      - MUST include metrics preserved section with actual numbers
+
+   2. SKILLS TRANSLATIONS (MANDATORY - minimum 8 items):
+      - List each military skill and its civilian equivalent
+      - Format: Military Term → Civilian Term
+      - Include MOS/AFSC codes, acronyms, military phrases
+
+   3. ACRONYM GLOSSARY (MANDATORY - ALL acronyms):
+      - List EVERY acronym from the military resume
+      - Format: ACRONYM - Full Expansion
+      - Include ranks, unit types, program names
+
+   ⚠️ FAILURE MODE: Listing only section headers without content
+   ⚠️ If your crosswalk has empty sections, it has FAILED
+   ⚠️ MINIMUM: 20 total translation pairs + 10 acronym definitions
 
 ════════════════════════════════════════════════════════════════════════════════
 █ FINAL CHECKLIST (VERIFY BEFORE OUTPUT)
 ════════════════════════════════════════════════════════════════════════════════
 
+RESUMES:
 ☐ Header is CENTERED (name top, contact info below, all centered)
 ☐ Skills are pipe-delimited "CORE SKILLS: X | Y | Z", NOT bullet list
 ☐ Each job: Org+Dates FIRST, Title SECOND, Bullets THIRD
 ☐ Education dates are inline with institution, not floating
 ☐ All bullets have metrics (numbers, %, $)
 ☐ No banned AI phrases
-☐ Crosswalk has: Experience translations, Skills translations, Acronym glossary
-☐ Crosswalk uses arrow notation (Military → Civilian), NOT tables
-☐ JSON is properly escaped
 ☐ Both resumes fit on ONE PAGE
+
+CROSSWALK (CRITICAL - DO NOT SKIP):
+☐ EXPERIENCE section has 5+ translation pairs per job (Military Term → Civilian Term)
+☐ EXPERIENCE section has metrics preserved for each job (actual numbers!)
+☐ SKILLS section has 8+ translation pairs
+☐ ACRONYM section has ALL acronyms from military resume (10+ entries)
+☐ Total: 20+ translation pairs and 10+ acronym definitions
+
+JSON:
+☐ JSON is properly escaped (\\" for quotes, \\n for newlines)
 
 NOW GENERATE THE JSON FOR THE GIVEN INPUTS.
 `;
@@ -503,7 +471,12 @@ REMEMBER:
 2. Skills = PIPE-DELIMITED (<p><strong>CORE SKILLS:</strong> X | Y | Z</p>)
 3. Jobs = ORG+DATES first, TITLE second, BULLETS third
 4. Education dates = SAME LINE as institution
-5. Crosswalk = Section-by-section with arrow translations (Military → Civilian)
+5. CROSSWALK = MUST CONTAIN ACTUAL TRANSLATION CONTENT:
+   - EXPERIENCE: 5+ translations per job using format "Military Term → Civilian Term"
+   - EXPERIENCE: Include Key Metrics Preserved with actual numbers for each role
+   - SKILLS: 8+ translation pairs
+   - ACRONYMS: 10+ definitions using format "ACRONYM - Full Name"
+   - ⚠️ MINIMUM: 20 translation pairs + 10 acronym definitions TOTAL
 6. Escape JSON properly (\\" for quotes, \\n for newlines)
 `;
 
@@ -525,7 +498,7 @@ REMEMBER:
       ],
       generationConfig: {
         temperature: 0.15, // Lower temperature for more consistent formatting
-        maxOutputTokens: 32768,
+        maxOutputTokens: 8192, // Max for gemini-2.0-flash
       },
     });
 
