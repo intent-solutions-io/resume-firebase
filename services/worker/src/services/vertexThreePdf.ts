@@ -216,22 +216,22 @@ ul { margin-left: 18px; margin-top: 4px; }
 li { margin-bottom: 3px; }
 .education-entry { margin-bottom: 8px; }
 .education-entry p:first-child { display: flex; justify-content: space-between; }
-/* Crosswalk Document Styles */
+/* Crosswalk Document Styles - Enhanced v2.0 */
 .crosswalk-section { border: 2px solid #333; margin-bottom: 16px; padding: 12px; page-break-inside: avoid; }
-.crosswalk-section h3 { font-size: 12pt; border-bottom: 1px solid #333; padding-bottom: 4px; margin-bottom: 12px; text-transform: uppercase; }
-.role-translation { margin-bottom: 16px; padding: 8px; background: #fafafa; }
-.role-translation h4 { font-size: 11pt; margin-bottom: 8px; color: #333; }
-.translation-row { display: flex; align-items: center; margin: 6px 0; padding: 4px 0; border-bottom: 1px dotted #ddd; }
-.military-term { flex: 1; color: #666; font-style: italic; }
-.arrow { margin: 0 16px; color: #C59141; font-weight: bold; }
-.civilian-term { flex: 1; font-weight: bold; color: #000; }
-.metrics-preserved { background: #e8f5e9; padding: 8px 12px; margin-top: 12px; border-left: 4px solid #38a169; }
-.metrics-preserved strong { display: block; margin-bottom: 4px; }
-.metrics-preserved ul { margin-left: 16px; }
-.metrics-preserved li { color: #2d6a4f; margin-bottom: 2px; }
-.acronym-glossary { margin-top: 16px; }
-.acronym-glossary dt { font-weight: bold; float: left; width: 100px; }
-.acronym-glossary dd { margin-left: 110px; margin-bottom: 4px; }
+.crosswalk-section h3 { font-size: 12pt; border-bottom: 1px solid #333; padding-bottom: 4px; margin-bottom: 12px; text-transform: uppercase; background: #f0f0f0; padding: 8px; margin: -12px -12px 12px -12px; }
+.role-translation { margin-bottom: 16px; padding: 10px; background: #fafafa; border-radius: 4px; }
+.role-translation h4 { font-size: 11pt; margin-bottom: 10px; color: #333; border-bottom: 1px solid #ddd; padding-bottom: 6px; }
+.translation-row { display: flex; align-items: center; margin: 6px 0; padding: 6px 0; border-bottom: 1px dotted #ddd; }
+.military-term { flex: 1; color: #555; font-style: italic; padding-right: 8px; }
+.arrow { width: 30px; text-align: center; color: #C59141; font-weight: bold; font-size: 14pt; }
+.civilian-term { flex: 1; font-weight: bold; color: #000; padding-left: 8px; }
+.metrics-preserved { background: #e8f5e9; padding: 10px 14px; margin-top: 14px; border-left: 4px solid #38a169; border-radius: 0 4px 4px 0; }
+.metrics-preserved strong { display: block; margin-bottom: 6px; color: #2d6a4f; }
+.metrics-preserved ul { margin-left: 20px; margin-bottom: 0; }
+.metrics-preserved li { color: #2d6a4f; margin-bottom: 3px; }
+.acronym-glossary { margin-top: 8px; }
+.acronym-glossary dt { font-weight: bold; float: left; width: 100px; clear: left; color: #333; }
+.acronym-glossary dd { margin-left: 110px; margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px dotted #eee; }
 
 ════════════════════════════════════════════════════════════════════════════════
 █ SECTION 4: OUTPUT FORMAT (STRICT JSON)
@@ -291,15 +291,26 @@ RETURN THIS EXACT STRUCTURE:
    - Civilian titles (Operations Manager, Team Leader)
 
 3. CROSSWALK DOCUMENT (1-2 pages):
-   This is a TRANSLATION GUIDE showing how military terms were converted.
-   Format as SECTION-BY-SECTION translations, NOT a side-by-side table.
+   ════════════════════════════════════════════════════════════════════════════
+   █ CROSSWALK PURPOSE: Help recruiters understand the military-to-civilian
+   █ translation. Show WHAT changed and WHY, while highlighting preserved metrics.
+   ════════════════════════════════════════════════════════════════════════════
 
-   HTML STRUCTURE FOR CROSSWALK:
+   ❌ WRONG FORMAT (REJECT - Old side-by-side table):
+   ┌─────────────────────┬─────────────────────┐
+   │ MILITARY            │ CIVILIAN            │
+   ├─────────────────────┼─────────────────────┤
+   │ SSgt, USAF          │ Senior Supervisor   │
+   └─────────────────────┴─────────────────────┘
+
+   ✅ CORRECT FORMAT: Section-by-section with visual hierarchy
+
+   HTML STRUCTURE FOR CROSSWALK (COPY EXACTLY):
    <div class="crosswalk-section">
      <h3>EXPERIENCE TRANSLATIONS</h3>
 
      <div class="role-translation">
-       <h4>Role 1: [Original Military Title]</h4>
+       <h4>Role 1: [Original Military Title from source docs]</h4>
 
        <div class="translation-row">
          <span class="military-term">SSgt, USAF</span>
@@ -321,9 +332,14 @@ RETURN THIS EXACT STRUCTURE:
          <span class="arrow">→</span>
          <span class="civilian-term">Security Risk Program</span>
        </div>
+       <div class="translation-row">
+         <span class="military-term">CONUS/OCONUS operations</span>
+         <span class="arrow">→</span>
+         <span class="civilian-term">Domestic/International operations</span>
+       </div>
 
        <div class="metrics-preserved">
-         <strong>Metrics Preserved:</strong>
+         <strong>✓ Key Metrics Preserved (Unchanged):</strong>
          <ul>
            <li>4,200 personnel protected</li>
            <li>$1.3B in assets secured</li>
@@ -331,38 +347,85 @@ RETURN THIS EXACT STRUCTURE:
          </ul>
        </div>
      </div>
+
+     <div class="role-translation">
+       <h4>Role 2: [Next Military Title]</h4>
+       <!-- Repeat translation-row pattern for each role -->
+     </div>
    </div>
 
-   CROSSWALK CSS (add to style):
-   .crosswalk-section { border: 2px solid #333; margin-bottom: 16px; padding: 12px; }
-   .crosswalk-section h3 { font-size: 12pt; border-bottom: 1px solid #333; padding-bottom: 4px; margin-bottom: 12px; text-transform: uppercase; }
-   .role-translation { margin-bottom: 16px; padding: 8px; background: #fafafa; }
-   .role-translation h4 { font-size: 11pt; margin-bottom: 8px; color: #333; }
-   .translation-row { display: flex; align-items: center; margin: 6px 0; padding: 4px 0; border-bottom: 1px dotted #ddd; }
-   .military-term { flex: 1; color: #666; font-style: italic; }
-   .arrow { margin: 0 16px; color: #C59141; font-weight: bold; font-size: 14pt; }
-   .civilian-term { flex: 1; font-weight: bold; color: #000; }
-   .metrics-preserved { background: #e8f5e9; padding: 8px 12px; margin-top: 12px; border-left: 4px solid #38a169; }
-   .metrics-preserved strong { display: block; margin-bottom: 4px; }
-   .metrics-preserved ul { margin-left: 16px; }
-   .metrics-preserved li { color: #2d6a4f; }
+   <div class="crosswalk-section">
+     <h3>SKILLS TRANSLATIONS</h3>
+     <div class="translation-row">
+       <span class="military-term">S-2/G-2 Intelligence</span>
+       <span class="arrow">→</span>
+       <span class="civilian-term">Business Intelligence</span>
+     </div>
+     <div class="translation-row">
+       <span class="military-term">NCO Leadership</span>
+       <span class="arrow">→</span>
+       <span class="civilian-term">Supervisory Experience</span>
+     </div>
+     <!-- Add more skill translations -->
+   </div>
 
-   CROSSWALK SECTIONS TO INCLUDE:
-   1. EXPERIENCE TRANSLATIONS - Each role with term-by-term mappings
-   2. EDUCATION TRANSLATIONS - Any degree/cert terminology changes
-   3. SKILLS TRANSLATIONS - Military skills → civilian equivalents
-   4. ACRONYM GLOSSARY - List all acronyms with expansions
+   <div class="crosswalk-section">
+     <h3>ACRONYM GLOSSARY</h3>
+     <dl class="acronym-glossary">
+       <dt>AT/FP</dt>
+       <dd>Antiterrorism / Force Protection</dd>
+       <dt>MOS</dt>
+       <dd>Military Occupational Specialty</dd>
+       <dt>NCO</dt>
+       <dd>Non-Commissioned Officer</dd>
+       <!-- List ALL acronyms from military resume with expansions -->
+     </dl>
+   </div>
+
+   CROSSWALK CSS (already in main CSS, but ensure these are used):
+   .crosswalk-section { border: 2px solid #333; margin-bottom: 16px; padding: 12px; page-break-inside: avoid; }
+   .crosswalk-section h3 { font-size: 12pt; border-bottom: 1px solid #333; padding-bottom: 4px; margin-bottom: 12px; text-transform: uppercase; background: #f0f0f0; padding: 6px; margin: -12px -12px 12px -12px; }
+   .role-translation { margin-bottom: 16px; padding: 8px; background: #fafafa; border-radius: 4px; }
+   .role-translation h4 { font-size: 11pt; margin-bottom: 8px; color: #333; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+   .translation-row { display: flex; align-items: center; margin: 6px 0; padding: 6px 0; border-bottom: 1px dotted #ddd; }
+   .military-term { flex: 1; color: #555; font-style: italic; padding-right: 8px; }
+   .arrow { width: 30px; text-align: center; color: #C59141; font-weight: bold; font-size: 16pt; }
+   .civilian-term { flex: 1; font-weight: bold; color: #000; padding-left: 8px; }
+   .metrics-preserved { background: #e8f5e9; padding: 10px 14px; margin-top: 14px; border-left: 4px solid #38a169; border-radius: 0 4px 4px 0; }
+   .metrics-preserved strong { display: block; margin-bottom: 6px; color: #2d6a4f; }
+   .metrics-preserved ul { margin-left: 20px; margin-bottom: 0; }
+   .metrics-preserved li { color: #2d6a4f; margin-bottom: 3px; }
+   .acronym-glossary { margin-top: 8px; }
+   .acronym-glossary dt { font-weight: bold; float: left; width: 100px; clear: left; color: #333; }
+   .acronym-glossary dd { margin-left: 110px; margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px dotted #eee; }
+
+   CROSSWALK MANDATORY SECTIONS (in this order):
+   1. EXPERIENCE TRANSLATIONS - Each role from the resume with:
+      - Original military title as h4 header
+      - 3-8 translation rows showing key term changes
+      - Metrics preserved callout showing numbers that stayed the same
+   2. SKILLS TRANSLATIONS - Military skills → civilian equivalents (5-10 items)
+   3. ACRONYM GLOSSARY - ALL acronyms from military resume with full expansions
+
+   CROSSWALK RULES:
+   - Include EVERY military term that was translated
+   - Show the exact before/after for each translation
+   - Metrics (numbers, percentages, dollar amounts) go in "Metrics Preserved"
+   - Every acronym used in military resume MUST appear in glossary
+   - Use arrow character (→) not text "to" or dashes
 
 ════════════════════════════════════════════════════════════════════════════════
 █ FINAL CHECKLIST (VERIFY BEFORE OUTPUT)
 ════════════════════════════════════════════════════════════════════════════════
 
-☐ Header uses split layout (left/right), NOT stacked
+☐ Header is CENTERED (name top, contact info below, all centered)
 ☐ Skills are pipe-delimited "CORE SKILLS: X | Y | Z", NOT bullet list
 ☐ Each job: Org+Dates FIRST, Title SECOND, Bullets THIRD
 ☐ Education dates are inline with institution, not floating
 ☐ All bullets have metrics (numbers, %, $)
 ☐ No banned AI phrases
+☐ Crosswalk has: Experience translations, Skills translations, Acronym glossary
+☐ Crosswalk uses arrow notation (Military → Civilian), NOT tables
 ☐ JSON is properly escaped
 ☐ Both resumes fit on ONE PAGE
 
@@ -436,11 +499,12 @@ ${documentContext}
 Generate the 3-PDF bundle JSON. Return ONLY valid JSON, no markdown fences.
 
 REMEMBER:
-1. Header = SPLIT LAYOUT (name/phone left, email/linkedin right)
+1. Header = CENTERED (name on top, contact info centered below)
 2. Skills = PIPE-DELIMITED (<p><strong>CORE SKILLS:</strong> X | Y | Z</p>)
 3. Jobs = ORG+DATES first, TITLE second, BULLETS third
 4. Education dates = SAME LINE as institution
-5. Escape JSON properly (\\" for quotes, \\n for newlines)
+5. Crosswalk = Section-by-section with arrow translations (Military → Civilian)
+6. Escape JSON properly (\\" for quotes, \\n for newlines)
 `;
 
   console.log(`[vertexThreePdf] Generating 3-PDF bundle for: ${input.candidateId}`);
