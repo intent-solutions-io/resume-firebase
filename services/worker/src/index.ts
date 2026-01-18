@@ -20,6 +20,8 @@ import {
 } from './handlers/processCandidateHandler.js';
 // PROTOTYPE: 3-PDF Resume Bundle (Checkpoint 1)
 import { prototypeThreePdfHandler } from './handlers/prototypeThreePdfHandler.js';
+// NEW: JSON → DOCX direct generation (no HTML/Puppeteer)
+import { generateDocxHandler } from './handlers/generateDocxHandler.js';
 // Phase 4: Agency Onboarding API
 import { agencyRouter } from './handlers/agencyHandler.js';
 
@@ -58,6 +60,9 @@ app.get('/internal/resumeDownload/:candidateId/:format', resumeDownloadHandler);
 
 // PROTOTYPE: 3-PDF Resume Bundle Testing (Checkpoint 1)
 app.post('/internal/prototype/threePdf', prototypeThreePdfHandler);
+
+// NEW: JSON → DOCX direct generation (no HTML/Puppeteer)
+app.post('/internal/generateDocx', generateDocxHandler);
 
 // Phase 4: Agency Onboarding API
 app.use('/api/agencies', agencyRouter);
