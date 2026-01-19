@@ -6,6 +6,7 @@ on:
       - master
     paths:
       - 'services/worker/**'
+      - 'packages/shared/**'
       - '.github/workflows/deploy-worker.yml'
   workflow_dispatch:
 
@@ -20,9 +21,64 @@ env:
   REPOSITORY: resume-generator
 
 jobs:
+  # Job 1: Run tests before deployment
+  test:
+    name: Lint, Typecheck & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: |
+            services/worker/package-lock.json
+            packages/shared/package-lock.json
+
+      - name: Install shared dependencies
+        working-directory: packages/shared
+        run: npm ci
+
+      - name: Build shared package
+        working-directory: packages/shared
+        run: npm run build
+
+      - name: Install worker dependencies
+        working-directory: services/worker
+        run: npm ci
+
+      - name: Run linter
+        working-directory: services/worker
+        run: npm run lint
+
+      - name: Run type check
+        working-directory: services/worker
+        run: npm run typecheck
+
+      - name: Run unit tests
+        working-directory: services/worker
+        run: npm test -- --reporter=verbose
+
+      - name: Test Summary
+        if: always()
+        run: |
+          echo "## 🧪 Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Lint | ${{ job.status == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| TypeCheck | ${{ job.status == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Unit Tests | ${{ job.status == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+
+  # Job 2: Build and deploy (only after tests pass)
   deploy:
     name: Deploy Worker to Cloud Run
     runs-on: ubuntu-latest
+    needs: test  # Only run after tests pass
 
     steps:
       - name: Checkout code
@@ -67,6 +123,35 @@ jobs:
             --timeout 300 \
             --set-env-vars "GCP_PROJECT_ID=${{ env.PROJECT_ID }},VERTEX_LOCATION=${{ env.REGION }},GEMINI_MODEL_NAME=gemini-2.5-flash,FIREBASE_STORAGE_BUCKET=resume-gen-intent-dev.firebasestorage.app,APP_BASE_URL=https://resume-gen-intent-dev.web.app"
 
+      - name: Get Service URL
+        id: service-url
+        run: |
+          SERVICE_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} \
+            --region ${{ env.REGION }} \
+            --project ${{ env.PROJECT_ID }} \
+            --format='value(status.url)')
+          echo "url=$SERVICE_URL" >> $GITHUB_OUTPUT
+
+      - name: Health Check (verify deployment)
+        run: |
+          echo "Waiting 10s for service to stabilize..."
+          sleep 10
+
+          echo "Running health check..."
+          HEALTH_RESPONSE=$(curl -s -w "\n%{http_code}" ${{ steps.service-url.outputs.url }}/health)
+          HTTP_CODE=$(echo "$HEALTH_RESPONSE" | tail -1)
+          BODY=$(echo "$HEALTH_RESPONSE" | head -n -1)
+
+          echo "Health check response: $BODY"
+          echo "HTTP status: $HTTP_CODE"
+
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "❌ Health check failed with status $HTTP_CODE"
+            exit 1
+          fi
+
+          echo "✅ Health check passed"
+
       - name: Deployment Summary
         run: |
           echo "## ✅ Worker Deployed Successfully" >> $GITHUB_STEP_SUMMARY
@@ -74,16 +159,9 @@ jobs:
           echo "**Service:** ${{ env.SERVICE_NAME }}" >> $GITHUB_STEP_SUMMARY
           echo "**Image:** ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/worker:${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "**Region:** ${{ env.REGION }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Service URL:** ${{ steps.service-url.outputs.url }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Links" >> $GITHUB_STEP_SUMMARY
           echo "- [Cloud Run Service](https://console.cloud.google.com/run/detail/${{ env.REGION }}/${{ env.SERVICE_NAME }}?project=${{ env.PROJECT_ID }})" >> $GITHUB_STEP_SUMMARY
           echo "- [Logs](https://console.cloud.google.com/run/detail/${{ env.REGION }}/${{ env.SERVICE_NAME }}/logs?project=${{ env.PROJECT_ID }})" >> $GITHUB_STEP_SUMMARY
-          echo "- [Vertex AI](https://console.cloud.google.com/vertex-ai?project=${{ env.PROJECT_ID }})" >> $GITHUB_STEP_SUMMARY
-
-          SERVICE_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} \
-            --region ${{ env.REGION }} \
-            --project ${{ env.PROJECT_ID }} \
-            --format='value(status.url)')
-
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Service URL:** $SERVICE_URL" >> $GITHUB_STEP_SUMMARY
+          echo "- [Monitoring](https://console.cloud.google.com/monitoring/dashboards?project=${{ env.PROJECT_ID }})" >> $GITHUB_STEP_SUMMARY

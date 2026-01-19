@@ -52,8 +52,8 @@ export async function processCandidateHandler(
   req: Request,
   res: Response
 ): Promise<void> {
-  // Generate correlation ID for tracing (use header if provided, else generate)
-  const correlationId = (req.headers['x-correlation-id'] as string) || randomUUID();
+  // Use correlation ID from middleware (already generated/extracted)
+  const correlationId = req.correlationId || randomUUID();
   const { candidateId } = req.body;
 
   if (!candidateId || typeof candidateId !== 'string') {
