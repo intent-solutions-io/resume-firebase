@@ -11,7 +11,9 @@ import type {
 // Configuration
 const PROJECT_ID = process.env.GCP_PROJECT_ID || 'resume-gen-intent-dev';
 const LOCATION = process.env.VERTEX_LOCATION || 'us-central1';
-const MODEL_NAME = process.env.GEMINI_MODEL_NAME || 'gemini-2.5-flash';
+// Use gemini-2.5-pro for 3-PDF generation - needs higher output token limit (65K max)
+// gemini-2.5-flash maxes at 8192 tokens which isn't enough for 3 HTML docs
+const MODEL_NAME = process.env.GEMINI_THREE_PDF_MODEL || 'gemini-2.5-pro';
 
 // Initialize Vertex AI
 const vertexAI = new VertexAI({
@@ -482,7 +484,7 @@ REMEMBER:
 
   console.log(`[vertexThreePdf] Generating 3-PDF bundle for: ${input.candidateId}`);
   console.log(`[vertexThreePdf] Document count: ${input.documentTexts.length}`);
-  console.log(`[vertexThreePdf] Using model: ${MODEL_NAME}`);
+  console.log(`[vertexThreePdf] Using model: ${MODEL_NAME} (maxOutputTokens: 16384)`);
   if (input.extractedKeywords) {
     console.log(`[vertexThreePdf] Target role: ${input.extractedKeywords.jobTitle}`);
     console.log(`[vertexThreePdf] Keywords: ${input.extractedKeywords.hardSkills.length} hard, ${input.extractedKeywords.softSkills.length} soft`);
@@ -498,7 +500,7 @@ REMEMBER:
       ],
       generationConfig: {
         temperature: 0.15, // Lower temperature for more consistent formatting
-        maxOutputTokens: 8192, // Max for gemini-2.0-flash
+        maxOutputTokens: 16384, // Higher limit for gemini-1.5-pro (3 HTML docs need ~12-15k tokens)
       },
     });
 
