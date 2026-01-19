@@ -71,7 +71,7 @@ class GeminiService {
       generationConfig: {
         temperature: 0.3,
         topP: 0.8,
-        maxOutputTokens: 8192,
+        maxOutputTokens: 65536, // gemini-2.5-flash supports 65K
       },
     });
   }

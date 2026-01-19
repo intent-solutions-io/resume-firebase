@@ -321,7 +321,7 @@ Remember:
       ],
       generationConfig: {
         temperature: 0.3, // Balanced: consistent structure with natural phrasing
-        maxOutputTokens: 8192, // Max for gemini-2.x-flash models
+        maxOutputTokens: 65536, // gemini-2.5-flash supports up to 65K output tokens
       },
     });
 
@@ -391,7 +391,9 @@ function parseGeminiResponse(text: string, candidateId: string): GenerationOutpu
     return parsed as GenerationOutput;
   } catch (parseError) {
     console.error('[vertex] JSON parse error:', parseError);
-    console.error('[vertex] Raw response:', text.substring(0, 500));
+    console.error('[vertex] Response length:', text.length);
+    console.error('[vertex] Raw response (first 1000):', text.substring(0, 1000));
+    console.error('[vertex] Raw response (last 500):', text.substring(Math.max(0, text.length - 500)));
     throw new Error(`Failed to parse Gemini response: ${parseError}`);
   }
 }
