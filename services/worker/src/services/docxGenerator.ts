@@ -176,6 +176,8 @@ function createSummary(summary: string): Paragraph[] {
  */
 function createSkills(skills: string[]): Paragraph[] {
   return [
+    // Extra space before Core Skills section
+    new Paragraph({ spacing: { before: 200 } }),
     createSectionHeader('Core Skills'),
     new Paragraph({
       spacing: { after: 120 },
@@ -197,13 +199,13 @@ function createExperience(experience: ResumeContent['experience']): Paragraph[] 
   const paragraphs: Paragraph[] = [createSectionHeader('Professional Experience')];
 
   for (const job of experience) {
-    // Organization + Location + Dates (same line)
+    // Job Title first (bold) + Dates on right
     paragraphs.push(
       new Paragraph({
         spacing: { before: 160, after: 40 },
         children: [
           new TextRun({
-            text: `${job.organization}, ${job.location}`,
+            text: job.title,
             bold: true,
             size: SIZES.BODY,
             font: FONTS.PRIMARY,
@@ -223,14 +225,13 @@ function createExperience(experience: ResumeContent['experience']): Paragraph[] 
       })
     );
 
-    // Job Title (italic)
+    // Organization + Location (second line, italic)
     paragraphs.push(
       new Paragraph({
         spacing: { after: 60 },
         children: [
           new TextRun({
-            text: job.title,
-            bold: true,
+            text: `${job.organization}, ${job.location}`,
             italics: true,
             size: SIZES.BODY,
             font: FONTS.PRIMARY,
