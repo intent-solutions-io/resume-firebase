@@ -9,8 +9,7 @@ import { generateProfileAndResume, getModelInfo } from '../services/vertex.js';
 import { generateThreePdfResume } from '../services/vertexThreePdf.js';
 import { exportThreePdfBundle } from '../services/exportThreePdf.js';
 import { notifyNewCandidate, notifyResumeReady } from '../services/slackNotifier.js';
-import type { Candidate, CandidateProfile, GeneratedResume, GenerationInput } from '../types/candidate.js';
-import type { ThreePDFGenerationOutput } from '../types/threePdf.js';
+import type { Candidate, GenerationInput } from '../types/candidate.js';
 
 const firestore = new Firestore({
   projectId: process.env.GCP_PROJECT_ID || 'resume-gen-intent-dev',
