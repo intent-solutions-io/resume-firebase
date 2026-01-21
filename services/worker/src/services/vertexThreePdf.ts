@@ -102,27 +102,27 @@ SKILLS RULES:
 RULE 3 - EXPERIENCE BLOCK ORDER (STRICT SEQUENCE):
 
 MANDATORY ORDER FOR EACH JOB:
-1. FIRST: Organization + Location + Dates
-2. SECOND: Job Title
+1. FIRST: Job Title + Dates (on same line)
+2. SECOND: Organization + Location (italic)
 3. THIRD: Bullet points
 
 HTML STRUCTURE (COPY EXACTLY):
 <div class="job">
-  <p class="job-header"><strong>U.S. Army, Fort Liberty, NC</strong><span class="dates">Jan 2020 - Dec 2023</span></p>
-  <p class="job-title">Operations Manager</p>
+  <p class="job-header"><strong>Operations Manager</strong><span class="dates">Jan 2020 - Dec 2023</span></p>
+  <p class="job-org">U.S. Army, Fort Liberty, NC</p>
   <ul>
     <li>Led team of 45 personnel achieving 98% mission readiness...</li>
     <li>Managed $2.5M operational budget with zero audit findings...</li>
   </ul>
 </div>
 
-❌ WRONG - TITLE BEFORE ORG (REJECT):
-<p>Operations Manager</p>
+❌ WRONG - ORG BEFORE TITLE (REJECT):
 <p>U.S. Army, Fort Liberty, NC</p>
-
-❌ WRONG - BULLETS BEFORE TITLE (REJECT):
-<ul><li>Led team...</li></ul>
 <p>Operations Manager</p>
+
+❌ WRONG - BULLETS BEFORE ORG (REJECT):
+<ul><li>Led team...</li></ul>
+<p>U.S. Army, Fort Liberty, NC</p>
 
 ═══════════════════════════════════════════════════════════════════════════════
 
@@ -208,8 +208,7 @@ h2 {
   justify-content: space-between;
   margin-bottom: 2px;
 }
-.job-title {
-  font-weight: bold;
+.job-org {
   font-style: italic;
   margin-bottom: 4px;
 }
@@ -383,7 +382,7 @@ RETURN THIS EXACT STRUCTURE:
 RESUMES:
 ☐ Header is CENTERED (name top, contact info below, all centered)
 ☐ Skills are pipe-delimited "CORE SKILLS: X | Y | Z", NOT bullet list
-☐ Each job: Org+Dates FIRST, Title SECOND, Bullets THIRD
+☐ Each job: Title+Dates FIRST, Org+Location SECOND (italic), Bullets THIRD
 ☐ Education dates are inline with institution, not floating
 ☐ All bullets have metrics (numbers, %, $)
 ☐ No banned AI phrases
@@ -471,7 +470,7 @@ Generate the 3-PDF bundle JSON. Return ONLY valid JSON, no markdown fences.
 REMEMBER:
 1. Header = CENTERED (name on top, contact info centered below)
 2. Skills = PIPE-DELIMITED (<p><strong>CORE SKILLS:</strong> X | Y | Z</p>)
-3. Jobs = ORG+DATES first, TITLE second, BULLETS third
+3. Jobs = TITLE+DATES first, ORG+LOCATION second (italic), BULLETS third
 4. Education dates = SAME LINE as institution
 5. CROSSWALK = MUST CONTAIN ACTUAL TRANSLATION CONTENT:
    - EXPERIENCE: 5+ translations per job using format "Military Term → Civilian Term"
