@@ -4,6 +4,8 @@ AI-powered military-to-civilian resume generator.
 
 ---
 
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/U5S225PTME)
+
 ## For QA Testers (Ope & Mubeen)
 
 ### Ope: Testing
